@@ -13,6 +13,7 @@ import { upstreamResponseHeaders } from "../utils/upstreamHeaders.js";
 import { HTTP_STATUS, TOKEN_SAVER_HEADER } from "../config/runtimeConfig.js";
 import { handleBypassRequest } from "../utils/bypassHandler.js";
 import { trackPendingRequest, appendRequestLog, saveRequestDetail } from "@/lib/usageDb.js";
+import { recordRtk, recordHeadroom } from "@/lib/telemetry.js";
 import { getExecutor } from "../executors/index.js";
 import { supportsGrokCliReasoningEffort } from "../config/grokCli.js";
 import { buildRequestDetail, extractRequestConfig } from "./chatCore/requestDetail.js";
@@ -60,7 +61,7 @@ export function stripContinuityFields(body) {
   return body;
 }
 
-export async function handleChatCore({ body, modelInfo, credentials, log, onCredentialsRefreshed, onRequestSuccess, onDisconnect, clientRawRequest, connectionId, userAgent, apiKey, ccFilterNaming, rtkEnabled, headroomEnabled, headroomUrl, headroomCompressUserMessages, headroomTimeoutMs, cavemanEnabled, cavemanLevel, ponytailEnabled, ponytailLevel, pxpipeEnabled, pxpipeMinChars, pxpipeTimeoutMs, pxpipeTransform, onPxpipeEvent, sourceFormatOverride, providerThinking, providerOverrides }) {
+export async function handleChatCore({ body, modelInfo, credentials, log, onCredentialsRefreshed, onRequestSuccess, onDisconnect, clientRawRequest, connectionId, userAgent, apiKey, ccFilterNaming, rtkEnabled, rtkAggressive, headroomEnabled, headroomUrl, headroomCompressUserMessages, headroomTimeoutMs, cavemanEnabled, cavemanLevel, ponytailEnabled, ponytailLevel, pxpipeEnabled, pxpipeMinChars, pxpipeTimeoutMs, pxpipeTransform, onPxpipeEvent, sourceFormatOverride, providerThinking, providerOverrides, routingCtx }) {
   const { provider, model } = modelInfo;
   const requestStartTime = Date.now();
   // Stable per-session color so all lines of one CLI conversation share a tag
@@ -134,7 +135,7 @@ export async function handleChatCore({ body, modelInfo, credentials, log, onCred
   // shapes 1:1 — keep the post-translate pass there so those providers are
   // untouched (and a retry never re-compresses an already-compressed body).
   const preTranslateRtk = provider === "cursor"
-    ? compressMessages(body, tokenSaverEnabled && rtkEnabled)
+    ? compressMessages(body, tokenSaverEnabled && rtkEnabled, { aggressive: !!rtkAggressive })
     : null;
   const preTranslateRtkLine = formatRtkLog(preTranslateRtk);
   if (preTranslateRtkLine) console.log(preTranslateRtkLine);
@@ -277,7 +278,7 @@ export async function handleChatCore({ body, modelInfo, credentials, log, onCred
   }
 
   // RTK: compress tool_result content. Skipped when already done pre-translate.
-  const rtkStats = preTranslateRtk || compressMessages(translatedBody, tokenSaverEnabled && rtkEnabled);
+  const rtkStats = preTranslateRtk || compressMessages(translatedBody, tokenSaverEnabled && rtkEnabled, { aggressive: !!rtkAggressive });
 
   // Headroom: optional external proxy compression; fail open if proxy is absent.
   const headroomDiagnostics = {};
@@ -322,6 +323,37 @@ export async function handleChatCore({ body, modelInfo, credentials, log, onCred
   }
 
   if (xf.length && log?.line) log.line(reqTag, "⚙", xf.join(" · "));
+
+  // Phase 4 telemetry + routing record (all values observed right here):
+  // RTK/headroom compression actually applied to this request, and the
+  // routing context threaded down from the SSE handler (combo step,
+  // account-fallback count, quota snapshot). Fire-and-forget — telemetry
+  // must never break or delay a request.
+  try {
+    if (rtkStats && rtkStats.bytesBefore > 0) {
+      recordRtk({ charsIn: rtkStats.bytesBefore, charsOut: rtkStats.bytesAfter, hits: rtkStats.hits || [] });
+    }
+    if (headroomStats?.tokens_saved > 0 && !isHeadroomPhantomSavings(headroomStats, headroomDiagnostics)) {
+      recordHeadroom({ tokensSaved: headroomStats.tokens_saved });
+    }
+  } catch { /* ignore */ }
+
+  const rtkSavedChars = rtkStats ? Math.max(0, (rtkStats.bytesBefore || 0) - (rtkStats.bytesAfter || 0)) : 0;
+  const routing = {
+    reqId: routingCtx?.reqId || null,
+    tool: clientTool || null,
+    stream: !!stream,
+    comboName: routingCtx?.comboName || null,
+    comboStep: routingCtx?.comboStep || null,
+    comboSteps: routingCtx?.comboSteps || null,
+    account: credentials?.connectionName || null,
+    quotaRemainingPct: typeof routingCtx?.quotaRemainingPct === "number" ? routingCtx.quotaRemainingPct : null,
+    rtkSavedChars,
+    rtkSavedTokens: Math.round(rtkSavedChars / 4),
+    headroomSavedTokens: headroomStats?.tokens_saved > 0 ? headroomStats.tokens_saved : 0,
+    fallback: ((routingCtx?.accountFallbacks || 0) + (routingCtx?.comboFallbacks || 0)) > 0,
+    fallbackCount: (routingCtx?.accountFallbacks || 0) + (routingCtx?.comboFallbacks || 0),
+  };
 
   // Pin cache breakpoints to the final body — every saver above can reshape
   // system/tools/messages, and a stale anchor costs a full prefix rewrite.
@@ -419,6 +451,8 @@ export async function handleChatCore({ body, modelInfo, credentials, log, onCred
       providerRequest: translatedBody || null,
       response: { error: error.message || String(error), status: error.name === "AbortError" ? 499 : 502, thinking: null },
       pxpipe: pxpipeSummary,
+      routing,
+      statusCode: error.name === "AbortError" ? 499 : 502,
       status: "error"
     })).catch(() => { });
 
@@ -494,6 +528,8 @@ export async function handleChatCore({ body, modelInfo, credentials, log, onCred
       providerRequest: finalBody || translatedBody || null,
       response: { error: message, status: statusCode, thinking: null },
       pxpipe: pxpipeSummary,
+      routing,
+      statusCode,
       status: "error"
     })).catch(() => { });
 
@@ -506,7 +542,7 @@ export async function handleChatCore({ body, modelInfo, credentials, log, onCred
     return createErrorResult(statusCode, errMsg, resetsAtMs, upstreamResponseHeaders(providerResponse.headers));
   }
 
-  const sharedCtx = { provider, model, body, stream, translatedBody, finalBody, requestStartTime, connectionId, apiKey, clientRawRequest, onRequestSuccess, pxpipe: pxpipeSummary, reqTag, log };
+  const sharedCtx = { provider, model, body, stream, translatedBody, finalBody, requestStartTime, connectionId, apiKey, clientRawRequest, onRequestSuccess, pxpipe: pxpipeSummary, reqTag, log, routing };
   const appendLog = (extra) => appendRequestLog({ model, provider, connectionId, ...extra }).catch(() => { });
   const trackDone = () => trackPendingRequest(model, provider, connectionId, false);
 

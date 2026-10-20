@@ -7,7 +7,21 @@ const LOG_LEVELS = {
   ERROR: 3
 };
 
-const LEVEL = LOG_LEVELS[process.env.LOG_LEVEL?.toUpperCase?.()] ?? LOG_LEVELS.INFO;
+let LEVEL = LOG_LEVELS[process.env.LOG_LEVEL?.toUpperCase?.()] ?? LOG_LEVELS.INFO;
+
+// Runtime override from the Settings screen's `logLevel` field (SE-02).
+// The SSE handler re-applies it from the settings it already loads per
+// request, so a saved level takes effect without a restart. The env var
+// remains the boot-time default; explicit env always wins on boot order
+// (this setter is only called with a persisted settings value).
+export function setLogLevel(level) {
+  const next = LOG_LEVELS[String(level || "").toUpperCase()];
+  if (next !== undefined && next !== LEVEL) LEVEL = next;
+}
+
+export function getLogLevel() {
+  return Object.keys(LOG_LEVELS).find((k) => LOG_LEVELS[k] === LEVEL) || "INFO";
+}
 
 function formatTime() {
   return new Date().toLocaleTimeString("en-US", { hour12: false });

@@ -93,6 +93,11 @@ export function buildRequestDetail(base, overrides = {}) {
     response: base.response || {},
     pxpipe: base.pxpipe || undefined,
     status: base.status || "success",
+    // Phase 4 routing record: observed routing decision fields (tool,
+    // combo step, account, quota check, RTK saved, fallback) + the
+    // numeric upstream status code, when the caller knows them.
+    routing: base.routing || undefined,
+    statusCode: base.statusCode ?? undefined,
     ...overrides
   };
 }
@@ -115,7 +120,7 @@ export function formatDoneLine({ usage, latency }) {
   return `DONE ${latency?.total ?? 0}ms${ttftStr} · ${inStr} · OUT ${outTok}`;
 }
 
-export function saveUsageStats({ provider, model, tokens, connectionId, apiKey, endpoint, label = "USAGE", silent = false }) {
+export function saveUsageStats({ provider, model, tokens, connectionId, apiKey, endpoint, label = "USAGE", silent = false, latencyMs = null, routing = null }) {
   if (!tokens || typeof tokens !== "object") return;
 
   const inTokens = tokens.input_tokens ?? tokens.prompt_tokens ?? 0;
@@ -143,6 +148,13 @@ export function saveUsageStats({ provider, model, tokens, connectionId, apiKey, 
     timestamp: new Date().toISOString(),
     connectionId: connectionId || undefined,
     apiKey: apiKey || undefined,
-    endpoint: endpoint || null
+    endpoint: endpoint || null,
+    // Phase 4: per-request extras surfaced by Usage/Overview recent lists.
+    meta: {
+      latencyMs: typeof latencyMs === "number" ? latencyMs : null,
+      tool: routing?.tool || null,
+      fallback: routing?.fallback === true,
+      statusCode: 200,
+    }
   }).catch(() => {});
 }

@@ -16,13 +16,13 @@ import {
   getConnectionLabel,
 } from "./usage/components/ProviderLimits/utils";
 
-// Phase 3 — Overview (audit §II.4, O-01..O-08).
-// Class-C fields with no real source render "—" and are flagged in the
-// phase report: O-02-C delta/peak, O-03-C RTK tokens saved, O-05-C
-// fallback events, O-07-C current route + uptime, O-08 Tool/Latency/
-// fallback flag on recent requests. Status codes are only shown when
-// the payload carries a numeric code (usageHistory status is "ok";
-// the numeric upstream code is not in the stats shape).
+// Overview (audit §II.4, O-01..O-08). Phase 4 wired the class-C fields
+// to real sources: O-02 delta/peak, O-03 RTK tokens saved, O-05 fallback
+// events and O-07 current route/uptime come from the Phase 4 aggregates
+// on /api/usage/stats?period=today (telemetry store + usage history);
+// O-08 Tool/Latency/fallback flag come from the per-request routing
+// record persisted in usage meta. Fields stay "—" only while no real
+// observation exists yet.
 
 const fmt = (n) => new Intl.NumberFormat("en-US").format(n || 0);
 
@@ -70,6 +70,42 @@ function formatTime(timestamp) {
   const pad = (n) => String(n).padStart(2, "0");
   return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
 }
+
+const TOOL_NAMES = {
+  claude: "Claude Code",
+  codex: "Codex",
+  cursor: "Cursor",
+  "gemini-cli": "Gemini CLI",
+  antigravity: "Antigravity",
+  "github-copilot": "GitHub Copilot",
+  "deepseek-tui": "DeepSeek TUI",
+  opencode: "OpenCode",
+};
+
+function toolName(tool) {
+  if (!tool) return "—";
+  return TOOL_NAMES[tool] || tool;
+}
+
+function formatUptime(seconds) {
+  if (seconds == null) return "—";
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  if (h > 0) return `${h}h ${m}m`;
+  if (m > 0) return `${m}m`;
+  return "<1m";
+}
+
+function formatClockTime(timestamp) {
+  if (!timestamp) return null;
+  const d = new Date(timestamp);
+  if (!Number.isFinite(d.getTime())) return null;
+  const pad = (n) => String(n).padStart(2, "0");
+  return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+const deltaClass = "text-xs text-text-muted mt-[7px]";
+const deltaBoldClass = "font-mono font-semibold text-text-main";
 
 function tierNames(providers) {
   return providers
@@ -260,7 +296,21 @@ export default function OverviewPageClient() {
             <div className="font-mono text-[26px] font-semibold tracking-[-0.02em] leading-[1.1]">
               {stats ? fmt(stats.totalRequests) : "—"}
             </div>
-            {/* O-02-C: delta vs yesterday + peak time are not in the stats shape — omitted. */}
+            {stats && (stats.requestsDeltaPct != null || stats.peakTime) ? (
+              <div className={deltaClass}>
+                {stats.requestsDeltaPct != null ? (
+                  <>
+                    <b className={deltaBoldClass}>
+                      {stats.requestsDeltaPct > 0 ? "+" : ""}
+                      {stats.requestsDeltaPct}%
+                    </b>{" "}
+                    vs yesterday
+                  </>
+                ) : null}
+                {stats.requestsDeltaPct != null && stats.peakTime ? " · " : null}
+                {stats.peakTime ? <>peak {stats.peakTime}</> : null}
+              </div>
+            ) : null}
           </Card>
 
           <Card>
@@ -268,8 +318,21 @@ export default function OverviewPageClient() {
               <span className={dotOn} />
               Tokens saved by RTK
             </div>
-            <div className="font-mono text-[26px] font-semibold tracking-[-0.02em] leading-[1.1]">—</div>
-            {/* O-03-C: no RTK telemetry source exists — Phase 4. */}
+            <div className="font-mono text-[26px] font-semibold tracking-[-0.02em] leading-[1.1]">
+              {stats?.rtk ? fmt(stats.rtk.tokensSaved) : "—"}
+            </div>
+            {stats?.rtk ? (
+              <div className={deltaClass}>
+                {stats.rtk.calls > 0 ? (
+                  <>
+                    <b className={deltaBoldClass}>{stats.rtk.compressedPct}%</b> of tool
+                    output compressed
+                  </>
+                ) : (
+                  "No tool output compressed yet today"
+                )}
+              </div>
+            ) : null}
           </Card>
 
           <Card>
@@ -300,8 +363,21 @@ export default function OverviewPageClient() {
               <span className={dotWarn} />
               Fallback events
             </div>
-            <div className="font-mono text-[26px] font-semibold tracking-[-0.02em] leading-[1.1]">—</div>
-            {/* O-05-C: no fallback-event log exists — Phase 4. */}
+            <div className="font-mono text-[26px] font-semibold tracking-[-0.02em] leading-[1.1]">
+              {stats?.fallback ? fmt(stats.fallback.events) : "—"}
+            </div>
+            {stats?.fallback ? (
+              <div className={deltaClass}>
+                {stats.fallback.lastAt ? (
+                  <>
+                    Last: <b className={deltaBoldClass}>{formatClockTime(stats.fallback.lastAt)}</b>
+                    {stats.fallback.lastReason ? <> · {stats.fallback.lastReason}</> : null}
+                  </>
+                ) : (
+                  "No fallback events yet"
+                )}
+              </div>
+            ) : null}
           </Card>
         </div>
 
@@ -368,9 +444,15 @@ export default function OverviewPageClient() {
                 </div>
               ))}
               <div className="h-px bg-border my-[18px]" />
-              {/* O-07-C: current route + uptime are not exposed — Phase 4. */}
-              <KvRow label="Current route" value="—" />
-              <KvRow label="Uptime (this session)" value="—" />
+              <KvRow
+                label="Current route"
+                value={
+                  stats?.currentRoute
+                    ? `${providerName(stats.currentRoute.provider)} · ${stats.currentRoute.model || ""}`
+                    : "—"
+                }
+              />
+              <KvRow label="Uptime (this session)" value={formatUptime(stats?.uptimeSeconds)} />
               <KvRow label="Listening on" value={`0.0.0.0:${port}`} />
             </div>
           </Card>
@@ -411,13 +493,20 @@ export default function OverviewPageClient() {
                       <td className={`${tdClass} font-mono text-[12.5px]`}>
                         {formatTime(r.timestamp)}
                       </td>
-                      <td className={tdClass}>—</td>
+                      <td className={tdClass}>{toolName(r.tool)}</td>
                       <td className={`${tdClass} font-mono text-[12.5px]`}>{r.model || "—"}</td>
                       <td className={tdClass}>{providerName(r.provider)}</td>
                       <td className={tdClass}>
-                        <StatusCell status={r.status} />
+                        <StatusCell status={r.statusCode ?? r.status} />
+                        {r.fallback ? (
+                          <span className="ml-1">
+                            <Badge>fallback</Badge>
+                          </span>
+                        ) : null}
                       </td>
-                      <td className={tdNumClass}>—</td>
+                      <td className={tdNumClass}>
+                        {r.latencyMs != null ? `${fmt(r.latencyMs)} ms` : "—"}
+                      </td>
                       <td className={tdNumClass}>
                         {fmt((r.promptTokens || 0) + (r.completionTokens || 0))}
                       </td>

@@ -5,13 +5,17 @@ import { autoDetectFilter } from "./autodetect.js";
 import { safeApply } from "./applyFilter.js";
 
 // Compress tool_result content in-place. Returns stats or null if disabled/failed.
-export function compressMessages(body, enabled) {
+// opts.aggressive (Token Saver "Aggressive mode"): lower the minimum blob
+// size so smaller shell outputs are compressed too — the filters themselves
+// decide what is low-signal; this only widens what they are offered.
+export function compressMessages(body, enabled, opts = {}) {
   if (!enabled) return null;
   if (!body) return null;
+  const aggressive = opts?.aggressive === true;
 
   // Kiro format: conversationState.history + conversationState.currentMessage
   if (body.conversationState) {
-    return compressKiroFormat(body, enabled);
+    return compressKiroFormat(body, enabled, aggressive);
   }
 
   // Support both OpenAI/Claude "messages" and OpenAI Responses "input"
@@ -29,12 +33,12 @@ export function compressMessages(body, enabled) {
       // Shape 4: OpenAI Responses — top-level { type:"function_call_output", output: string | [{type:"input_text", text}] }
       if (msg.type === "function_call_output") {
         if (typeof msg.output === "string") {
-          msg.output = compressText(msg.output, stats, "openai-responses-string");
+          msg.output = compressText(msg.output, stats, "openai-responses-string", aggressive);
         } else if (Array.isArray(msg.output)) {
           for (let k = 0; k < msg.output.length; k++) {
             const part = msg.output[k];
             if (part && part.type === "input_text" && typeof part.text === "string") {
-              part.text = compressText(part.text, stats, "openai-responses-array");
+              part.text = compressText(part.text, stats, "openai-responses-array", aggressive);
             }
           }
         }
@@ -43,7 +47,7 @@ export function compressMessages(body, enabled) {
 
       // Shape 1: OpenAI tool message — { role:"tool", content: "string" }
       if (msg.role === "tool" && typeof msg.content === "string") {
-        msg.content = compressText(msg.content, stats, "openai-tool");
+        msg.content = compressText(msg.content, stats, "openai-tool", aggressive);
         continue;
       }
 
@@ -54,7 +58,7 @@ export function compressMessages(body, enabled) {
         for (let k = 0; k < msg.content.length; k++) {
           const part = msg.content[k];
           if (part && part.type === "text" && typeof part.text === "string") {
-            part.text = compressText(part.text, stats, "openai-tool-array");
+            part.text = compressText(part.text, stats, "openai-tool-array", aggressive);
           }
         }
         continue;
@@ -68,13 +72,13 @@ export function compressMessages(body, enabled) {
 
         if (typeof block.content === "string") {
           // Shape 2: claude string form
-          block.content = compressText(block.content, stats, "claude-string");
+          block.content = compressText(block.content, stats, "claude-string", aggressive);
         } else if (Array.isArray(block.content)) {
           // Shape 3: claude array form — compress each text part
           for (let k = 0; k < block.content.length; k++) {
             const part = block.content[k];
             if (part && part.type === "text" && typeof part.text === "string") {
-              part.text = compressText(part.text, stats, "claude-array");
+              part.text = compressText(part.text, stats, "claude-array", aggressive);
             }
           }
         }
@@ -88,7 +92,7 @@ export function compressMessages(body, enabled) {
 }
 
 // Compress Kiro format: conversationState.history[].userInputMessage.userInputMessageContext.toolResults[].content[].text
-function compressKiroFormat(body, enabled) {
+function compressKiroFormat(body, enabled, aggressive = false) {
   const stats = { bytesBefore: 0, bytesAfter: 0, hits: [] };
   try {
     const state = body.conversationState;
@@ -105,7 +109,7 @@ function compressKiroFormat(body, enabled) {
 
         for (const part of tr.content) {
           if (part && typeof part.text === "string") {
-            part.text = compressText(part.text, stats, "kiro-tool-result");
+            part.text = compressText(part.text, stats, "kiro-tool-result", aggressive);
           }
         }
       }
@@ -117,11 +121,14 @@ function compressKiroFormat(body, enabled) {
   return stats;
 }
 
-function compressText(text, stats, shape) {
+const AGGRESSIVE_MIN_COMPRESS_SIZE = 120;
+
+function compressText(text, stats, shape, aggressive = false) {
   const bytesIn = text.length;
   stats.bytesBefore += bytesIn;
 
-  if (bytesIn < MIN_COMPRESS_SIZE || bytesIn > RAW_CAP) {
+  const minSize = aggressive ? AGGRESSIVE_MIN_COMPRESS_SIZE : MIN_COMPRESS_SIZE;
+  if (bytesIn < minSize || bytesIn > RAW_CAP) {
     stats.bytesAfter += bytesIn;
     return text;
   }
@@ -141,7 +148,7 @@ function compressText(text, stats, shape) {
   }
 
   stats.bytesAfter += out.length;
-  stats.hits.push({ shape, filter: fn.filterName || fn.name, saved: bytesIn - out.length });
+  stats.hits.push({ shape, filter: fn.filterName || fn.name, saved: bytesIn - out.length, charsIn: bytesIn });
   return out;
 }
 

@@ -9,13 +9,24 @@ import { AI_PROVIDERS } from "@/shared/constants/providers";
 // Removed per §II.24 / U-02 / U-05: tabs, period SegmentedControl,
 // RequestLogger, RequestDetailsTab, ProviderTopology (imports dropped;
 // the shared UsageStats component is no longer imported here).
-// Class-C flags: U-03-C "Time saved by fallback" (no source);
-// success-rate delta's "recovered by fallback" part (no source);
+// Phase 4 closed the class-C flags: U-03 "Time saved by fallback" and
+// the success-rate delta's "recovered by fallback" count read the
+// fallback aggregates on /api/usage/stats?period=7d (telemetry store,
+// credited only when a request actually recovered); the Requests (7d)
+// delta reads the previous-period aggregate from the same payload.
 // U-06-C per-provider errors / avg latency come from the
 // request-details store (observability) — cells render "—" when that
 // store has no rows or a query fails.
 
 const fmt = (n) => new Intl.NumberFormat("en-US").format(n || 0);
+
+function fmtDurationMs(ms) {
+  const totalMinutes = Math.round((Number(ms) || 0) / 60000);
+  const h = Math.floor(totalMinutes / 60);
+  const m = totalMinutes % 60;
+  if (h > 0) return `${h}h ${m}m`;
+  return `${m}m`;
+}
 
 function fmtCompact(n) {
   const v = Number(n) || 0;
@@ -210,7 +221,15 @@ export default function UsagePage() {
             <div className="font-mono text-[26px] font-semibold tracking-[-0.02em] leading-[1.1]">
               {stats ? fmt(totalRequests) : "—"}
             </div>
-            {/* Previous-week % is not computable from the offered periods — delta omitted (flagged). */}
+            {stats && stats.requestsDeltaPct != null ? (
+              <div className="text-xs text-text-muted mt-[7px]">
+                <b className="font-mono font-semibold text-text-main">
+                  {stats.requestsDeltaPct > 0 ? "+" : ""}
+                  {stats.requestsDeltaPct}%
+                </b>{" "}
+                vs previous week
+              </div>
+            ) : null}
           </Card>
 
           <Card>
@@ -225,8 +244,15 @@ export default function UsagePage() {
 
           <Card>
             <div className="text-xs font-medium text-text-muted mb-2">Time saved by fallback</div>
-            <div className="font-mono text-[26px] font-semibold tracking-[-0.02em] leading-[1.1]">—</div>
-            {/* U-03-C: no fallback timing source exists — Phase 4. */}
+            <div className="font-mono text-[26px] font-semibold tracking-[-0.02em] leading-[1.1]">
+              {stats?.fallback ? fmtDurationMs(stats.fallback.timeSavedMs) : "—"}
+            </div>
+            {stats?.fallback ? (
+              <div className="text-xs text-text-muted mt-[7px]">
+                <b className="font-mono font-semibold text-text-main">{fmt(stats.fallback.recovered)}</b>{" "}
+                recovered · {fmt(stats.fallback.events)} fallback events
+              </div>
+            ) : null}
           </Card>
 
           <Card>
@@ -238,7 +264,11 @@ export default function UsagePage() {
               <div className="text-xs text-text-muted mt-[7px]">
                 <b className="font-mono font-semibold text-text-main">{fmt(successData.errors)}</b>{" "}
                 errors
-                {/* "recovered by fallback" count is class C — omitted. */}
+                {stats?.fallback ? (
+                  <>
+                    {" "}· {fmt(stats.fallback.recovered)} recovered by fallback
+                  </>
+                ) : null}
               </div>
             ) : null}
           </Card>

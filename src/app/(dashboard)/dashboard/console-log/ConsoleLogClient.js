@@ -14,15 +14,31 @@ import { cn } from "@/shared/utils/cn";
 //   status: "success" | "error" (exact-match filter — &status= works)
 //   latency: { ttft, total } (ms)   tokens: { prompt_tokens, completion_tokens }
 //   timestamp: ISO string with millisecond precision (CL-05 ✓)
-// Class-C flags: CL-02-C tool field does not exist (Tool column "—",
-// tools filter rendered disabled with only "All tools"; the artifact's
-// "Fallback" status option is omitted — no fallback field to match);
-// CL-03 detail row shows only real stored fields (combo step,
-// quota-check %, RTK-saved are Phase 4). Status codes render only
-// when a payload carries a numeric code — neither store does (the
-// numeric upstream code lives in the redacted `response` field).
+// Phase 4 closed the class-C flags: every detail now carries the
+// routing record recorded at routing time (CL-03) — combo name/step,
+// account, quota-check %, RTK tokens saved, tool, stream flag,
+// fallback flag/count — plus the numeric upstream status code
+// (CL-02). The Tool column and tools filter read routing.tool; the
+// status filter's "Fallback" option matches routing.fallback.
 
 const fmt = (n) => new Intl.NumberFormat("en-US").format(n || 0);
+
+const TOOL_NAMES = {
+  claude: "Claude Code",
+  codex: "Codex",
+  cursor: "Cursor",
+  "gemini-cli": "Gemini CLI",
+  antigravity: "Antigravity",
+  "github-copilot": "GitHub Copilot",
+  "deepseek-tui": "DeepSeek TUI",
+  opencode: "OpenCode",
+  cline: "Cline",
+};
+
+function toolName(tool) {
+  if (!tool) return "—";
+  return TOOL_NAMES[tool] || tool;
+}
 
 function providerName(providerId) {
   return AI_PROVIDERS[providerId]?.name || providerId || "—";
@@ -133,6 +149,8 @@ export default function ConsoleLogClient() {
   const [paused, setPaused] = useState(false);
   const [providerFilter, setProviderFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
+  const [toolFilter, setToolFilter] = useState("");
+  const [toolIds, setToolIds] = useState([]);
   const [providerIds, setProviderIds] = useState([]);
   const [connectionLabels, setConnectionLabels] = useState({});
   const [expandedId, setExpandedId] = useState(null);
@@ -161,11 +179,31 @@ export default function ConsoleLogClient() {
     try {
       const params = new URLSearchParams({ pageSize: "25" });
       if (providerFilter) params.set("provider", providerFilter);
-      if (statusFilter) params.set("status", statusFilter);
+      // "fallback" is not a stored status — it matches routing.fallback
+      // client-side, so it must not go to the exact-match API filter.
+      if (statusFilter && statusFilter !== "fallback") params.set("status", statusFilter);
       const res = await fetch(`/api/usage/request-details?${params.toString()}`);
       if (!res.ok) return;
       const data = await res.json();
-      const details = data.details || [];
+      let details = data.details || [];
+      setToolIds((prev) => {
+        const set = new Set(prev);
+        let changed = false;
+        for (const d of details) {
+          const t = d.routing?.tool;
+          if (t && !set.has(t)) {
+            set.add(t);
+            changed = true;
+          }
+        }
+        return changed ? [...set] : prev;
+      });
+      if (statusFilter === "fallback") {
+        details = details.filter((d) => d.routing?.fallback === true);
+      }
+      if (toolFilter) {
+        details = details.filter((d) => d.routing?.tool === toolFilter);
+      }
       setRows(details);
       setProviderIds((prev) => {
         const set = new Set(prev);
@@ -181,7 +219,7 @@ export default function ConsoleLogClient() {
     } catch {
       // Keep the last good rows on a failed poll.
     }
-  }, [providerFilter, statusFilter]);
+  }, [providerFilter, statusFilter, toolFilter]);
 
   useEffect(() => {
     fetchRows();
@@ -201,16 +239,31 @@ export default function ConsoleLogClient() {
   };
 
   const detailString = (d) => {
+    const r = d.routing || {};
     const parts = [];
-    if (d.id) parts.push(`request id ${d.id}`);
-    if (d.provider) parts.push(`provider ${d.provider}`);
-    const account = d.connectionId ? connectionLabels[d.connectionId] : null;
+    if (r.comboName) {
+      let route = `route: combo ${r.comboName}`;
+      if (r.comboStep) {
+        route += ` → step ${r.comboStep}${r.comboSteps ? ` of ${r.comboSteps}` : ""} (${d.provider || "?"})`;
+      }
+      parts.push(route);
+    } else {
+      parts.push(`route: direct model ${d.model || "—"}${d.provider ? ` → ${d.provider}` : ""}`);
+    }
+    const account = r.account || (d.connectionId ? connectionLabels[d.connectionId] : null);
     if (account) parts.push(`account ${account}`);
-    if (d.status) parts.push(`status ${d.status}`);
-    const lat = latencyMs(d);
-    if (lat != null) parts.push(`latency ${lat} ms`);
-    parts.push(`tokens ${fmt(tokensIn(d))} in / ${fmt(tokensOut(d))} out`);
-    if (d.timestamp) parts.push(new Date(d.timestamp).toISOString());
+    if (typeof r.quotaRemainingPct === "number") {
+      parts.push(`quota check OK (${r.quotaRemainingPct}% left)`);
+    }
+    const saved = (r.rtkSavedTokens || 0) + (r.headroomSavedTokens || 0);
+    if (saved > 0) parts.push(`RTK saved ${fmt(saved)} tokens`);
+    if (r.fallback) {
+      const n = r.fallbackCount || 1;
+      parts.push(`fallback after ${n} failed attempt${n > 1 ? "s" : ""}`);
+    }
+    if (d.status === "error" && d.statusCode) parts.push(`upstream ${d.statusCode}`);
+    parts.push(`stream: ${r.stream ? "yes" : "no"}`);
+    parts.push(`request id ${r.reqId || d.id || "—"}`);
     return parts.join(" · ");
   };
 
@@ -235,6 +288,15 @@ export default function ConsoleLogClient() {
         )}
         <FilterSelect
           className="w-full max-w-[170px]"
+          value={toolFilter}
+          onChange={(e) => setToolFilter(e.target.value)}
+          options={[
+            { value: "", label: "All tools" },
+            ...toolIds.map((id) => ({ value: id, label: toolName(id) })),
+          ]}
+        />
+        <FilterSelect
+          className="w-full max-w-[170px]"
           value={providerFilter}
           onChange={(e) => setProviderFilter(e.target.value)}
           options={[
@@ -250,15 +312,8 @@ export default function ConsoleLogClient() {
             { value: "", label: "Any status" },
             { value: "success", label: "OK" },
             { value: "error", label: "ERROR" },
+            { value: "fallback", label: "Fallback" },
           ]}
-        />
-        {/* CL-02-C: no tool field exists in the payload — honest disabled placeholder. */}
-        <FilterSelect
-          className="w-full max-w-[170px]"
-          value=""
-          onChange={() => {}}
-          disabled
-          options={[{ value: "", label: "All tools" }]}
         />
         <div className="flex-1" />
         <Button size="sm" variant="secondary" onClick={() => setPaused((p) => !p)}>
@@ -307,14 +362,19 @@ export default function ConsoleLogClient() {
                         <td className={`${tdClass} font-mono text-[12.5px]`}>
                           {formatTimeMs(d.timestamp)}
                         </td>
-                        <td className={tdClass}>—</td>
+                        <td className={tdClass}>{toolName(d.routing?.tool)}</td>
                         <td className={`${tdClass} font-mono text-[12.5px]`}>{d.model || "—"}</td>
                         <td className={tdClass}>
                           {providerName(d.provider)}
                           {account ? ` · ${account}` : ""}
                         </td>
                         <td className={tdClass}>
-                          <StatusCell status={d.status} />
+                          <StatusCell status={d.statusCode ?? d.status} />
+                          {d.routing?.fallback ? (
+                            <span className="ml-1">
+                              <Badge>fallback</Badge>
+                            </span>
+                          ) : null}
                         </td>
                         <td className={tdNumClass}>{lat != null ? fmt(lat) : "—"}</td>
                         <td className={tdNumClass}>{fmt(tokensIn(d))}</td>

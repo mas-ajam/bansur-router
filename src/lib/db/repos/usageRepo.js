@@ -124,11 +124,12 @@ async function ensureRingInitialized() {
   recentRing.initialized = true;
   try {
     const db = await getAdapter();
-    const rows = db.all(`SELECT timestamp, provider, model, connectionId, apiKey, endpoint, cost, status, tokens FROM usageHistory ORDER BY id DESC LIMIT ?`, [RING_CAP]);
+    const rows = db.all(`SELECT timestamp, provider, model, connectionId, apiKey, endpoint, cost, status, tokens, meta FROM usageHistory ORDER BY id DESC LIMIT ?`, [RING_CAP]);
     recentRing.items = rows.reverse().map((r) => ({
       timestamp: r.timestamp, provider: r.provider, model: r.model, connectionId: r.connectionId,
       apiKey: r.apiKey, endpoint: r.endpoint, cost: r.cost, status: r.status,
       tokens: parseJson(r.tokens, {}),
+      meta: parseJson(r.meta, {}),
     }));
   } catch {}
 }
@@ -219,11 +220,16 @@ export async function getActiveRequests() {
     .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
     .map((e) => {
       const t = e.tokens || {};
+      const m = e.meta || {};
       return {
         timestamp: e.timestamp, model: e.model, provider: e.provider || "",
         promptTokens: t.prompt_tokens || t.input_tokens || 0,
         completionTokens: t.completion_tokens || t.output_tokens || 0,
         status: e.status || "ok",
+        tool: m.tool || null,
+        latencyMs: typeof m.latencyMs === "number" ? m.latencyMs : null,
+        fallback: m.fallback === true,
+        statusCode: typeof m.statusCode === "number" ? m.statusCode : null,
       };
     })
     .filter((e) => {
@@ -286,7 +292,7 @@ export async function saveRequestUsage(entry) {
           entry.timestamp, entry.provider || null, entry.model || null,
           entry.connectionId || null, entry.apiKey || null, entry.endpoint || null,
           promptTokens, completionTokens, entry.cost || 0, entry.status || "ok",
-          stringifyJson(tokens), stringifyJson({}),
+          stringifyJson(tokens), stringifyJson(entry.meta || {}),
         ]
       );
 
@@ -373,17 +379,22 @@ export async function getUsageStats(period = "all") {
   }
 
   // recentRequests from live history (last 100 entries enough for 20 deduped)
-  const recentRows = db.all(`SELECT timestamp, provider, model, tokens, status FROM usageHistory ORDER BY id DESC LIMIT 100`);
+  const recentRows = db.all(`SELECT timestamp, provider, model, tokens, status, meta FROM usageHistory ORDER BY id DESC LIMIT 100`);
   const seen = new Set();
   const recentRequests = recentRows
     .map((r) => {
       const t = parseJson(r.tokens, {}) || {};
+      const m = parseJson(r.meta, {}) || {};
       return {
         timestamp: r.timestamp, model: r.model, provider: r.provider || "",
         promptTokens: t.prompt_tokens || t.input_tokens || 0,
         completionTokens: t.completion_tokens || t.output_tokens || 0,
         cachedTokens: t.cached_tokens || t.cache_read_input_tokens || 0,
         status: r.status || "ok",
+        tool: m.tool || null,
+        latencyMs: typeof m.latencyMs === "number" ? m.latencyMs : null,
+        fallback: m.fallback === true,
+        statusCode: typeof m.statusCode === "number" ? m.statusCode : null,
       };
     })
     .filter((e) => {
@@ -669,6 +680,114 @@ export async function getUsageStats(period = "all") {
   }
 
   stats.totalRequests = Object.values(stats.byProvider).reduce((sum, p) => sum + (p.requests || 0), 0);
+
+  // ---- Phase 4 aggregates (O-02 delta/peak, O-07 uptime/current route,
+  // U-03/O-05 fallback window, O-03 RTK today) — all from real stores.
+  try {
+    const { getFallbackWindow, getTelemetry } = await import("./telemetryRepo.js");
+    const dayKey = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    const today = new Date();
+    const todayKey = dayKey(today);
+
+    // Fallback window matching the requested period.
+    let fallbackWindow;
+    if (period === "all") {
+      const t = await getTelemetry();
+      fallbackWindow = {
+        events: t.fallback.totalEvents,
+        recovered: t.fallback.totalRecovered,
+        timeSavedMs: t.fallback.totalTimeSavedMs,
+      };
+    } else {
+      const spanDays = period === "today" || period === "24h" ? 2 : period === "7d" ? 7 : period === "30d" ? 30 : 60;
+      const keys = [];
+      for (let i = 0; i < spanDays; i++) {
+        const d = new Date(today);
+        d.setDate(d.getDate() - i);
+        keys.push(dayKey(d));
+      }
+      if (period === "today") keys.splice(0, keys.length, todayKey);
+      fallbackWindow = await getFallbackWindow(keys);
+    }
+    stats.fallback = {
+      ...fallbackWindow,
+      lastAt: (await getTelemetry()).fallback.lastAt,
+      lastReason: (await getTelemetry()).fallback.lastReason,
+    };
+
+    // RTK today (Overview stat card reads stats.rtk).
+    if (period === "today") {
+      const t = await getTelemetry();
+      const rtkToday = t.rtk.days[todayKey] || { tokensSaved: 0, tokensIn: 0, tokensOut: 0, calls: 0 };
+      stats.rtk = {
+        tokensSaved: rtkToday.tokensSaved || 0,
+        tokensIn: rtkToday.tokensIn || 0,
+        tokensOut: rtkToday.tokensOut || 0,
+        calls: rtkToday.calls || 0,
+        compressedPct: rtkToday.tokensIn > 0
+          ? +(((rtkToday.tokensIn - rtkToday.tokensOut) / rtkToday.tokensIn) * 100).toFixed(1)
+          : 0,
+      };
+
+      // Delta vs yesterday + peak minute, from today's live history.
+      const startOfDay = new Date();
+      startOfDay.setHours(0, 0, 0, 0);
+      const todayRows = db.all(
+        `SELECT timestamp FROM usageHistory WHERE timestamp >= ?`,
+        [startOfDay.toISOString()]
+      );
+      const minuteBuckets = {};
+      for (const r of todayRows) {
+        const d = new Date(r.timestamp);
+        if (!Number.isFinite(d.getTime())) continue;
+        const minute = `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+        minuteBuckets[minute] = (minuteBuckets[minute] || 0) + 1;
+      }
+      let peakTime = null;
+      let peakCount = 0;
+      for (const [minute, count] of Object.entries(minuteBuckets)) {
+        if (count > peakCount) { peakCount = count; peakTime = minute; }
+      }
+      stats.peakTime = peakTime;
+
+      const yesterday = new Date(today);
+      yesterday.setDate(yesterday.getDate() - 1);
+      const yRow = db.get(`SELECT data FROM usageDaily WHERE dateKey = ?`, [dayKey(yesterday)]);
+      const yesterdayRequests = yRow ? (parseJson(yRow.data, {})?.requests || 0) : 0;
+      stats.requestsDeltaPct = yesterdayRequests > 0
+        ? +(((stats.totalRequests - yesterdayRequests) / yesterdayRequests) * 100).toFixed(1)
+        : null;
+      stats.yesterdayRequests = yesterdayRequests;
+    }
+
+    // Previous-period delta for windowed periods (Usage screen, U-02):
+    // same usageDaily source the window totals are built from.
+    if (period === "7d" || period === "30d" || period === "60d") {
+      const spanDays = period === "7d" ? 7 : period === "30d" ? 30 : 60;
+      let prevRequests = 0;
+      for (let i = spanDays; i < spanDays * 2; i++) {
+        const d = new Date(today);
+        d.setDate(d.getDate() - i);
+        const row = db.get(`SELECT data FROM usageDaily WHERE dateKey = ?`, [dayKey(d)]);
+        if (row) prevRequests += parseJson(row.data, {})?.requests || 0;
+      }
+      stats.prevPeriodRequests = prevRequests;
+      stats.requestsDeltaPct = prevRequests > 0
+        ? +(((stats.totalRequests - prevRequests) / prevRequests) * 100).toFixed(1)
+        : null;
+    }
+  } catch { /* aggregates are additive; never break the base stats */ }
+
+  // Session uptime + current route (last routed request, real history row).
+  stats.uptimeSeconds = Math.floor(process.uptime());
+  stats.startedAt = new Date(Date.now() - process.uptime() * 1000).toISOString();
+  try {
+    const last = db.get(`SELECT timestamp, provider, model FROM usageHistory ORDER BY id DESC LIMIT 1`);
+    stats.currentRoute = last ? { provider: last.provider, model: last.model, at: last.timestamp } : null;
+  } catch {
+    stats.currentRoute = null;
+  }
+
   return stats;
 }
 

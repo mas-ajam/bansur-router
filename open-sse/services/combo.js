@@ -6,6 +6,8 @@ import { checkFallbackError, formatRetryAfter } from "./accountFallback.js";
 import { unavailableResponse } from "../utils/error.js";
 import { getCapabilitiesForModel } from "../providers/capabilities.js";
 import { extractTextContent } from "../translator/formats/gemini.js";
+import { recordFallbackEvent, settleFallback } from "@/lib/telemetry.js";
+import { recordComboOutcome } from "@/lib/localDb.js";
 
 // Hard capabilities = input modalities; missing one drops request data (e.g. image
 // stripped). Must be prioritized. Soft (e.g. search) only degrades a feature.
@@ -317,7 +319,7 @@ export function isZeroContentResponse(data) {
  * @param {number|string} [options.comboStickyLimit=1] - Requests per combo model before switching
  * @returns {Promise<Response>}
  */
-export async function handleComboChat({ body, models, handleSingleModel, log, comboName, comboStrategy, comboStickyLimit = 1, autoSwitch = true }) {
+export async function handleComboChat({ body, models, handleSingleModel, log, comboName, comboStrategy, comboStickyLimit = 1, autoSwitch = true, routingCtx = null }) {
   // Apply rotation strategy if enabled
   let rotatedModels = getRotatedModels(models, comboName, comboStrategy, comboStickyLimit);
 
@@ -341,6 +343,14 @@ export async function handleComboChat({ body, models, handleSingleModel, log, co
     const modelStr = rotatedModels[i];
     log.info("COMBO", `Trying model ${i + 1}/${rotatedModels.length}: ${modelStr}`);
 
+    // Phase 4: expose the current step on the shared routing context so
+    // the request detail recorded by the serving attempt carries it.
+    if (routingCtx) {
+      routingCtx.comboName = comboName || routingCtx.comboName || null;
+      routingCtx.comboStep = i + 1;
+      routingCtx.comboSteps = rotatedModels.length;
+    }
+
     try {
       const result = await handleSingleModel(body, modelStr);
       
@@ -356,6 +366,10 @@ export async function handleComboChat({ body, models, handleSingleModel, log, co
                 log.warn("COMBO", `Model ${modelStr} returned HTTP 200 with zero usable content, falling back to next model`);
                 lastError = "Zero usable content";
                 lastStatus = 200;
+                if (routingCtx) {
+                  routingCtx.comboFallbacks = (routingCtx.comboFallbacks || 0) + 1;
+                  recordFallbackEvent({ reqId: routingCtx.reqId, kind: "combo", comboName: comboName || null, model: modelStr, status: 200, reason: "Zero usable content", avoidedWaitMs: 0 });
+                }
                 continue;
               }
             } catch {
@@ -365,6 +379,8 @@ export async function handleComboChat({ body, models, handleSingleModel, log, co
         }
 
         log.info("COMBO", `Model ${modelStr} succeeded`);
+        if (comboName) recordComboOutcome(comboName, { status: "ok", model: modelStr }).catch(() => {});
+        if (routingCtx) settleFallback(routingCtx.reqId, true);
         return result;
       }
 
@@ -394,6 +410,8 @@ export async function handleComboChat({ body, models, handleSingleModel, log, co
 
       if (!shouldFallback) {
         log.warn("COMBO", `Model ${modelStr} failed (no fallback)`, { status: result.status });
+        if (comboName) recordComboOutcome(comboName, { status: "error", model: modelStr, error: errorText }).catch(() => {});
+        if (routingCtx) settleFallback(routingCtx.reqId, false);
         return result;
       }
 
@@ -409,11 +427,19 @@ export async function handleComboChat({ body, models, handleSingleModel, log, co
       // Fallback to next model
       lastError = errorText || String(result.status);
       if (!lastStatus) lastStatus = result.status;
+      if (routingCtx && i < rotatedModels.length - 1) {
+        routingCtx.comboFallbacks = (routingCtx.comboFallbacks || 0) + 1;
+        recordFallbackEvent({ reqId: routingCtx.reqId, kind: "combo", comboName: comboName || null, model: modelStr, status: result.status, reason: errorText, avoidedWaitMs: cooldownMs || 0 });
+      }
       log.warn("COMBO", `Model ${modelStr} failed, trying next`, { status: result.status });
     } catch (error) {
       // Catch unexpected exceptions to ensure fallback continues
       lastError = error.message || String(error);
       if (!lastStatus) lastStatus = 500;
+      if (routingCtx && i < rotatedModels.length - 1) {
+        routingCtx.comboFallbacks = (routingCtx.comboFallbacks || 0) + 1;
+        recordFallbackEvent({ reqId: routingCtx.reqId, kind: "combo", comboName: comboName || null, model: modelStr, status: 500, reason: lastError, avoidedWaitMs: 0 });
+      }
       log.warn("COMBO", `Model ${modelStr} threw error, trying next`, { error: lastError });
     }
   }
@@ -425,6 +451,9 @@ export async function handleComboChat({ body, models, handleSingleModel, log, co
   const allDisabled = lastError && lastError.toLowerCase().includes("no credentials");
   const status = allDisabled ? 503 : (lastStatus || 503);
   const msg = lastError || "All combo models unavailable";
+
+  if (comboName) recordComboOutcome(comboName, { status: "error", error: msg }).catch(() => {});
+  if (routingCtx) settleFallback(routingCtx.reqId, false);
 
   if (earliestRetryAfter) {
     const retryHuman = formatRetryAfter(earliestRetryAfter);

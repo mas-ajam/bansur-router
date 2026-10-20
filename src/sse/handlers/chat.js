@@ -8,7 +8,9 @@ import {
   isValidApiKey,
 } from "../services/auth.js";
 import { handleAntigravityQuotaError, clearAntigravityStrikes } from "../services/antigravityQuota.js";
-import { getSettings } from "@/lib/localDb";
+import { getSettings, getComboByName } from "@/lib/localDb";
+import { recordFallbackEvent, settleFallback, getQuotaSnapshot } from "@/lib/telemetry.js";
+import { recordComboOutcome } from "@/lib/localDb.js";
 import { getModelInfo, getComboModels } from "../services/model.js";
 import { handleChatCore } from "open-sse/handlers/chatCore.js";
 import { DEFAULT_HEADROOM_URL } from "@/lib/headroom/detect";
@@ -70,6 +72,17 @@ export async function handleChat(request, clientRawRequest = null) {
 
   // Enforce API key if enabled in settings
   const settings = await getSettings();
+  // SE-02: the persisted log level drives the SSE logger live.
+  log.setLogLevel?.(settings.logLevel);
+
+  // Phase 4 routing context: threaded through combo steps and account
+  // attempts; chatCore folds it into the per-request routing record,
+  // and fallback transitions are logged against its reqId.
+  const routingCtx = {
+    reqId: `req_${Math.random().toString(16).slice(2, 10)}`,
+    comboName: null, comboStep: null, comboSteps: null,
+    accountFallbacks: 0, comboFallbacks: 0, quotaRemainingPct: null,
+  };
   if (settings.requireApiKey) {
     if (!apiKey) {
       log.warn("AUTH", "Missing API key (requireApiKey=true)");
@@ -108,12 +121,18 @@ export async function handleChat(request, clientRawRequest = null) {
     const comboStrategies = settings.comboStrategies || {};
     const comboSpecificStrategy = comboStrategies[modelStr]?.fallbackStrategy;
     const comboStrategy = comboSpecificStrategy || settings.comboStrategy || "fallback";
-    const augmentedModels = await filterAdapterModels(keyAccess, augmentModelsWithCapacityAdapter(comboModels, requiredCapabilities, settings), comboModels);
+    // C-08: a per-combo vision adapter overrides the global vision pool
+    // for this combo's requests.
+    const comboRecord = await getComboByName(modelStr).catch(() => null);
+    const effectiveSettings = comboRecord?.visionAdapter
+      ? { ...settings, capacityAdapter: { ...(settings.capacityAdapter || {}), vision: { enabled: true, roundRobin: false, models: [comboRecord.visionAdapter] } } }
+      : settings;
+    const augmentedModels = await filterAdapterModels(keyAccess, augmentModelsWithCapacityAdapter(comboModels, requiredCapabilities, effectiveSettings), comboModels);
     const adapterAdded = augmentedModels.filter((m) => !comboModels.includes(m));
 
     if (comboStrategy === "fusion") {
       log.info("CHAT", `Combo "${modelStr}" with ${comboModels.length} models (strategy: fusion)`);
-      return handleFusionChat({
+      const fusionResult = await handleFusionChat({
         body,
         models: comboModels,
         handleSingleModel: (b, m, isPanel) => {
@@ -122,13 +141,16 @@ export async function handleChat(request, clientRawRequest = null) {
             const { tools, tool_choice, ...cleanBody } = clientRawRequest.body || {};
             cleanRawReq = { ...clientRawRequest, body: cleanBody };
           }
-          return handleSingleModelChat(b, m, cleanRawReq, request, apiKey);
+          return handleSingleModelChat(b, m, cleanRawReq, request, apiKey, null, routingCtx);
         },
         log,
         comboName: modelStr,
         judgeModel: comboStrategies[modelStr]?.judgeModel,
         tuning: comboStrategies[modelStr]?.fusionTuning,
       });
+      recordComboOutcome(modelStr, { status: fusionResult?.ok ? "ok" : "error" }).catch(() => {});
+      settleFallback(routingCtx.reqId, !!fusionResult?.ok);
+      return fusionResult;
     }
 
     const comboStickyLimit = settings.comboStickyRoundRobinLimit;
@@ -137,13 +159,14 @@ export async function handleChat(request, clientRawRequest = null) {
       body,
       models: augmentedModels,
       handleSingleModel: withCapacityAdapterStripping(
-        (b, m) => handleSingleModelChat(b, m, clientRawRequest, request, apiKey),
+        (b, m) => handleSingleModelChat(b, m, clientRawRequest, request, apiKey, null, routingCtx),
         adapterAdded
       ),
       log,
       comboName: modelStr,
       comboStrategy,
-      comboStickyLimit
+      comboStickyLimit,
+      routingCtx
     });
   }
 
@@ -157,22 +180,23 @@ export async function handleChat(request, clientRawRequest = null) {
       body,
       models: soloAugmented,
       handleSingleModel: withCapacityAdapterStripping(
-        (b, m) => handleSingleModelChat(b, m, clientRawRequest, request, apiKey),
+        (b, m) => handleSingleModelChat(b, m, clientRawRequest, request, apiKey, null, routingCtx),
         adapterAdded
       ),
       log,
       comboName: modelStr,
-      comboStrategy: getActiveAdapterStrategy(requiredCapabilities, settings)
+      comboStrategy: getActiveAdapterStrategy(requiredCapabilities, settings),
+      routingCtx
     });
   }
 
-  return handleSingleModelChat(body, modelStr, clientRawRequest, request, apiKey, contextMarker ? `${modelStr.slice(modelStr.indexOf("/") + 1)}[${contextMarker}]` : null);
+  return handleSingleModelChat(body, modelStr, clientRawRequest, request, apiKey, contextMarker ? `${modelStr.slice(modelStr.indexOf("/") + 1)}[${contextMarker}]` : null, routingCtx);
 }
 
 /**
  * Handle single model chat request
  */
-async function handleSingleModelChat(body, modelStr, clientRawRequest = null, request = null, apiKey = null, requestedModel = null) {
+async function handleSingleModelChat(body, modelStr, clientRawRequest = null, request = null, apiKey = null, requestedModel = null, routingCtx = null) {
   const modelInfo = await getModelInfo(modelStr);
 
   // If provider is null, this might be a combo name - check and handle
@@ -188,12 +212,16 @@ async function handleSingleModelChat(body, modelStr, clientRawRequest = null, re
       // Nested combo (a combo member that is itself a combo): the access decision
       // was made on the outer target; only drop adapter models the key may not call.
       const keyAccess = await getKeyAccessContext(request);
-      const augmentedModels = await filterAdapterModels(keyAccess, augmentModelsWithCapacityAdapter(comboModels, requiredCapabilities, chatSettings), comboModels);
+      const nestedComboRecord = await getComboByName(modelStr).catch(() => null);
+      const nestedEffectiveSettings = nestedComboRecord?.visionAdapter
+        ? { ...chatSettings, capacityAdapter: { ...(chatSettings.capacityAdapter || {}), vision: { enabled: true, roundRobin: false, models: [nestedComboRecord.visionAdapter] } } }
+        : chatSettings;
+      const augmentedModels = await filterAdapterModels(keyAccess, augmentModelsWithCapacityAdapter(comboModels, requiredCapabilities, nestedEffectiveSettings), comboModels);
       const adapterAdded = augmentedModels.filter((m) => !comboModels.includes(m));
 
       if (comboStrategy === "fusion") {
         log.info("CHAT", `Combo "${modelStr}" with ${comboModels.length} models (strategy: fusion)`);
-        return handleFusionChat({
+        const nestedFusionResult = await handleFusionChat({
           body,
           models: comboModels,
           handleSingleModel: (b, m, isPanel) => {
@@ -202,13 +230,16 @@ async function handleSingleModelChat(body, modelStr, clientRawRequest = null, re
               const { tools, tool_choice, ...cleanBody } = clientRawRequest.body || {};
               cleanRawReq = { ...clientRawRequest, body: cleanBody };
             }
-            return handleSingleModelChat(b, m, cleanRawReq, request, apiKey);
+            return handleSingleModelChat(b, m, cleanRawReq, request, apiKey, null, routingCtx);
           },
           log,
           comboName: modelStr,
           judgeModel: comboStrategies[modelStr]?.judgeModel,
           tuning: comboStrategies[modelStr]?.fusionTuning,
         });
+        recordComboOutcome(modelStr, { status: nestedFusionResult?.ok ? "ok" : "error" }).catch(() => {});
+        if (routingCtx) settleFallback(routingCtx.reqId, !!nestedFusionResult?.ok);
+        return nestedFusionResult;
       }
 
       const comboStickyLimit = chatSettings.comboStickyRoundRobinLimit;
@@ -217,13 +248,14 @@ async function handleSingleModelChat(body, modelStr, clientRawRequest = null, re
         body,
         models: augmentedModels,
         handleSingleModel: withCapacityAdapterStripping(
-          (b, m) => handleSingleModelChat(b, m, clientRawRequest, request, apiKey),
+          (b, m) => handleSingleModelChat(b, m, clientRawRequest, request, apiKey, null, routingCtx),
           adapterAdded
         ),
         log,
         comboName: modelStr,
         comboStrategy,
-        comboStickyLimit
+        comboStickyLimit,
+        routingCtx
       });
     }
     log.warn("CHAT", "Invalid model format", { model: modelStr });
@@ -275,6 +307,15 @@ async function handleSingleModelChat(body, modelStr, clientRawRequest = null, re
       }
     }
 
+    // Phase 4: the routing record's quota check reads the connection's
+    // last observed quota snapshot (recorded by real usage reads).
+    if (routingCtx) {
+      try {
+        const snap = await getQuotaSnapshot(credentials.connectionId);
+        routingCtx.quotaRemainingPct = snap?.remainingPct ?? null;
+      } catch { /* snapshot is best-effort */ }
+    }
+
     // Use shared chatCore
     const chatSettings = await getSettings();
     const providerThinking = (chatSettings.providerThinking || {})[provider] || null;
@@ -289,6 +330,8 @@ async function handleSingleModelChat(body, modelStr, clientRawRequest = null, re
       apiKey,
       ccFilterNaming: !!chatSettings.ccFilterNaming,
       rtkEnabled: !!chatSettings.rtkEnabled,
+      rtkAggressive: !!chatSettings.rtkAggressive,
+      routingCtx,
       headroomEnabled: !!chatSettings.headroomEnabled,
       headroomUrl: chatSettings.headroomUrl || DEFAULT_HEADROOM_URL,
       headroomCompressUserMessages: !!chatSettings.headroomCompressUserMessages,
@@ -322,7 +365,10 @@ async function handleSingleModelChat(body, modelStr, clientRawRequest = null, re
       }
     });
 
-    if (result.success) return result.response;
+    if (result.success) {
+      if (routingCtx) settleFallback(routingCtx.reqId, true);
+      return result.response;
+    }
 
     // Antigravity 409/429: refresh live quota to get exact resetAt before locking
     let quotaResetMs = null;
@@ -337,11 +383,27 @@ async function handleSingleModelChat(body, modelStr, clientRawRequest = null, re
 
     // Exhausted Antigravity model is blocked only in RAM cache until upstream resetAt.
     // Do not persist a modelLock_* for this path.
-    const shouldFallback = provider === "antigravity" && quotaResetMs
-      ? true
-      : (await markAccountUnavailable(credentials.connectionId, result.status, result.error, provider, model, resetsAtMs)).shouldFallback;
+    let fbCooldownMs = 0;
+    let shouldFallback;
+    if (provider === "antigravity" && quotaResetMs) {
+      shouldFallback = true;
+      fbCooldownMs = resetsAtMs ? Math.max(0, resetsAtMs - Date.now()) : 0;
+    } else {
+      const fb = await markAccountUnavailable(credentials.connectionId, result.status, result.error, provider, model, resetsAtMs);
+      shouldFallback = fb.shouldFallback;
+      fbCooldownMs = fb.cooldownMs || 0;
+    }
 
     if (shouldFallback) {
+      if (routingCtx) {
+        routingCtx.accountFallbacks = (routingCtx.accountFallbacks || 0) + 1;
+        recordFallbackEvent({
+          reqId: routingCtx.reqId, kind: "account", provider, model,
+          connectionId: credentials.connectionId, status: result.status,
+          reason: typeof result.error === "string" ? result.error : "Provider error",
+          avoidedWaitMs: fbCooldownMs,
+        });
+      }
       log.warn("FALLBACK", `⇄ ACC:${credentials.connectionName} UNAVAILABLE (${result.status}) → NEXT ACCOUNT`);
       excludeConnectionIds.add(credentials.connectionId);
       lastError = result.error;

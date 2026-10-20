@@ -98,6 +98,14 @@ export const TABLES = {
       models: "TEXT NOT NULL",
       createdAt: "TEXT NOT NULL",
       updatedAt: "TEXT NOT NULL",
+      // Phase 4 (C-08): per-combo vision adapter model ("provider/model" or null).
+      // Additive column, picked up by syncSchemaFromTables() on boot.
+      visionAdapter: "TEXT",
+      // Phase 4 (C-07): last observed request outcome for this combo.
+      lastStatus: "TEXT",
+      lastModel: "TEXT",
+      lastAt: "TEXT",
+      lastError: "TEXT",
     },
     indexes: ["CREATE INDEX IF NOT EXISTS idx_combo_name ON combos(name)"],
   },
