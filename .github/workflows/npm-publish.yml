@@ -160,14 +160,21 @@ jobs:
         working-directory: cli
 
       - name: Verify the published version
+        # A trusted-publish may land in npm's Staged Packages and need a
+        # maintainer's 2FA approval before it becomes visible on the registry,
+        # so poll for a while instead of failing on the first miss.
         env:
           VERSION: ${{ needs.validate.outputs.version }}
           DIST_TAG: ${{ needs.validate.outputs.dist_tag }}
         run: |
-          sleep 10
-          published="$(npm view bansur-router@${VERSION} version 2>/dev/null || true)"
-          if [ "$published" != "$VERSION" ]; then
-            echo "::error::bansur-router@${VERSION} not visible on the registry after publish"
-            exit 1
-          fi
-          echo "Verified live on npm: bansur-router@${VERSION} (dist-tag ${DIST_TAG})"
+          for i in $(seq 1 20); do
+            published="$(npm view "bansur-router@${VERSION}" version 2>/dev/null || true)"
+            if [ "$published" = "$VERSION" ]; then
+              echo "Verified live on npm: bansur-router@${VERSION} (dist-tag ${DIST_TAG})"
+              exit 0
+            fi
+            echo "attempt $i/20: not visible yet, waiting 30s..."
+            sleep 30
+          done
+          echo "::notice::bansur-router@${VERSION} was accepted by npm but is not visible after 10 minutes. It is likely waiting in Staged Packages for a maintainer's approval."
+          echo "Check https://www.npmjs.com/package/bansur-router -> Staged Packages to approve it."
