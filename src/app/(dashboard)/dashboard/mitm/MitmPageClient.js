@@ -75,8 +75,13 @@ export default function MitmPageClient() {
   const mitmTools = Object.entries(MITM_TOOLS);
 
   return (
-    <div className="flex w-full flex-col gap-6">
-      <div className="flex items-start gap-2 px-3 py-2 rounded-lg bg-surface-2 border border-border">
+    <div className="flex w-full flex-col gap-3.5">
+      {/* Page head */}
+      <div>
+        <h2 className="text-xl font-semibold tracking-[-0.01em] text-text-main">MITM</h2>
+        <p className="mt-1 text-[13.5px] text-text-muted max-w-[640px]">For tools without a custom-endpoint setting, the router sits in the middle locally, presenting its own endpoint for each model.</p>
+      </div>
+      <div className="flex items-start gap-2 px-3.5 py-3 rounded-md bg-surface-2 border border-border border-l-[3px] border-l-text-main">
         <span className="material-symbols-outlined text-[16px] text-text-muted mt-0.5 shrink-0">warning</span>
         <p className="text-xs text-text-main dark:text-text-muted leading-relaxed">
           ⚠️ MITM intercepts HTTPS traffic of IDE tools (Antigravity, GitHub Copilot, Kiro) via local CA to redirect requests to your providers. May violate ToS → account ban. Use at your own risk.
@@ -91,7 +96,7 @@ export default function MitmPageClient() {
       />
 
       {/* Tool Cards */}
-      <div className="grid gap-3 sm:gap-4">
+      <div className="grid gap-3.5">
         {mitmTools.map(([toolId, tool]) => (
           <MitmToolCard
             key={toolId}

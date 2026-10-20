@@ -240,19 +240,19 @@ export default function ComboDetailPage() {
   const backHref = getListingHref(combo.kind);
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-3.5">
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3 min-w-0">
           <Link href={backHref} className="text-text-muted hover:text-primary">
             <span className="material-symbols-outlined">arrow_back</span>
           </Link>
-          <div className="size-10 rounded-lg bg-primary/10 flex items-center justify-center">
-            <span className="material-symbols-outlined text-primary">layers</span>
+          <div className="size-[38px] rounded-md border border-border bg-surface-2 flex items-center justify-center shrink-0">
+            <span className="material-symbols-outlined text-text-main text-[19px]">layers</span>
           </div>
           <div className="min-w-0">
             <p className="text-xs text-text-muted">{kindLabel} Combo</p>
-            <code className="text-lg font-semibold font-mono">{combo.name}</code>
+            <code className="text-xl font-semibold font-mono tracking-[-0.01em]">{combo.name}</code>
           </div>
         </div>
         <Button variant="outline" icon="delete" onClick={handleDelete} className="text-text-main border-border hover:bg-surface-2">
@@ -262,7 +262,7 @@ export default function ComboDetailPage() {
 
       {/* Settings Card */}
       <Card>
-        <h2 className="text-lg font-semibold mb-3">Settings</h2>
+        <h2 className="text-[13.5px] font-semibold mb-3">Settings</h2>
         <div className="flex flex-col gap-4">
           <div>
             <Input label="Combo Name" value={name} onChange={(e) => { setName(e.target.value); validateName(e.target.value); }} onBlur={handleSaveName} error={nameError} />
@@ -282,13 +282,13 @@ export default function ComboDetailPage() {
       <Card>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-3">
           <div>
-            <h2 className="text-lg font-semibold">Providers</h2>
+            <h2 className="text-[13.5px] font-semibold">Providers</h2>
             <p className="text-xs text-text-muted">Tried in order (top-down) or rotated when round-robin is on.</p>
           </div>
           <Button size="sm" icon="add" onClick={() => setShowPicker(true)}>Add Provider</Button>
         </div>
         {providers.length === 0 ? (
-          <div className="text-center py-6 border border-dashed border-border rounded-lg text-text-muted text-sm">
+          <div className="text-center py-6 border border-dashed border-border rounded-brand text-text-muted text-sm">
             No providers yet.
           </div>
         ) : (
@@ -297,7 +297,7 @@ export default function ComboDetailPage() {
               const { providerId, model } = parseModelEntry(entry);
               const p = AI_PROVIDERS[providerId];
               return (
-                <div key={`${entry}-${idx}`} className="flex items-center gap-3 p-2 rounded-lg bg-black/[0.02] dark:bg-white/[0.02]">
+                <div key={`${entry}-${idx}`} className="flex items-center gap-3 px-3 py-2 rounded-brand border border-border bg-surface-2">
                   <span className="text-xs text-text-muted w-5 text-center">{idx + 1}</span>
                   <ProviderIcon
                     src={`/providers/${providerId}.png`}
@@ -333,7 +333,7 @@ export default function ComboDetailPage() {
       {combo.kind && examplePath && (
         <Card>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-3">
-            <h2 className="text-lg font-semibold">Test Example</h2>
+            <h2 className="text-[13.5px] font-semibold">Test Example</h2>
             <Button size="sm" icon="play_arrow" onClick={handleTest} disabled={testing || providers.length === 0}>
               {testing ? "Running..." : "Run"}
             </Button>
@@ -383,7 +383,7 @@ export default function ComboDetailPage() {
 
       {/* Usage Logs Card */}
       <Card>
-        <h2 className="text-lg font-semibold mb-3">Usage Logs</h2>
+        <h2 className="text-[13.5px] font-semibold mb-3">Usage Logs</h2>
         {logs.length === 0 ? (
           <p className="text-xs text-text-muted italic">No usage yet.</p>
         ) : (

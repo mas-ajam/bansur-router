@@ -764,31 +764,36 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto px-4 sm:px-0">
-      <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-3.5">
+      {/* Page head */}
+      <div>
+        <h2 className="text-xl font-semibold tracking-[-0.01em] text-text-main">Profile</h2>
+        <p className="mt-1 text-[13.5px] text-text-muted max-w-[640px]">Your local profile on this machine, plus optional sync so a second device picks up the same setup.</p>
+      </div>
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-3.5 items-start">
         {/* Local Mode Info */}
-        <Card>
+        <Card className="xl:col-span-2">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
             <div className="flex items-center gap-3 sm:gap-4">
-              <div className="size-10 sm:size-12 rounded-lg bg-surface-2 text-text-main flex items-center justify-center shrink-0">
+              <div className="size-[38px] rounded-md border border-border bg-surface-2 text-text-main flex items-center justify-center shrink-0">
                 <span className="material-symbols-outlined text-xl sm:text-2xl">computer</span>
               </div>
               <div>
-                <h2 className="text-lg sm:text-xl font-semibold">Local Mode</h2>
+                <h2 className="text-[13.5px] font-semibold">Local Mode</h2>
                 <p className="text-sm text-text-muted">Running on your machine</p>
               </div>
             </div>
-            <div className="inline-flex p-1 rounded-lg bg-black/5 dark:bg-white/5 w-full sm:w-auto">
+            <div className="inline-flex rounded-md border border-border bg-surface overflow-hidden w-full sm:w-auto">
               {["light", "dark", "system"].map((option) => (
                 <button
                   key={option}
                   type="button"
                   onClick={() => setTheme(option)}
                   className={cn(
-                    "flex items-center justify-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 rounded-md font-medium transition-all flex-1 sm:flex-initial",
+                    "flex items-center justify-center gap-1.5 px-[13px] py-1.5 text-[12.5px] font-medium transition-colors flex-1 sm:flex-initial border-r border-border last:border-r-0",
                     theme === option
-                      ? "bg-white dark:bg-white/10 text-text-main shadow-sm"
-                      : "text-text-muted hover:text-text-main"
+                      ? "bg-brand-500 text-on-brand"
+                      : "text-text-muted hover:bg-surface-2 hover:text-text-main"
                   )}
                 >
                   <span className="material-symbols-outlined text-[18px]">
@@ -800,10 +805,10 @@ export default function ProfilePage() {
             </div>
           </div>
           <div className="flex flex-col gap-3 pt-4 border-t border-border">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 rounded-lg bg-bg border border-border gap-2">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between px-3.5 py-2.5 rounded-md bg-surface-2 border border-border gap-2">
               <div>
-                <p className="font-medium text-sm sm:text-base">Database Location</p>
-                <p className="text-xs sm:text-sm text-text-muted font-mono break-all">~/.bansur-router/db/data.sqlite</p>
+                <p className="font-semibold text-[13.5px]">Database Location</p>
+                <p className="text-[12.5px] text-text-muted font-mono break-all">~/.bansur-router/db/data.sqlite</p>
               </div>
             </div>
             <div className="flex flex-col sm:flex-row gap-2">
@@ -844,14 +849,14 @@ export default function ProfilePage() {
         {/* Language */}
         <Card>
           <div className="flex items-center gap-3 mb-4">
-            <div className="size-10 rounded-lg bg-surface-2 text-text-muted flex items-center justify-center shrink-0">
+            <div className="size-[38px] rounded-md border border-border bg-surface-2 text-text-main flex items-center justify-center shrink-0">
               <span className="material-symbols-outlined text-[20px]">language</span>
             </div>
-            <h3 className="text-base sm:text-lg font-semibold">Language</h3>
+            <h3 className="text-[13.5px] font-semibold">Language</h3>
           </div>
           <button
             onClick={() => setLangOpen(true)}
-            className="flex items-center justify-between w-full p-3 rounded-lg bg-bg border border-border hover:border-primary/50 transition-colors"
+            className="flex items-center justify-between w-full px-3.5 py-2.5 rounded-md bg-surface-2 border border-border hover:border-border-strong transition-colors"
             data-i18n-skip="true"
           >
             <span className="text-sm text-text-muted">Display language</span>
@@ -862,16 +867,16 @@ export default function ProfilePage() {
         {/* Security */}
         <Card>
           <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 rounded-lg bg-primary/10 text-primary shrink-0">
+            <div className="size-[38px] rounded-md border border-border bg-surface-2 text-text-main flex items-center justify-center shrink-0">
               <span className="material-symbols-outlined text-[20px]">shield</span>
             </div>
-            <h3 className="text-base sm:text-lg font-semibold">Security</h3>
+            <h3 className="text-[13.5px] font-semibold">Security</h3>
           </div>
           <div className="flex flex-col gap-4">
             <div className="flex items-start sm:items-center justify-between gap-4">
               <div className="flex-1 min-w-0">
-                <p className="font-medium text-sm sm:text-base">Require login</p>
-                <p className="text-xs sm:text-sm text-text-muted">
+                <p className="font-semibold text-[13.5px]">Require login</p>
+                <p className="text-[12.5px] text-text-muted">
                   When ON, dashboard requires password. When OFF, access without login.
                 </p>
               </div>
@@ -948,11 +953,11 @@ export default function ProfilePage() {
             onClick={() => setOidcExpanded((v) => !v)}
             className="w-full flex items-center gap-3 text-left"
           >
-            <div className="p-2 rounded-lg bg-surface-2 text-text-muted shrink-0">
+            <div className="size-[38px] rounded-md border border-border bg-surface-2 text-text-main flex items-center justify-center shrink-0">
               <span className="material-symbols-outlined text-[20px]">lock_open</span>
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className="text-base sm:text-lg font-semibold">Single Sign-On (SSO)</h3>
+              <h3 className="text-[13.5px] font-semibold">Single Sign-On (SSO)</h3>
               <p className="text-xs text-text-muted">
                 {settings.authMode === "sso" || settings.authMode === "oidc" || settings.authMode === "saml"
                   ? `${settings.ssoType === "saml" ? "SAML 2.0" : "OIDC"} SSO active`
@@ -967,13 +972,13 @@ export default function ProfilePage() {
           </button>
           {oidcExpanded && (
             <div className="flex flex-col gap-4 mt-4">
-              <p className="text-xs sm:text-sm text-text-muted">
+              <p className="text-[12.5px] text-text-muted">
                 Configure enterprise Single Sign-On (SSO) for dashboard access using SAML 2.0 or OIDC.
               </p>
 
               {/* SSO Protocol Switcher Tabs */}
               <div className="flex flex-col gap-2">
-                <label className="font-medium text-sm sm:text-base">SSO Protocol</label>
+                <label className="font-semibold text-[13.5px]">SSO Protocol</label>
                 <div className="flex p-1 rounded-lg bg-black/5 dark:bg-white/5 border border-border">
                   <button
                     type="button"
@@ -1004,7 +1009,7 @@ export default function ProfilePage() {
 
               {/* Auth Mode selection */}
               <div className="flex flex-col gap-2">
-                <label className="font-medium text-sm sm:text-base">Auth Mode</label>
+                <label className="font-semibold text-[13.5px]">Auth Mode</label>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                   {[
                     {
@@ -1043,8 +1048,8 @@ export default function ProfilePage() {
                         )}
                         disabled={loading || oidcLoading || samlLoading}
                       >
-                        <p className="font-medium text-sm sm:text-base">{option.title}</p>
-                        <p className="text-xs sm:text-sm text-text-muted mt-1">{option.desc}</p>
+                        <p className="font-semibold text-[13.5px]">{option.title}</p>
+                        <p className="text-[12.5px] text-text-muted mt-1">{option.desc}</p>
                       </button>
                     );
                   })}
@@ -1182,7 +1187,7 @@ export default function ProfilePage() {
 
                   <div className="grid grid-cols-1 gap-4">
                     <div className="flex flex-col gap-2">
-                      <label className="font-medium text-sm sm:text-base">Single Sign-On Service URL (samlEntryPoint)</label>
+                      <label className="font-semibold text-[13.5px]">Single Sign-On Service URL (samlEntryPoint)</label>
                       <Input
                         placeholder="https://idp.example.com/app/saml/sso/..."
                         value={samlForm.samlEntryPoint}
@@ -1192,7 +1197,7 @@ export default function ProfilePage() {
                     </div>
 
                     <div className="flex flex-col gap-2">
-                      <label className="font-medium text-sm sm:text-base">SP Entity ID / Audience (samlIssuer)</label>
+                      <label className="font-semibold text-[13.5px]">SP Entity ID / Audience (samlIssuer)</label>
                       <Input
                         placeholder="urn:bansur-router:sp"
                         value={samlForm.samlIssuer}
@@ -1203,7 +1208,7 @@ export default function ProfilePage() {
 
                     <div className="flex flex-col gap-2">
                       <div className="flex items-center justify-between">
-                        <label className="font-medium text-sm sm:text-base">IdP X.509 Certificate (samlCert)</label>
+                        <label className="font-semibold text-[13.5px]">IdP X.509 Certificate (samlCert)</label>
                         <Button
                           type="button"
                           variant="outline"
@@ -1234,7 +1239,7 @@ export default function ProfilePage() {
 
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                       <div className="flex flex-col gap-2">
-                        <label className="font-medium text-sm sm:text-base">Login Button Label</label>
+                        <label className="font-semibold text-[13.5px]">Login Button Label</label>
                         <Input
                           placeholder="Sign in with SAML SSO"
                           value={samlForm.samlLoginLabel}
@@ -1244,7 +1249,7 @@ export default function ProfilePage() {
                       </div>
 
                       <div className="flex flex-col gap-2">
-                        <label className="font-medium text-sm sm:text-base">Email Claim Attribute</label>
+                        <label className="font-semibold text-[13.5px]">Email Claim Attribute</label>
                         <Input
                           placeholder="email"
                           value={samlForm.samlAttributeEmail}
@@ -1254,7 +1259,7 @@ export default function ProfilePage() {
                       </div>
 
                       <div className="flex flex-col gap-2">
-                        <label className="font-medium text-sm sm:text-base">Display Name Claim</label>
+                        <label className="font-semibold text-[13.5px]">Display Name Claim</label>
                         <Input
                           placeholder="name"
                           value={samlForm.samlAttributeName}
@@ -1265,7 +1270,7 @@ export default function ProfilePage() {
                     </div>
                   </div>
 
-                  <div className="flex flex-col gap-2 p-3 rounded-lg border border-border bg-bg text-xs sm:text-sm text-text-muted">
+                  <div className="flex flex-col gap-2 p-3 rounded-lg border border-border bg-bg text-[12.5px] text-text-muted">
                     <div className="flex items-center justify-between gap-2">
                       <div>
                         <p className="font-medium text-text-main">ACS Callback URL</p>
@@ -1340,7 +1345,7 @@ export default function ProfilePage() {
                 <div className="flex flex-col gap-4 pt-2 border-t border-border/50">
                   <div className="grid grid-cols-1 gap-4">
                     <div className="flex flex-col gap-2">
-                      <label className="font-medium text-sm sm:text-base">Issuer URL</label>
+                      <label className="font-semibold text-[13.5px]">Issuer URL</label>
                       <Input
                         placeholder="https://auth.example.com/application/o/bansur-router/"
                         value={oidcForm.oidcIssuerUrl}
@@ -1350,7 +1355,7 @@ export default function ProfilePage() {
                     </div>
 
                     <div className="flex flex-col gap-2">
-                      <label className="font-medium text-sm sm:text-base">Client ID</label>
+                      <label className="font-semibold text-[13.5px]">Client ID</label>
                       <Input
                         placeholder="bansur-router-dashboard"
                         value={oidcForm.oidcClientId}
@@ -1360,7 +1365,7 @@ export default function ProfilePage() {
                     </div>
 
                     <div className="flex flex-col gap-2">
-                      <label className="font-medium text-sm sm:text-base">Client Secret</label>
+                      <label className="font-semibold text-[13.5px]">Client Secret</label>
                       <Input
                         type="password"
                         placeholder="Leave blank to keep existing secret"
@@ -1368,11 +1373,11 @@ export default function ProfilePage() {
                         onChange={(e) => setOidcClientSecret(e.target.value)}
                         disabled={loading || oidcLoading}
                       />
-                      <p className="text-xs sm:text-sm text-text-muted">This value is write-only after saving.</p>
+                      <p className="text-[12.5px] text-text-muted">This value is write-only after saving.</p>
                     </div>
 
                     <div className="flex flex-col gap-2">
-                      <label className="font-medium text-sm sm:text-base">Scopes</label>
+                      <label className="font-semibold text-[13.5px]">Scopes</label>
                       <Input
                         placeholder="openid profile email"
                         value={oidcForm.oidcScopes}
@@ -1382,7 +1387,7 @@ export default function ProfilePage() {
                     </div>
 
                     <div className="flex flex-col gap-2">
-                      <label className="font-medium text-sm sm:text-base">Login Button Label</label>
+                      <label className="font-semibold text-[13.5px]">Login Button Label</label>
                       <Input
                         placeholder="Sign in with OIDC"
                         value={oidcForm.oidcLoginLabel}
@@ -1392,7 +1397,7 @@ export default function ProfilePage() {
                     </div>
                   </div>
 
-                  <div className="rounded-lg border border-border bg-bg p-3 text-xs sm:text-sm text-text-muted">
+                  <div className="rounded-lg border border-border bg-bg p-3 text-[12.5px] text-text-muted">
                     <p className="font-medium text-text-main mb-1">Redirect URI</p>
                     <code className="block break-all font-mono">{oidcRedirectUri}</code>
                   </div>
@@ -1421,13 +1426,13 @@ export default function ProfilePage() {
               )}
 
               {settings.authMode === "oidc" || settings.authMode === "saml" || settings.authMode === "sso" ? (
-                <p className="text-xs sm:text-sm text-text-muted dark:text-text-muted">
+                <p className="text-[12.5px] text-text-muted dark:text-text-muted">
                   SSO login ({settings.ssoType === "saml" ? "SAML 2.0" : "OIDC"}) is currently active. Password login is disabled until you switch back.
                 </p>
               ) : null}
 
               {settings.authMode === "both" && (
-                <p className="text-xs sm:text-sm text-text-muted dark:text-text-muted">
+                <p className="text-[12.5px] text-text-muted dark:text-text-muted">
                   Password and SSO login ({settings.ssoType === "saml" ? "SAML 2.0" : "OIDC"}) are both active.
                 </p>
               )}
@@ -1438,16 +1443,16 @@ export default function ProfilePage() {
         {/* Routing Preferences */}
         <Card>
           <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 rounded-lg bg-surface-2 text-text-muted shrink-0">
+            <div className="size-[38px] rounded-md border border-border bg-surface-2 text-text-main flex items-center justify-center shrink-0">
               <span className="material-symbols-outlined text-[20px]">route</span>
             </div>
-            <h3 className="text-base sm:text-lg font-semibold">Routing Strategy</h3>
+            <h3 className="text-[13.5px] font-semibold">Routing Strategy</h3>
           </div>
           <div className="flex flex-col gap-4">
             <div className="flex items-start sm:items-center justify-between gap-4">
               <div className="flex-1 min-w-0">
-                <p className="font-medium text-sm sm:text-base">Round Robin</p>
-                <p className="text-xs sm:text-sm text-text-muted">
+                <p className="font-semibold text-[13.5px]">Round Robin</p>
+                <p className="text-[12.5px] text-text-muted">
                   Cycle through accounts to distribute load
                 </p>
               </div>
@@ -1462,8 +1467,8 @@ export default function ProfilePage() {
             {settings.fallbackStrategy === "round-robin" && (
               <div className="flex items-start sm:items-center justify-between gap-4 pt-2 border-t border-border/50">
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium text-sm sm:text-base">Sticky Limit</p>
-                  <p className="text-xs sm:text-sm text-text-muted">
+                  <p className="font-semibold text-[13.5px]">Sticky Limit</p>
+                  <p className="text-[12.5px] text-text-muted">
                     Calls per account before switching
                   </p>
                 </div>
@@ -1482,8 +1487,8 @@ export default function ProfilePage() {
             {/* Combo Round Robin */}
             <div className="flex items-start sm:items-center justify-between gap-4 pt-4 border-t border-border/50">
               <div className="flex-1 min-w-0">
-                <p className="font-medium text-sm sm:text-base">Combo Round Robin</p>
-                <p className="text-xs sm:text-sm text-text-muted">
+                <p className="font-semibold text-[13.5px]">Combo Round Robin</p>
+                <p className="text-[12.5px] text-text-muted">
                   Cycle through providers in combos instead of always starting with first
                 </p>
               </div>
@@ -1529,17 +1534,17 @@ export default function ProfilePage() {
         {/* Network */}
         <Card>
           <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 rounded-lg bg-surface-2 text-text-muted shrink-0">
+            <div className="size-[38px] rounded-md border border-border bg-surface-2 text-text-main flex items-center justify-center shrink-0">
               <span className="material-symbols-outlined text-[20px]">wifi</span>
             </div>
-            <h3 className="text-base sm:text-lg font-semibold">Network</h3>
+            <h3 className="text-[13.5px] font-semibold">Network</h3>
           </div>
 
           <div className="flex flex-col gap-4">
             <div className="flex items-start sm:items-center justify-between gap-4">
               <div className="flex-1 min-w-0">
-                <p className="font-medium text-sm sm:text-base">Outbound Proxy</p>
-                <p className="text-xs sm:text-sm text-text-muted">Enable proxy for OAuth + provider outbound requests.</p>
+                <p className="font-semibold text-[13.5px]">Outbound Proxy</p>
+                <p className="text-[12.5px] text-text-muted">Enable proxy for OAuth + provider outbound requests.</p>
               </div>
               <Toggle
                 checked={settings.outboundProxyEnabled === true}
@@ -1551,25 +1556,25 @@ export default function ProfilePage() {
             {settings.outboundProxyEnabled === true && (
               <form onSubmit={updateOutboundProxy} className="flex flex-col gap-4 pt-2 border-t border-border/50">
                 <div className="flex flex-col gap-2">
-                  <label className="font-medium text-sm sm:text-base">Proxy URL</label>
+                  <label className="font-semibold text-[13.5px]">Proxy URL</label>
                   <Input
                     placeholder="http://127.0.0.1:7897"
                     value={proxyForm.outboundProxyUrl}
                     onChange={(e) => setProxyForm((prev) => ({ ...prev, outboundProxyUrl: e.target.value }))}
                     disabled={loading || proxyLoading}
                   />
-                  <p className="text-xs sm:text-sm text-text-muted">Leave empty to inherit existing env proxy (if any).</p>
+                  <p className="text-[12.5px] text-text-muted">Leave empty to inherit existing env proxy (if any).</p>
                 </div>
 
                 <div className="flex flex-col gap-2 pt-2 border-t border-border/50">
-                  <label className="font-medium text-sm sm:text-base">No Proxy</label>
+                  <label className="font-semibold text-[13.5px]">No Proxy</label>
                   <Input
                     placeholder="localhost,127.0.0.1"
                     value={proxyForm.outboundNoProxy}
                     onChange={(e) => setProxyForm((prev) => ({ ...prev, outboundNoProxy: e.target.value }))}
                     disabled={loading || proxyLoading}
                   />
-                  <p className="text-xs sm:text-sm text-text-muted">Comma-separated hostnames/domains to bypass the proxy.</p>
+                  <p className="text-[12.5px] text-text-muted">Comma-separated hostnames/domains to bypass the proxy.</p>
                 </div>
 
                 <div className="pt-2 border-t border-border/50 flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
@@ -1601,15 +1606,15 @@ export default function ProfilePage() {
         {/* Observability Settings */}
         <Card>
           <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 rounded-lg bg-surface-2 text-primary shrink-0">
+            <div className="size-[38px] rounded-md border border-border bg-surface-2 text-text-main flex items-center justify-center shrink-0">
               <span className="material-symbols-outlined text-[20px]">monitoring</span>
             </div>
-            <h3 className="text-base sm:text-lg font-semibold">Observability</h3>
+            <h3 className="text-[13.5px] font-semibold">Observability</h3>
           </div>
           <div className="flex items-start sm:items-center justify-between gap-4">
             <div className="flex-1 min-w-0">
-              <p className="font-medium text-sm sm:text-base">Enable Observability</p>
-              <p className="text-xs sm:text-sm text-text-muted">
+              <p className="font-semibold text-[13.5px]">Enable Observability</p>
+              <p className="text-[12.5px] text-text-muted">
                 Record request details for inspection in the logs view
               </p>
             </div>
@@ -1643,7 +1648,7 @@ export default function ProfilePage() {
         </div>
 
         {/* App Info */}
-        <div className="text-center text-xs sm:text-sm text-text-muted py-4">
+        <div className="xl:col-span-2 text-center text-[12.5px] text-text-muted py-4">
           <p>{APP_CONFIG.name} v{APP_CONFIG.version}</p>
           <p className="mt-1">{isRemoteHost ? "Remote Mode" : "Local Mode - All data stored on your machine"}</p>
         </div>

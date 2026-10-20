@@ -51,20 +51,17 @@ function MediaProviderCard({ provider, kind, connections, isCustom, onToggle }) 
   return (
     <Link href={`/dashboard/media-providers/${kind}/${provider.id}`} className="group">
       <Card
-        padding="xs"
-        className={`h-full hover:bg-black/[0.01] dark:hover:bg-white/[0.01] transition-colors cursor-pointer ${allDisabled ? "opacity-50" : ""}`}
+        padding="md"
+        className={`h-full hover:border-border-strong transition-colors cursor-pointer ${allDisabled ? "opacity-50" : ""}`}
       >
         <div className="flex min-w-0 items-center justify-between gap-3">
           <div className="flex min-w-0 items-center gap-3">
-            <div
-              className="size-8 rounded-lg flex items-center justify-center shrink-0"
-              style={{ backgroundColor: `${provider.color?.length > 7 ? provider.color : (provider.color ?? "#888") + "15"}` }}
-            >
+            <div className="size-[38px] rounded-md border border-border bg-surface-2 flex items-center justify-center shrink-0 overflow-hidden">
               <ProviderIcon
                 src={`/providers/${provider.id}.png`}
                 alt={provider.name}
-                size={30}
-                className="object-contain rounded-lg max-w-[30px] max-h-[30px]"
+                size={26}
+                className="object-contain max-w-[26px] max-h-[26px]"
                 fallbackText={provider.textIcon || provider.id.slice(0, 2).toUpperCase()}
                 fallbackColor={provider.color}
               />
@@ -99,12 +96,12 @@ function MediaProviderCard({ provider, kind, connections, isCustom, onToggle }) 
 function ComboList({ combos }) {
   if (combos.length === 0) return null;
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-2.5">
       {combos.map((combo) => (
         <Link key={combo.id} href={`/dashboard/media-providers/combo/${combo.id}`}>
-          <Card padding="xs" className="hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors cursor-pointer">
+          <Card padding="sm" className="hover:border-border-strong transition-colors cursor-pointer">
             <div className="flex min-w-0 items-center gap-3">
-              <span className="material-symbols-outlined text-primary text-[18px]">layers</span>
+              <span className="material-symbols-outlined text-text-main text-[18px]">layers</span>
               <code className="text-sm font-mono font-medium flex-1 truncate">{combo.name}</code>
               <div className="flex flex-wrap items-center gap-1 sm:shrink-0">
                 {combo.models.slice(0, 6).map((entry, i) => {
@@ -228,7 +225,13 @@ export default function MediaProviderKindPage() {
   };
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-3.5">
+      {/* Page head */}
+      <div className="flex items-start justify-between gap-3 flex-wrap">
+        <div>
+          <h2 className="text-xl font-semibold tracking-[-0.01em] text-text-main">{kindConfig.label}</h2>
+          <p className="mt-1 text-[13.5px] text-text-muted max-w-[640px]">Media &amp; web tools are regular connections with their own keys — group them like providers.</p>
+        </div>
       {(isEmbedding || supportsCombo) && (
         <div className="flex items-center justify-end gap-2">
           {supportsCombo && (
@@ -241,17 +244,18 @@ export default function MediaProviderKindPage() {
           )}
         </div>
       )}
+      </div>
 
       {supportsCombo && kindCombos.length > 0 && (
         <ComboList combos={kindCombos} />
       )}
 
       {allProviders.length === 0 ? (
-        <div className="text-center py-12 border border-dashed border-border rounded-xl text-text-muted text-sm">
+        <div className="text-center py-12 border border-dashed border-border rounded-brand text-text-muted text-sm">
           No providers support <strong>{kindConfig.label}</strong> yet.
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5">
           {providers.map((provider) => (
             <MediaProviderCard
               key={provider.id}

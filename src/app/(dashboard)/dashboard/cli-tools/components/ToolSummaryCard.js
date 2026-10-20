@@ -7,8 +7,8 @@ import { Card } from "@/shared/components";
 // Derive simple connected/configured/not-installed status from API payload
 function getStatus(status, tool) {
   if (tool?.configType === "guide") return { label: "Guide", cls: "bg-surface-2 text-text-muted dark:text-text-muted" };
-  if (!status) return { label: "Unknown", cls: "bg-gray-500/10 text-gray-500" };
-  if (!status.installed) return { label: "Not installed", cls: "bg-gray-500/10 text-gray-500" };
+  if (!status) return { label: "Unknown", cls: "bg-surface-2 text-text-muted" };
+  if (!status.installed) return { label: "Not installed", cls: "bg-surface-2 text-text-muted" };
   if (status.hasBansurRouter) return { label: "Connected", cls: "bg-surface-2 text-text-main dark:text-text-main" };
   return { label: "Not configured", cls: "bg-surface-2 text-text-muted dark:text-text-muted" };
 }
@@ -17,22 +17,25 @@ export default function ToolSummaryCard({ toolId, tool, status }) {
   const s = getStatus(status, tool);
   return (
     <Link href={`/dashboard/cli-tools/${toolId}`} className="block">
-      <Card padding="sm" className="h-full overflow-hidden hover:border-primary/50 transition-colors cursor-pointer">
+      <Card padding="md" className="h-full overflow-hidden hover:border-border-strong transition-colors cursor-pointer">
         <div className="flex h-full flex-col gap-2">
           <div className="flex items-center gap-3">
-            <div className="size-8 flex items-center justify-center shrink-0">
+            <div className="size-[38px] rounded-md border border-border bg-surface-2 flex items-center justify-center shrink-0 overflow-hidden">
               {tool.image ? (
-                <Image src={tool.image} alt={tool.name} width={32} height={32} className="size-8 object-contain rounded-lg" sizes="32px" onError={(e) => { e.target.style.display = "none"; }} loading="lazy" decoding="async" />
+                <Image src={tool.image} alt={tool.name} width={32} height={32} className="size-6 object-contain" sizes="32px" onError={(e) => { e.target.style.display = "none"; }} loading="lazy" decoding="async" />
               ) : tool.icon ? (
                 <span className="material-symbols-outlined text-[28px]" style={{ color: tool.color }}>{tool.icon}</span>
               ) : null}
             </div>
             <div className="min-w-0 flex-1">
-              <h3 className="font-medium text-sm truncate">{tool.name}</h3>
+              <h3 className="font-semibold text-sm truncate">{tool.name}</h3>
               <span className={`inline-block mt-1 px-1.5 py-0.5 text-[10px] font-medium rounded-full ${s.cls}`}>{s.label}</span>
             </div>
             <span className="material-symbols-outlined text-text-muted text-[18px] shrink-0">chevron_right</span>
           </div>
+          {tool.description && (
+            <p className="text-xs leading-relaxed text-text-muted line-clamp-2">{tool.description}</p>
+          )}
         </div>
       </Card>
     </Link>

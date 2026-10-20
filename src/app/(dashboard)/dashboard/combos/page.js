@@ -353,7 +353,7 @@ export default function CombosPage() {
 
   if (loading) {
     return (
-      <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-3.5">
         <CardSkeleton />
         <CardSkeleton />
       </div>
@@ -361,14 +361,19 @@ export default function CombosPage() {
   }
 
   return (
-    <div className="flex min-w-0 flex-col gap-6 px-1 sm:px-0">
+    <div className="flex min-w-0 flex-col gap-3.5">
+      {/* Page head */}
+      <div>
+        <h2 className="text-xl font-semibold tracking-[-0.01em] text-text-main">Combo &amp; Vision Adapter</h2>
+        <p className="mt-1 text-[13.5px] text-text-muted max-w-[640px]">Chain models behind one name. The first healthy model answers; if it fails, the next one in the chain takes over.</p>
+      </div>
       {/* Header */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
-          <p className="text-sm text-text-muted mt-1">
+          <p className="text-[13.5px] text-text-muted">
             Group models under one name, then pick a strategy per combo:
           </p>
-          <ul className="text-sm text-text-muted mt-2 flex flex-col gap-1">
+          <ul className="text-[13.5px] text-text-muted mt-2 flex flex-col gap-1">
             <li><span className="font-medium text-text-main">Fallback</span> — tries models in order (next on failure)</li>
             <li><span className="font-medium text-text-main">Round Robin</span> — rotates models across requests to spread load</li>
             <li><span className="font-medium text-text-main">Fusion</span> — queries all models in parallel, then a judge synthesizes one answer. Best quality, but costs the most: every request bills all panel models + the judge (N+1 calls)</li>
@@ -413,7 +418,7 @@ export default function CombosPage() {
       {combos.length === 0 ? (
         <Card>
           <div className="text-center py-12">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 text-primary mb-4">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full border border-border bg-surface-2 text-text-main mb-4">
               <span className="material-symbols-outlined text-[32px]">layers</span>
             </div>
             <p className="text-text-main font-medium mb-1">No combos yet</p>
@@ -424,9 +429,9 @@ export default function CombosPage() {
           </div>
         </Card>
       ) : (
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-3.5">
           {/* Selection toolbar */}
-          <div className="flex min-w-0 flex-col gap-2 rounded-lg border border-black/5 bg-black/[0.015] px-3 py-2 dark:border-white/5 dark:bg-white/[0.02] sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex min-w-0 flex-col gap-2 rounded-brand border border-border bg-surface-2 px-3.5 py-2.5 sm:flex-row sm:items-center sm:justify-between">
             <label className="flex cursor-pointer items-center gap-2 text-xs text-text-muted hover:text-primary select-none">
               <input
                 type="checkbox"
@@ -484,7 +489,7 @@ export default function CombosPage() {
             </div>
           </div>
 
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-3.5">
             {(() => {
               const comboByName = Object.fromEntries(combos.map((c) => [c.name, c.models]));
               return combos.map((combo) => (
@@ -574,7 +579,7 @@ function ComboCard({ combo, getCaps, comboByName = {}, activeProviders = [], cop
   const comboCaps = aggregateComboCapabilities(combo.models, comboByName, getCaps);
 
   return (
-    <Card padding="sm" className={`group ${selected ? "ring-1 ring-primary/40 bg-primary/[0.03]" : ""}`}>
+    <Card padding="md" className={`group ${selected ? "ring-1 ring-primary/40 bg-primary/[0.03]" : ""}`}>
       <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex min-w-0 flex-1 items-start gap-3 sm:items-center">
           <label className="flex shrink-0 items-center pt-1 sm:pt-0 cursor-pointer" title="Select combo">
@@ -587,17 +592,17 @@ function ComboCard({ combo, getCaps, comboByName = {}, activeProviders = [], cop
               aria-label={`Select ${combo.name}`}
             />
           </label>
-          <div className="size-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-            <span className="material-symbols-outlined text-primary text-[18px]">layers</span>
+          <div className="size-[38px] rounded-md border border-border bg-surface-2 flex items-center justify-center shrink-0">
+            <span className="material-symbols-outlined text-text-main text-[19px]">layers</span>
           </div>
           <div className="min-w-0 flex-1">
-            <code className="block truncate font-mono text-sm font-medium">{combo.name}</code>
+            <code className="block truncate font-mono text-[13px] font-semibold">{combo.name}</code>
             <div className="mt-1 flex min-w-0 flex-wrap items-center gap-1">
               {combo.models.length === 0 ? (
                 <span className="text-xs text-text-muted italic">No models</span>
               ) : (
                 combo.models.slice(0, 3).map((model, index) => (
-                  <code key={index} className="inline-flex items-center gap-1 rounded bg-black/5 px-1.5 py-0.5 font-mono text-xs text-text-muted dark:bg-white/5">
+                  <code key={index} className="inline-flex items-center gap-1 rounded-[5px] border border-border bg-surface-2 px-1.5 py-0.5 font-mono text-xs text-text-muted">
                     <span>{model}</span>
                     <CapacityBadges caps={
                       comboByName[model]
@@ -659,7 +664,7 @@ function ComboCard({ combo, getCaps, comboByName = {}, activeProviders = [], cop
           <div className="grid grid-cols-3 gap-1 sm:flex">
             <button
               onClick={(e) => { e.stopPropagation(); onCopy(combo.name, `combo-${combo.id}`); }}
-              className="flex flex-col items-center rounded px-2 py-1 text-text-muted transition-colors hover:bg-black/5 hover:text-primary dark:hover:bg-white/5"
+              className="flex flex-col items-center rounded px-2 py-1 text-text-muted transition-colors hover:bg-surface-2 hover:text-text-main"
               title="Copy combo name"
             >
               <span className="material-symbols-outlined text-[18px]">
@@ -669,7 +674,7 @@ function ComboCard({ combo, getCaps, comboByName = {}, activeProviders = [], cop
             </button>
             <button
               onClick={onEdit}
-              className="flex flex-col items-center rounded px-2 py-1 text-text-muted transition-colors hover:bg-black/5 hover:text-primary dark:hover:bg-white/5"
+              className="flex flex-col items-center rounded px-2 py-1 text-text-muted transition-colors hover:bg-surface-2 hover:text-text-main"
               title="Edit"
             >
               <span className="material-symbols-outlined text-[18px]">edit</span>
@@ -708,7 +713,7 @@ function CapacityAdapterSection({ capacityAdapter, onChange, activeProviders, ge
     <div className="flex flex-col gap-3">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">
-          <p className="text-sm font-medium">Vision Adapter</p>
+          <p className="text-[13px] font-semibold uppercase tracking-[0.08em] text-text-subtle">Vision Adapter</p>
           <p className="text-xs text-text-muted mt-0.5">
             Your model can&apos;t read image/audio? Auto-switches to a model in the pool below.
           </p>
@@ -762,7 +767,7 @@ function CapacityAdapterCap({ cap, entry, onChange, activeProviders, getCaps }) 
   };
 
   return (
-    <Card padding="sm" className={`group ${!enabled ? "opacity-50" : ""}`}>
+    <Card padding="md" className={`group ${!enabled ? "opacity-50" : ""}`}>
       <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         {/* Master toggle + icon + label */}
         <div className="flex min-w-0 flex-1 items-start gap-2.5 sm:items-center">
@@ -771,12 +776,12 @@ function CapacityAdapterCap({ cap, entry, onChange, activeProviders, getCaps }) 
             onChange={(v) => patch({ enabled: v })}
             aria-label={`Enable ${cap.label} adapter`}
           />
-          <div className="size-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-            <span className="material-symbols-outlined text-primary text-[18px]">{cap.icon}</span>
+          <div className="size-[38px] rounded-md border border-border bg-surface-2 flex items-center justify-center shrink-0">
+            <span className="material-symbols-outlined text-text-main text-[19px]">{cap.icon}</span>
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-1.5">
-              <code className="font-mono text-sm font-medium">{cap.label}</code>
+              <code className="font-mono text-[13px] font-semibold">{cap.label}</code>
               <span className="text-[10px] text-text-muted">— {cap.desc}</span>
             </div>
           </div>
@@ -812,19 +817,19 @@ function CapacityAdapterCap({ cap, entry, onChange, activeProviders, getCaps }) 
           No models in pool (will fallback to {DEFAULT_FALLBACK_MODEL})
         </div>
       ) : (
-        <div className="mt-3 overflow-hidden rounded-lg border border-border/50">
+        <div className="mt-3 overflow-hidden rounded-brand border border-border">
           <table className="w-full text-left text-xs">
             <thead>
-              <tr className="border-b border-border/40 bg-black/[0.02] text-text-muted dark:bg-white/[0.02]">
-                <th className="w-12 px-3 py-1.5 font-medium text-center">#</th>
-                <th className="px-3 py-1.5 font-medium">Model</th>
-                <th className="w-24 px-3 py-1.5 font-medium text-center">Order</th>
-                <th className="w-12 px-3 py-1.5 font-medium text-right"></th>
+              <tr className="border-b border-border text-text-subtle">
+                <th className="w-12 px-3.5 py-[9px] text-[11px] font-semibold uppercase tracking-[0.07em] text-center">#</th>
+                <th className="px-3.5 py-[9px] text-[11px] font-semibold uppercase tracking-[0.07em]">Model</th>
+                <th className="w-24 px-3.5 py-[9px] text-[11px] font-semibold uppercase tracking-[0.07em] text-center">Order</th>
+                <th className="w-12 px-3.5 py-[9px] text-right"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border/30 font-mono">
               {models.map((model, index) => (
-                <tr key={`${model}-${index}`} className="hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors">
+                <tr key={`${model}-${index}`} className="hover:bg-surface-2/50 transition-colors">
                   <td className="px-3 py-2 text-center text-text-muted text-[11px] font-sans">
                     #{index + 1}
                   </td>

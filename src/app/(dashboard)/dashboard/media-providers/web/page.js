@@ -38,17 +38,14 @@ function ProviderCard({ provider, kind, connections }) {
 
   return (
     <Link href={`/dashboard/media-providers/${kind}/${provider.id}`} className="group">
-      <Card padding="xs" className={`h-full hover:bg-black/[0.01] dark:hover:bg-white/[0.01] transition-colors cursor-pointer ${allDisabled ? "opacity-50" : ""}`}>
+      <Card padding="md" className={`h-full hover:border-border-strong transition-colors cursor-pointer ${allDisabled ? "opacity-50" : ""}`}>
         <div className="flex min-w-0 items-center gap-3">
-          <div
-            className="size-8 rounded-lg flex items-center justify-center shrink-0"
-            style={{ backgroundColor: `${provider.color?.length > 7 ? provider.color : (provider.color ?? "#888") + "15"}` }}
-          >
+          <div className="size-[38px] rounded-md border border-border bg-surface-2 flex items-center justify-center shrink-0 overflow-hidden">
             <ProviderIcon
               src={`/providers/${provider.id}.png`}
               alt={provider.name}
-              size={30}
-              className="object-contain rounded-lg max-w-[30px] max-h-[30px]"
+              size={26}
+              className="object-contain max-w-[26px] max-h-[26px]"
               fallbackText={provider.textIcon || provider.id.slice(0, 2).toUpperCase()}
               fallbackColor={provider.color}
             />
@@ -68,12 +65,12 @@ function ComboList({ combos }) {
     return <p className="text-xs text-text-muted italic">No combos yet.</p>;
   }
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-2.5">
       {combos.map((combo) => (
         <Link key={combo.id} href={`/dashboard/media-providers/combo/${combo.id}`}>
-          <Card padding="xs" className="hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors cursor-pointer">
+          <Card padding="sm" className="hover:border-border-strong transition-colors cursor-pointer">
             <div className="flex min-w-0 items-center gap-3">
-              <span className="material-symbols-outlined text-primary text-[18px]">layers</span>
+              <span className="material-symbols-outlined text-text-main text-[18px]">layers</span>
               <code className="text-sm font-mono font-medium flex-1 truncate">{combo.name}</code>
               {/* Provider icons preview */}
               <div className="flex flex-wrap items-center gap-1 sm:shrink-0">
@@ -113,8 +110,8 @@ function Section({ title, icon, kind, providers, connections, combos, onCreateCo
       {/* Header — title left, Create Combo right */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-3">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="material-symbols-outlined text-primary">{icon}</span>
-          <h2 className="text-base font-semibold">{title}</h2>
+          <span className="material-symbols-outlined text-text-main">{icon}</span>
+          <h2 className="text-[13px] font-semibold uppercase tracking-[0.08em] text-text-subtle">{title}</h2>
           <span className="text-xs text-text-muted">({providers.length} providers · {combos.length} combos)</span>
         </div>
         <Button size="sm" icon="add" onClick={onCreateCombo}>Create Combo</Button>
@@ -129,11 +126,11 @@ function Section({ title, icon, kind, providers, connections, combos, onCreateCo
 
       {/* Providers grid — bottom */}
       {providers.length === 0 ? (
-        <div className="text-center py-8 border border-dashed border-border rounded-xl text-text-muted text-sm">
+        <div className="text-center py-8 border border-dashed border-border rounded-brand text-text-muted text-sm">
           No providers.
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5">
           {providers.map((p) => (
             <ProviderCard key={p.id} provider={p} kind={kind} connections={connections} />
           ))}
@@ -189,7 +186,12 @@ export default function WebProvidersPage() {
   };
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-3.5">
+      {/* Page head */}
+      <div>
+        <h2 className="text-xl font-semibold tracking-[-0.01em] text-text-main">Web Fetch &amp; Search</h2>
+        <p className="mt-1 text-[13.5px] text-text-muted max-w-[640px]">Give models fresh pages and sources. Fetch returns clean markdown; search returns ranked results.</p>
+      </div>
       <Section
         title="Web Search" icon="search" kind="webSearch"
         providers={searchProviders} connections={connections} combos={searchCombos}

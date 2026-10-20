@@ -69,12 +69,12 @@ export default function MediaProviderDetailPage() {
   if (!isCustom && !kinds.includes(kind)) return notFound();
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-3.5">
       {/* Back */}
       <div>
         <Link
           href={`/dashboard/media-providers/${kind}`}
-          className="inline-flex items-center gap-1 text-sm text-text-muted hover:text-primary transition-colors mb-4"
+          className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-2.5 py-[5px] text-[12.5px] font-medium text-text-main hover:bg-surface-2 transition-colors mb-3.5"
         >
           <span className="material-symbols-outlined text-lg">arrow_back</span>
           {kindConfig.label}
@@ -82,19 +82,19 @@ export default function MediaProviderDetailPage() {
 
         {/* Header */}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
-          <div className="size-12 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: `${provider.color}15` }}>
+          <div className="size-11 rounded-md border border-border bg-surface-2 flex items-center justify-center shrink-0 overflow-hidden">
             <ProviderIcon
               src={`/providers/${provider.id}.png`}
               alt={provider.name}
-              size={48}
-              className="object-contain rounded-lg max-w-[48px] max-h-[48px]"
+              size={28}
+              className="object-contain max-w-[28px] max-h-[28px]"
               fallbackText={provider.textIcon || provider.id.slice(0, 2).toUpperCase()}
               fallbackColor={provider.color}
             />
           </div>
           <div className="flex-1">
             <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-              <h1 className="text-3xl font-semibold tracking-tight">{provider.name}</h1>
+              <h1 className="text-xl font-semibold tracking-[-0.01em]">{provider.name}</h1>
               {!isCustom && provider.notice?.apiKeyUrl && (
                 <a
                   href={provider.notice.apiKeyUrl}
@@ -131,7 +131,7 @@ export default function MediaProviderDetailPage() {
 
       {/* Kind-specific notice (e.g. codex/image requires Plus) */}
       {!isCustom && provider.kindNotice?.[kind] && (
-        <div className="flex items-start gap-3 px-4 py-3 rounded-lg bg-surface-2 border border-border text-text-muted dark:text-text-muted">
+        <div className="flex items-start gap-3 px-4 py-3 rounded-brand bg-surface-2 border border-border text-text-muted dark:text-text-muted">
           <span className="material-symbols-outlined text-[20px] mt-0.5">warning</span>
           <p className="text-sm">{provider.kindNotice[kind]}</p>
         </div>
@@ -139,7 +139,7 @@ export default function MediaProviderDetailPage() {
 
       {/* Provider notice text (only when there's actual text content) */}
       {!isCustom && provider.notice?.text && !provider.deprecated && (
-        <div className="flex flex-col gap-2 rounded-lg border border-border bg-surface-2 px-3 py-2 sm:flex-row sm:items-center">
+        <div className="flex flex-col gap-2 rounded-brand border border-border bg-surface-2 px-3.5 py-2.5 sm:flex-row sm:items-center">
           <span className="material-symbols-outlined text-[16px] text-text-muted shrink-0">info</span>
           <p className="min-w-0 flex-1 text-xs leading-relaxed text-text-muted dark:text-text-muted">{provider.notice.text}</p>
           {provider.notice.apiKeyUrl && (

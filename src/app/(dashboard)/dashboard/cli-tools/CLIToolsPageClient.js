@@ -29,7 +29,7 @@ export default function CLIToolsPageClient({ machineId }) {
 
   if (loading) {
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
         <CardSkeleton />
         <CardSkeleton />
         <CardSkeleton />
@@ -44,18 +44,20 @@ export default function CLIToolsPageClient({ machineId }) {
   const mitmTools = Object.entries(MITM_TOOLS);
 
   return (
-    <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-1 sm:px-0">
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+    <div className="flex flex-col gap-3.5">
+      {/* Page head */}
+      <div>
+        <h2 className="text-xl font-semibold tracking-[-0.01em] text-text-main">CLI Tools</h2>
+        <p className="mt-1 text-[13.5px] text-text-muted max-w-[640px]">Point your coding tools at the router once — every model you connected becomes available inside them.</p>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
         {regularTools.map(([toolId, tool]) => (
           <ToolSummaryCard key={toolId} toolId={toolId} tool={tool} status={toolStatuses[toolId]} />
         ))}
       </div>
-      <div className="flex flex-col gap-3 sm:gap-4">
-        <div className="flex items-center gap-2 px-1">
-          <span className="material-symbols-outlined text-[18px] text-primary">security</span>
-          <h2 className="text-sm font-semibold text-text-main">MITM Tools</h2>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+      <div className="flex flex-col gap-3.5 mt-2">
+        <h2 className="text-[13px] font-semibold uppercase tracking-[0.08em] text-text-subtle">MITM Tools</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
           {mitmTools.map(([toolId, tool]) => (
             <MitmLinkCard key={toolId} tool={tool} />
           ))}

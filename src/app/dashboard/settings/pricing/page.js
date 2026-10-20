@@ -51,55 +51,55 @@ export default function PricingSettingsPage() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto p-6 space-y-6">
+    <div className="mx-auto flex w-full max-w-[1240px] flex-col gap-3.5 px-3.5 py-[18px] lg:p-[26px]">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Pricing Settings</h1>
-          <p className="text-text-muted mt-1">
+          <h1 className="text-xl font-semibold tracking-[-0.01em] text-text-main">Pricing Settings</h1>
+          <p className="text-[13.5px] text-text-muted mt-1">
             Configure pricing rates for cost tracking and calculations
           </p>
         </div>
         <button
           onClick={() => setShowModal(true)}
-          className="px-4 py-2 bg-primary text-white rounded hover:bg-primary/90 transition-colors"
+          className="inline-flex h-8 items-center justify-center gap-[7px] rounded-md bg-brand-500 px-[13px] text-[13px] font-medium text-on-brand transition-opacity hover:opacity-90"
         >
           Edit Pricing
         </button>
       </div>
 
       {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="p-4">
-          <div className="text-text-muted text-sm uppercase font-semibold">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+        <Card>
+          <div className="text-xs text-text-muted">
             Total Models
           </div>
-          <div className="text-2xl font-bold mt-1">
+          <div className="font-mono text-[26px] font-semibold leading-none text-text-main mt-2">
             {loading ? "..." : getModelCount()}
           </div>
         </Card>
-        <Card className="p-4">
-          <div className="text-text-muted text-sm uppercase font-semibold">
+        <Card>
+          <div className="text-xs text-text-muted">
             Providers
           </div>
-          <div className="text-2xl font-bold mt-1">
+          <div className="font-mono text-[26px] font-semibold leading-none text-text-main mt-2">
             {loading ? "..." : getProviders().length}
           </div>
         </Card>
-        <Card className="p-4">
-          <div className="text-text-muted text-sm uppercase font-semibold">
+        <Card>
+          <div className="text-xs text-text-muted">
             Status
           </div>
-          <div className="text-2xl font-bold mt-1 text-success">
+          <div className="font-mono text-[26px] font-semibold leading-none text-text-main mt-2">
             {loading ? "..." : "Active"}
           </div>
         </Card>
       </div>
 
       {/* Info Section */}
-      <Card className="p-6">
-        <h2 className="text-xl font-semibold mb-4">How Pricing Works</h2>
-        <div className="space-y-3 text-sm text-text-muted">
+      <Card>
+        <h2 className="text-[13.5px] font-semibold mb-3">How Pricing Works</h2>
+        <div className="space-y-3 text-[13.5px] leading-relaxed text-text-muted">
           <p>
             <strong>Cost Calculation:</strong> Costs are calculated based on token usage and pricing rates.
             Each request&apos;s cost is determined by: (input_tokens × input_rate) + (output_tokens × output_rate) + (cached_tokens × cached_rate)
@@ -126,12 +126,12 @@ export default function PricingSettingsPage() {
       </Card>
 
       {/* Current Pricing Preview */}
-      <Card className="p-6">
+      <Card>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold">Current Pricing Overview</h2>
+          <h2 className="text-[13.5px] font-semibold">Current Pricing Overview</h2>
           <button
             onClick={() => setShowModal(true)}
-            className="text-primary hover:underline text-sm"
+            className="text-text-main hover:underline text-[13px] font-medium"
           >
             View Full Details
           </button>
@@ -142,7 +142,7 @@ export default function PricingSettingsPage() {
         ) : currentPricing ? (
           <div className="space-y-3">
             {Object.keys(currentPricing).slice(0, 5).map(provider => (
-              <div key={provider} className="text-sm">
+              <div key={provider} className="flex items-baseline justify-between border-b border-border-subtle py-2 text-[13px] last:border-b-0">
                 <span className="font-semibold">{provider.toUpperCase()}:</span>{" "}
                 <span className="text-text-muted">
                   {Object.keys(currentPricing[provider]).length} models
