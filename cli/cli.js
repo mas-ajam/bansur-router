@@ -131,6 +131,7 @@ const PROCESS_IDENTIFIERS = [
 
 // Parse arguments
 let port = DEFAULT_PORT;
+let portFromFlag = false;
 let host = DEFAULT_HOST;
 let noBrowser = false;
 let skipUpdate = false;
@@ -140,6 +141,7 @@ let trayMode = false;
 for (let i = 0; i < args.length; i++) {
   if (args[i] === "--port" || args[i] === "-p") {
     port = parseInt(args[i + 1], 10) || DEFAULT_PORT;
+    portFromFlag = true;
     i++;
   } else if (args[i] === "--host" || args[i] === "-H") {
     host = args[i + 1] || DEFAULT_HOST;
@@ -180,6 +182,44 @@ Commands:
   } else if (args[i] === "--version" || args[i] === "-v") {
     console.log(pkg.version);
     process.exit(0);
+  }
+}
+
+// Read one key from the persisted settings row (SQLite `settings` id=1,
+// `data` JSON) without booting the server. Any failure — no DB yet, Node
+// without node:sqlite, unreadable row — silently returns undefined and the
+// caller falls through to its default.
+function readPersistedSetting(key) {
+  try {
+    const dataDir = process.env.DATA_DIR || getAppDataDir();
+    const dbPath = path.join(dataDir, "db", "data.sqlite");
+    if (!fs.existsSync(dbPath)) return undefined;
+    const { DatabaseSync } = require("node:sqlite");
+    const db = new DatabaseSync(dbPath, { readOnly: true });
+    try {
+      const row = db.prepare("SELECT data FROM settings WHERE id = 1").get();
+      if (!row?.data) return undefined;
+      return JSON.parse(row.data)?.[key];
+    } finally {
+      db.close();
+    }
+  } catch {
+    return undefined;
+  }
+}
+
+// Port resolution (SE-01): explicit --port/-p flag > env PORT > persisted
+// settings.port > product default 667. A port saved in Settings therefore
+// applies on the next launch (after restart), matching the Settings hint.
+if (!portFromFlag) {
+  const envPort = parseInt(process.env.PORT, 10);
+  if (Number.isInteger(envPort) && envPort > 0 && envPort <= 65535) {
+    port = envPort;
+  } else {
+    const savedPort = Number(readPersistedSetting("port"));
+    if (Number.isInteger(savedPort) && savedPort > 0 && savedPort <= 65535) {
+      port = savedPort;
+    }
   }
 }
 
@@ -477,6 +517,12 @@ function isRestrictedEnvironment() {
 function checkForUpdate() {
   return new Promise((resolve) => {
     if (skipUpdate) {
+      resolve(null);
+      return;
+    }
+
+    // Local mode (SE-05): no outbound calls — skip the npm registry check.
+    if (readPersistedSetting("localMode") === true) {
       resolve(null);
       return;
     }

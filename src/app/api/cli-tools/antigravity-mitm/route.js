@@ -13,8 +13,23 @@ import {
   initDbHooks,
 } from "@/mitm/manager";
 import { getSettings, updateSettings } from "@/lib/localDb";
+import { ROOT_CA_CERT_PATH } from "@/mitm/cert/rootCA.js";
+import fs from "fs";
+import crypto from "crypto";
 
 initDbHooks(getSettings, updateSettings);
+
+// SHA-256 fingerprint (colon-separated hex) of the generated root CA, or
+// null when no CA exists yet (MI-04).
+function getCaFingerprintSha256() {
+  try {
+    if (!fs.existsSync(ROOT_CA_CERT_PATH)) return null;
+    const pem = fs.readFileSync(ROOT_CA_CERT_PATH, "utf8");
+    return new crypto.X509Certificate(pem).fingerprint256 || null;
+  } catch {
+    return null;
+  }
+}
 
 const DEFAULT_MITM_ROUTER_BASE = "http://localhost:667";
 
@@ -74,6 +89,7 @@ export async function GET() {
       running: status.running,
       pid: status.pid || null,
       certExists: status.certExists || false,
+      caFingerprintSha256: getCaFingerprintSha256(),
       certTrusted: status.certTrusted || false,
       dnsStatus: status.dnsStatus || {},
       hasCachedPassword,

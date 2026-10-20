@@ -8,7 +8,9 @@ import { getModelsByProviderId } from "@/shared/constants/models";
 import { isOpenAICompatibleProvider, isAnthropicCompatibleProvider } from "@/shared/constants/providers";
 import { MitmToolCard } from "@/app/(dashboard)/dashboard/cli-tools/components";
 
-/* MITM (audit MI-01..MI-03, MI-05, MI-06; MI-04 flagged).
+/* MITM (audit MI-01..MI-06; MI-04 wired in Phase 4c — the status payload
+   now carries caFingerprintSha256 and /api/cli-tools/antigravity-mitm/ca
+   serves the CA PEM download).
    The server start/stop + trust-cert actions (incl. the sudo password and
    port-443 conflict flows) are lifted from MitmServerCard, which is no
    longer rendered: its Base URL / API-key picker UI is not part of the new
@@ -228,8 +230,15 @@ export default function MitmPageClient() {
                   ? "Generated · not installed"
                   : "Not generated"}
             </Kv>
-            {/* MI-04: /api/cli-tools/antigravity-mitm exposes no SHA-256 fingerprint */}
-            <Kv k="CA fingerprint (SHA-256)">—</Kv>
+            <Kv k="CA fingerprint (SHA-256)">
+              {mitmStatus.caFingerprintSha256 ? (
+                <span className="inline-block max-w-[260px] break-all align-top">
+                  {mitmStatus.caFingerprintSha256}
+                </span>
+              ) : (
+                "—"
+              )}
+            </Kv>
             <Kv k="Intercepted tools">{enabledToolNames.length > 0 ? enabledToolNames.join(" · ") : "None"}</Kv>
           </div>
 
@@ -241,7 +250,24 @@ export default function MitmPageClient() {
           <div className="flex items-center gap-2 mt-3.5 flex-wrap">
             <Button
               variant="secondary"
-              onClick={() => notify.error("CA download is not exposed in this build")}
+              disabled={!mitmStatus.caFingerprintSha256}
+              onClick={async () => {
+                try {
+                  await navigator.clipboard.writeText(mitmStatus.caFingerprintSha256);
+                  notify.success("Fingerprint copied");
+                } catch {
+                  notify.error("Failed to copy fingerprint");
+                }
+              }}
+            >
+              Copy fingerprint
+            </Button>
+            <Button
+              variant="secondary"
+              disabled={!mitmStatus.certExists}
+              onClick={() => {
+                window.location.href = "/api/cli-tools/antigravity-mitm/ca";
+              }}
             >
               Download CA
             </Button>

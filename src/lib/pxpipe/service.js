@@ -1,9 +1,11 @@
 import { getInstallInfo, isInstalling, findNpm } from "./install.js";
-import { getLoadedInfo, loadPxpipe, selfTest } from "./loader.js";
+import { getLoadedInfo, loadPxpipe, selfTest, getPxpipeCacheStats } from "./loader.js";
 
 // Aggregate status for the Token Saver card and /api/pxpipe/status.
 // "running" in library mode = module loaded into this process.
-export function getPxpipeStatus() {
+// `enabled` is the pxpipeEnabled setting, supplied by callers that read
+// settings (the status route); without it appliedTo stays null.
+export function getPxpipeStatus({ enabled } = {}) {
   const install = getInstallInfo();
   const loaded = getLoadedInfo();
   return {
@@ -16,6 +18,8 @@ export function getPxpipeStatus() {
     uptimeMs: loaded.loaded ? Date.now() - loaded.loadedAt : 0,
     npmAvailable: !!findNpm(),
     mode: "library", // in-process transform, not an external proxy
+    appliedTo: enabled ? "All /v1 routes" : null,
+    cache: getPxpipeCacheStats(),
   };
 }
 

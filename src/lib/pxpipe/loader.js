@@ -1,4 +1,5 @@
 import { pathToFileURL } from "url";
+import crypto from "crypto";
 import { getInstallInfo, libraryEntry } from "./install.js";
 
 // Module cache: pxpipe is loaded once per process ("started") and dropped on
@@ -40,13 +41,111 @@ export function unloadPxpipe() {
   return wasLoaded;
 }
 
+// --- PXPIPE transform result cache (PX-04) ---------------------------------
+// Real result cache around the raw transform: requests whose encoded body,
+// model and minCompressChars are identical within the TTL reuse the previous
+// transform result instead of re-rendering images. In-memory only; counters
+// back getPxpipeCacheStats() for the status payload.
+const DEFAULT_CACHE_TTL_SEC = 300;
+const DEFAULT_MAX_PAYLOAD_MB = 32;
+
+const transformCache = new Map(); // sha256 key -> { result, expiresAt }
+let cacheHits = 0;
+let cacheMisses = 0;
+
+export function getPxpipeCacheStats() {
+  return { hits: cacheHits, misses: cacheMisses, size: transformCache.size };
+}
+
+export function flushPxpipeCache() {
+  transformCache.clear();
+  cacheHits = 0;
+  cacheMisses = 0;
+}
+
+async function readCacheSettings() {
+  try {
+    const { getSettings } = await import("@/lib/localDb");
+    const settings = await getSettings();
+    const ttlSec = Number(settings?.pxpipeCacheTtlSec);
+    const maxPayloadMb = Number(settings?.pxpipeMaxPayloadMb);
+    return {
+      ttlSec: Number.isFinite(ttlSec) && ttlSec >= 0 ? ttlSec : DEFAULT_CACHE_TTL_SEC,
+      maxPayloadMb: Number.isFinite(maxPayloadMb) && maxPayloadMb >= 0 ? maxPayloadMb : DEFAULT_MAX_PAYLOAD_MB,
+    };
+  } catch {
+    return { ttlSec: DEFAULT_CACHE_TTL_SEC, maxPayloadMb: DEFAULT_MAX_PAYLOAD_MB };
+  }
+}
+
+function cloneTransformResult(result) {
+  try {
+    return structuredClone(result);
+  } catch {
+    return JSON.parse(JSON.stringify(result));
+  }
+}
+
+function wrapTransformWithCache(transformFn) {
+  return async function cachedTransform(args) {
+    const { body, model, options } = args || {};
+    const { ttlSec, maxPayloadMb } = await readCacheSettings();
+    const ttlMs = ttlSec * 1000;
+    const maxPayloadBytes = maxPayloadMb * 1024 * 1024;
+
+    // The transform receives the body as UTF-8 JSON bytes; its byte length is
+    // the JSON payload length the payload cap applies to.
+    const bodyBytes = body instanceof Uint8Array
+      ? body.byteLength
+      : (JSON.stringify(body) || "").length;
+
+    // Cache disabled (TTL or cap set to 0) or oversized payload: skip the
+    // cache entirely — no lookup, no store, no counters.
+    if (!(ttlMs > 0) || !(maxPayloadBytes > 0) || bodyBytes > maxPayloadBytes) {
+      return transformFn(args);
+    }
+
+    const bodyJson = body instanceof Uint8Array
+      ? Buffer.from(body).toString("utf8")
+      : JSON.stringify(body);
+    const key = crypto
+      .createHash("sha256")
+      .update(bodyJson || "")
+      .update("\0")
+      .update(String(model || ""))
+      .update("\0")
+      .update(String(options?.minCompressChars ?? ""))
+      .digest("hex");
+
+    const entry = transformCache.get(key);
+    if (entry) {
+      if (entry.expiresAt > Date.now()) {
+        cacheHits++;
+        const copy = cloneTransformResult(entry.result);
+        if (copy && typeof copy === "object") copy.cacheHit = true;
+        return copy;
+      }
+      transformCache.delete(key); // expired
+    }
+
+    cacheMisses++;
+    const result = await transformFn(args);
+    if (result && typeof result === "object") {
+      try {
+        transformCache.set(key, { result: cloneTransformResult(result), expiresAt: Date.now() + ttlMs });
+      } catch { /* uncloneable result: serve it uncached */ }
+    }
+    return result;
+  };
+}
+
 // Transform function for the request pipeline; null when unavailable (fail-open).
 // autoLoad controls whether a cold cache triggers a load (first request warms it).
 export async function getTransform({ autoLoad = true } = {}) {
   try {
     if (!cached && !autoLoad) return null;
     const { module: mod } = await loadPxpipe();
-    return mod.transformAnthropicMessages;
+    return wrapTransformWithCache(mod.transformAnthropicMessages);
   } catch {
     return null;
   }

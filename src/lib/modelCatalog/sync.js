@@ -184,6 +184,16 @@ async function collectEntries() {
 
 // Run one sync. Returns a summary, or null when it could not complete.
 export async function syncModelCatalog() {
+  // Local mode (SE-05): no outbound calls — skip the remote catalog fetch.
+  // lastSync is deliberately left untouched so the sync state stays honest
+  // (no sync happened). Settings are read via dynamic import to keep this
+  // module free of a static dependency on the DB layer.
+  try {
+    const { getSettings } = await import("@/lib/localDb");
+    const settings = await getSettings();
+    if (settings?.localMode === true) return null;
+  } catch { /* settings unreadable: fall through to the normal sync */ }
+
   if (state.running) return null;
   state.running = true;
   try {

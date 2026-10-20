@@ -164,8 +164,25 @@ function resolveRelaunchCommand() {
   return { cmd: npx, args: [UPDATER_CONFIG.npmPackageName] };
 }
 
+// Local mode (SE-05): no outbound calls — the updater's npm install must
+// not run. Read via dynamic import (this module is also loaded by routes
+// that never touch the DB layer).
+async function isLocalModeEnabled() {
+  try {
+    const { getSettings } = await import("@/lib/localDb");
+    const settings = await getSettings();
+    return settings?.localMode === true;
+  } catch {
+    return false;
+  }
+}
+
 // Spawn detached headless updater (Node process) then exit current server
-export function spawnUpdaterAndExit(packageName = UPDATER_CONFIG.npmPackageName) {
+export async function spawnUpdaterAndExit(packageName = UPDATER_CONFIG.npmPackageName) {
+  if (await isLocalModeEnabled()) {
+    console.log("[updater] Skipped: local mode is on (no outbound calls)");
+    return false;
+  }
   const updaterPath = ensureRuntimeUpdater(resolveBundledUpdaterPath());
   const isTray = process.env.TRAY_MODE === "1";
   const relaunch = resolveRelaunchCommand();

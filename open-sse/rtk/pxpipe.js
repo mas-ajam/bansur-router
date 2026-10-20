@@ -61,6 +61,7 @@ export async function compressWithPxpipe(body, { enabled, format, model, minChar
         detail: result.detail,
         originalChars,
         durationMs: Date.now() - startedAt,
+        cacheHit: result.cacheHit === true,
       });
     }
 
@@ -85,6 +86,7 @@ export async function compressWithPxpipe(body, { enabled, format, model, minChar
       tokensBeforeEst: info.baselineTokens || estTokens(originalChars),
       tokensAfterEst: estTokens(Math.max(0, originalChars - imagedChars)) + imageTokensEst,
       durationMs: Date.now() - startedAt,
+      cacheHit: result.cacheHit === true,
       cacheOwnsControl: result.cache?.ownsCacheControl === true,
     };
     summary.tokensSavedEst = Math.max(0, summary.tokensBeforeEst - summary.tokensAfterEst);

@@ -117,9 +117,36 @@ export function getPxpipeStats({ timelineDays = 30, recentLimit = 100 } = {}) {
 
   for (const w of Object.values(windows)) finalize(w);
 
+  // PX-04: p50 over the durationMs of ALL events in the stats window (the
+  // full event store read above), not just the recent[] slice.
+  const durations = events
+    .map((ev) => ev.durationMs)
+    .filter((n) => typeof n === "number" && Number.isFinite(n))
+    .sort((a, b) => a - b);
+  let p50DurationMs = null;
+  if (durations.length > 0) {
+    const mid = Math.floor(durations.length / 2);
+    p50DurationMs = Math.round(
+      durations.length % 2 === 0
+        ? (durations[mid - 1] + durations[mid]) / 2
+        : durations[mid]
+    );
+  }
+
+  // PX-05: transform-cache aggregates over the same window. Every recorded
+  // event is one cache lookup (the loader cache sits in front of every
+  // transform call); events the loader served from cache carry cacheHit.
+  const cacheHits = events.reduce((n, ev) => n + (ev.cacheHit === true ? 1 : 0), 0);
+  const cacheLookups = events.length;
+  const cacheHitRate = cacheLookups > 0 ? +(cacheHits / cacheLookups).toFixed(4) : 0;
+
   return {
     windows,
     timeline: [...timeline.values()],
     recent: events.slice(-recentLimit).reverse(),
+    p50DurationMs,
+    cacheHits,
+    cacheLookups,
+    cacheHitRate,
   };
 }
