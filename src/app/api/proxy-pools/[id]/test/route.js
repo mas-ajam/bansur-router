@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getProxyPoolById, updateProxyPool } from "@/models";
+import { getProxyPoolById, updateProxyPool, recordPoolEndpointTests } from "@/models";
 import { testProxyUrl } from "@/lib/network/proxyTest";
 import { fetch as undiciFetch } from "undici";
 
@@ -41,6 +41,37 @@ export async function POST(request, { params }) {
 
     if (!proxyPool) {
       return NextResponse.json({ error: "Proxy pool not found" }, { status: 404 });
+    }
+
+    // Phase 4 (PP-05): endpoint pools probe every endpoint and persist
+    // per-endpoint health; the pool result aggregates (ok when at least
+    // one endpoint is healthy). Probing no longer flips isActive.
+    if (proxyPool.type === "http" && Array.isArray(proxyPool.endpoints) && proxyPool.endpoints.length > 0) {
+      const testedAt = new Date().toISOString();
+      const results = await Promise.all(
+        proxyPool.endpoints.map(async (e) => {
+          const r = await testProxyUrl({ proxyUrl: e.url });
+          return {
+            url: e.url,
+            ok: r.ok,
+            status: r.status,
+            error: r.error || null,
+            latencyMs: typeof r.elapsedMs === "number" ? r.elapsedMs : null,
+            testedAt,
+          };
+        })
+      );
+      await recordPoolEndpointTests(id, results);
+      const okCount = results.filter((r) => r.ok).length;
+      return NextResponse.json({
+        ok: okCount > 0,
+        status: results[0]?.status || null,
+        statusText: null,
+        error: okCount > 0 ? null : (results[0]?.error || "All endpoints failed"),
+        elapsedMs: Math.max(0, ...results.map((r) => r.latencyMs || 0)),
+        testedAt,
+        endpoints: results,
+      });
     }
 
     const result = proxyPool.type === "vercel" || proxyPool.type === "cloudflare" || proxyPool.type === "deno" || proxyPool.type === "netlify"

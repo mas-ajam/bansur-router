@@ -8,6 +8,42 @@ function normalizeString(value) {
 
 // ─── Proxy pool rotation state (in-memory) ─────────────────────────
 const rotateState = new Map(); // providerId → { index }
+const endpointRotateState = new Map(); // poolId → { index }
+
+function hashString(str) {
+  let h = 0;
+  for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) | 0;
+  return Math.abs(h);
+}
+
+/**
+ * Phase 4 (PP-03): pick one endpoint of a pool by its rotation strategy.
+ * `healthy` is pre-filtered by the caller (endpoints whose last probe
+ * failed are excluded; unprobed endpoints count as usable).
+ * round-robin: cycle sequentially (in-memory, resets on restart)
+ * latency:     lowest last-probed latency; unprobed counts as slowest
+ * sticky:      stable hash of the connection's own config, so one
+ *              account keeps one exit until the pool changes
+ */
+export function pickPoolEndpoint(pool, healthy, stickyKey = "") {
+  if (!healthy || healthy.length === 0) return null;
+  if (healthy.length === 1) return healthy[0];
+
+  if (pool.rotation === "latency") {
+    return [...healthy].sort(
+      (a, b) => (a.lastLatencyMs ?? Infinity) - (b.lastLatencyMs ?? Infinity)
+    )[0];
+  }
+
+  if (pool.rotation === "sticky") {
+    return healthy[hashString(`${pool.id}|${stickyKey}`) % healthy.length];
+  }
+
+  const state = endpointRotateState.get(pool.id) || { index: -1 };
+  state.index = (state.index + 1) % healthy.length;
+  endpointRotateState.set(pool.id, state);
+  return healthy[state.index];
+}
 
 /**
  * Pick one proxy pool ID from a list based on strategy.
@@ -91,13 +127,39 @@ export async function resolveConnectionProxyConfig(
     if (proxyPoolId) {
       const proxyPool = await getProxyPoolById(proxyPoolId);
 
-      const proxyUrl = normalizeString(proxyPool?.proxyUrl);
-      const noProxy = normalizeString(proxyPool?.noProxy);
+      let proxyUrl = normalizeString(proxyPool?.proxyUrl);
+      let noProxy = normalizeString(proxyPool?.noProxy);
 
-      const isValidPool =
+      let isValidPool =
         proxyPool &&
         proxyPool.isActive === true &&
         proxyUrl;
+
+      // Phase 4 (PP-04/PP-07): endpoint pools route through one healthy
+      // endpoint chosen by the pool's rotation. A pool whose endpoints
+      // all failed their last probe is skipped like an unusable pool —
+      // except a strict pool still reports strictProxy below, so the
+      // request fails closed instead of leaking to direct (#4333).
+      const isRelayPool = proxyPool && ["vercel", "cloudflare", "deno", "netlify"].includes(proxyPool.type);
+      if (isValidPool && !isRelayPool) {
+        const endpoints = Array.isArray(proxyPool.endpoints) ? proxyPool.endpoints : [];
+        if (endpoints.length > 0) {
+          const healthy = endpoints.filter((e) => e.testStatus !== "error");
+          if (healthy.length === 0) {
+            isValidPool = false;
+          } else {
+            const chosen = pickPoolEndpoint(
+              proxyPool,
+              healthy,
+              JSON.stringify(providerSpecificData || {})
+            );
+            if (chosen) {
+              proxyUrl = normalizeString(chosen.url);
+              noProxy = normalizeString(chosen.noProxy) || noProxy;
+            }
+          }
+        }
+      }
 
       poolStrictProxy = proxyPool?.strictProxy === true;
 

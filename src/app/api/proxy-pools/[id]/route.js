@@ -42,11 +42,43 @@ function normalizeProxyPoolUpdate(body = {}) {
     updates.type = validTypes.includes(body?.type) ? body.type : "http";
   }
 
+  if (Object.prototype.hasOwnProperty.call(body, "endpoints")) {
+    const raw = Array.isArray(body?.endpoints) ? body.endpoints : [];
+    const endpoints = raw
+      .map((e) => ({
+        url: typeof e?.url === "string" ? e.url.trim() : "",
+        noProxy: typeof e?.noProxy === "string" ? e.noProxy.trim() : "",
+        // Preserve prior probe results for endpoints that survive the edit.
+        testStatus: e?.testStatus || null,
+        lastTestedAt: e?.lastTestedAt || null,
+        lastError: e?.lastError || null,
+        lastLatencyMs: typeof e?.lastLatencyMs === "number" ? e.lastLatencyMs : null,
+      }))
+      .filter((e) => e.url);
+    if (endpoints.length === 0) {
+      return { error: "At least one endpoint URL is required" };
+    }
+    updates.endpoints = endpoints;
+    updates.proxyUrl = endpoints[0].url;
+  }
+
+  if (Object.prototype.hasOwnProperty.call(body, "rotation")) {
+    const validRotations = ["round-robin", "latency", "sticky"];
+    updates.rotation = validRotations.includes(body?.rotation) ? body.rotation : "round-robin";
+  }
+
+  if (Object.prototype.hasOwnProperty.call(body, "description")) {
+    updates.description = typeof body?.description === "string" ? body.description.trim() : "";
+  }
+
   return { updates };
 }
 
 function countBoundConnections(connections = [], proxyPoolId) {
-  return connections.filter((connection) => connection?.providerSpecificData?.proxyPoolId === proxyPoolId).length;
+  return connections.filter((connection) => {
+    const data = connection?.providerSpecificData || {};
+    return data.proxyPoolId === proxyPoolId || data.connectionProxyPoolId === proxyPoolId;
+  }).length;
 }
 
 // GET /api/proxy-pools/[id] - Get proxy pool

@@ -118,6 +118,11 @@ async function runHeavyStartup() {
   import("@/sse/services/backgroundTokenRefresh.js")
     .then(({ startBackgroundTokenRefresh }) => startBackgroundTokenRefresh())
     .catch((e) => console.log("[BackgroundTokenRefresh] scheduler start failed:", e.message));
+
+  // Proxy pool health prober (PP-07: pools are probed every 60 seconds).
+  import("@/lib/network/proxyPoolProber.js")
+    .then(({ startProxyPoolProber }) => startProxyPoolProber())
+    .catch((e) => console.log("[ProxyPoolProber] start failed:", e.message));
 }
 
 // Cheap local check: keeps the scheduler module (and its provider graph) unloaded

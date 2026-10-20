@@ -9,13 +9,33 @@ function toBoolean(value) {
 
 const VALID_PROXY_TYPES = ["http", "vercel", "cloudflare", "deno", "netlify"];
 
+const VALID_ROTATIONS = ["round-robin", "latency", "sticky"];
+
+function normalizeEndpoints(body = {}) {
+  const raw = Array.isArray(body?.endpoints) ? body.endpoints : [];
+  const endpoints = raw
+    .map((e) => ({
+      url: typeof e?.url === "string" ? e.url.trim() : "",
+      noProxy: typeof e?.noProxy === "string" ? e.noProxy.trim() : "",
+    }))
+    .filter((e) => e.url);
+  // Legacy single-URL input becomes a one-endpoint pool.
+  if (endpoints.length === 0 && typeof body?.proxyUrl === "string" && body.proxyUrl.trim()) {
+    endpoints.push({ url: body.proxyUrl.trim(), noProxy: typeof body?.noProxy === "string" ? body.noProxy.trim() : "" });
+  }
+  return endpoints;
+}
+
 function normalizeProxyPoolInput(body = {}) {
   const name = typeof body?.name === "string" ? body.name.trim() : "";
-  const proxyUrl = typeof body?.proxyUrl === "string" ? body.proxyUrl.trim() : "";
+  const endpoints = normalizeEndpoints(body);
+  const proxyUrl = endpoints[0]?.url || "";
   const noProxy = typeof body?.noProxy === "string" ? body.noProxy.trim() : "";
   const isActive = body?.isActive === undefined ? true : body.isActive === true;
   const strictProxy = body?.strictProxy === true;
   const type = VALID_PROXY_TYPES.includes(body?.type) ? body.type : "http";
+  const rotation = VALID_ROTATIONS.includes(body?.rotation) ? body.rotation : "round-robin";
+  const description = typeof body?.description === "string" ? body.description.trim() : "";
 
   if (!name) {
     return { error: "Name is required" };
@@ -25,17 +45,29 @@ function normalizeProxyPoolInput(body = {}) {
     return { error: "Proxy URL is required" };
   }
 
-  return { name, proxyUrl, noProxy, isActive, strictProxy, type };
+  return { name, proxyUrl, noProxy, isActive, strictProxy, type, endpoints, rotation, description };
+}
+
+function connectionPoolId(connection) {
+  const data = connection?.providerSpecificData || {};
+  return data.proxyPoolId || data.connectionProxyPoolId || null;
 }
 
 function buildUsageMap(connections = []) {
   const usageMap = new Map();
 
   for (const connection of connections) {
-    const proxyPoolId = connection?.providerSpecificData?.proxyPoolId;
+    const proxyPoolId = connectionPoolId(connection);
     if (!proxyPoolId) continue;
 
-    usageMap.set(proxyPoolId, (usageMap.get(proxyPoolId) || 0) + 1);
+    const entry = usageMap.get(proxyPoolId) || { count: 0, usedBy: [] };
+    entry.count += 1;
+    // PP-06: used-by carries the bound providers (names resolved
+    // client-side from the provider registry), deduplicated.
+    if (connection.provider && !entry.usedBy.includes(connection.provider)) {
+      entry.usedBy.push(connection.provider);
+    }
+    usageMap.set(proxyPoolId, entry);
   }
 
   return usageMap;
@@ -62,10 +94,14 @@ export async function GET(request) {
     const connections = await getProviderConnections();
     const usageMap = buildUsageMap(connections);
 
-    const enrichedProxyPools = proxyPools.map((pool) => ({
-      ...pool,
-      boundConnectionCount: usageMap.get(pool.id) || 0,
-    }));
+    const enrichedProxyPools = proxyPools.map((pool) => {
+      const usage = usageMap.get(pool.id) || { count: 0, usedBy: [] };
+      return {
+        ...pool,
+        boundConnectionCount: usage.count,
+        usedBy: usage.usedBy,
+      };
+    });
 
     return NextResponse.json({ proxyPools: enrichedProxyPools });
   } catch (error) {
