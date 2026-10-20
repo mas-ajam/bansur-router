@@ -2,6 +2,13 @@
 
 All notable changes to Bansur Router will be documented in this file.
 
+## 1.0.2 (2026-10-20)
+
+- Branding unified across all channels: the Bansur Router logo now heads the npm and Docker Hub package pages, the npm package description matches the official tagline, and the GitHub repository gained topics (ai-router, ai-gateway, openai-compatible, claude-code, cursor, codex, gemini, llm, …).
+- Fully automated release pipeline: pushing a version tag now publishes to npm (Trusted Publishing/OIDC with provenance), creates the GitHub Release from this changelog, publishes Docker Hub + GHCR images, and deploys the documentation site — no manual steps.
+- Docker Hub overview is synced automatically from `DOCKERHUB.md`; docs deploy automatically to Cloudflare Pages on every release.
+- Retired the legacy GitBook-to-GitHub-Pages workflow (documentation lives on Cloudflare Pages).
+
 ## 1.0.1 (2026-10-20)
 
 - npm releases now use Trusted Publishing (OIDC) from GitHub Actions — no stored npm tokens — and ship with provenance attestations.
