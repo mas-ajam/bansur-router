@@ -2,6 +2,10 @@
 
 All notable changes to Bansur Router will be documented in this file.
 
+## 1.0.3 (2026-10-20)
+
+- **Fix: Antigravity, Gemini, and iFlow connections failing with "client_secret is missing".** The providers' OAuth client values — the same public values the upstream open-source project bundles — are embedded in the source again, so these providers connect out of the box. The `BANSUR_ROUTER_*_CLIENT_SECRET` / `BANSUR_ROUTER_WINDSURF_FIREBASE_API_KEY` environment variables remain available as optional overrides. Windsurf's Firebase API key is restored the same way.
+
 ## 1.0.2 (2026-10-20)
 
 - Branding unified across all channels: the Bansur Router logo now heads the npm and Docker Hub package pages, the npm package description matches the official tagline, and the GitHub repository gained topics (ai-router, ai-gateway, openai-compatible, claude-code, cursor, codex, gemini, llm, …).

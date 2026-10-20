@@ -42,7 +42,7 @@ export default {
       tokenUrl: "https://oauth2.googleapis.com/token",
     },
     clientId: "1071006060591-tmhssin2h21lcre235vtolojh4g403ep.apps.googleusercontent.com",
-    clientSecret: process.env.BANSUR_ROUTER_ANTIGRAVITY_CLIENT_SECRET || "",
+    clientSecret: process.env.BANSUR_ROUTER_ANTIGRAVITY_CLIENT_SECRET || "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",
   },
   models: [
     { id: "gemini-4-argon-high", name: "Gemini 4 Argon (High)", upstreamModelId: "gemini-4-argon-high(high)" },

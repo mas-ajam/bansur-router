@@ -39,7 +39,7 @@ export default {
   ],
   oauth: {
     clientId: "10009311001",
-    clientSecret: process.env.BANSUR_ROUTER_IFLOW_CLIENT_SECRET || "",
+    clientSecret: process.env.BANSUR_ROUTER_IFLOW_CLIENT_SECRET || "4Z3YjXycVsQvyGF1etiNlIBB4RsqSDtW",
     authorizeUrl: "https://iflow.cn/oauth",
     tokenUrl: "https://iflow.cn/oauth/token",
     userInfoUrl: "https://iflow.cn/api/oauth/getUserInfo",
