@@ -854,38 +854,47 @@ export default function ProviderLimits() {
 
   if (!connectionsLoading && !hasEligibleConnections) {
     return (
-      <Card padding="lg">
-        <div className="text-center py-12">
-          <span className="material-symbols-outlined text-[64px] text-text-muted opacity-20">
-            cloud_off
-          </span>
-          <h3 className="mt-4 text-lg font-semibold text-text-primary">
-            No Providers Connected
-          </h3>
-          <p className="mt-2 text-sm text-text-muted max-w-md mx-auto">
-            Connect to providers with OAuth to track your API quota limits and
-            usage.
-          </p>
+      <div className="flex flex-col gap-3.5">
+        {/* Page head */}
+        <div>
+          <h2 className="text-xl font-semibold tracking-[-0.01em] text-text-main">Quota Tracker</h2>
+          <p className="mt-1 text-[13.5px] text-text-muted max-w-[640px]">Remaining headroom per account, with reset countdowns. The router reads these before choosing where a request lands.</p>
         </div>
-      </Card>
+        <Card>
+          <div className="text-center py-12">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full border border-border bg-surface-2 text-text-main mb-4">
+              <span className="material-symbols-outlined text-[32px]">data_usage</span>
+            </div>
+            <p className="text-text-main font-medium mb-1">No accounts to track yet</p>
+            <p className="text-sm text-text-muted max-w-md mx-auto">
+              Connect a provider account and its quota will appear here with reset countdowns.
+            </p>
+          </div>
+        </Card>
+      </div>
     );
   }
 
   if (!connectionsLoading && !hasVisibleConnections) {
     return (
-      <Card padding="lg">
-        <div className="text-center py-12">
-          <span className="material-symbols-outlined text-[64px] text-text-muted opacity-20">
-            {emptyState.icon}
-          </span>
-          <h3 className="mt-4 text-lg font-semibold text-text-primary">
-            {emptyState.title}
-          </h3>
-          <p className="mt-2 text-sm text-text-muted max-w-md mx-auto">
-            {emptyState.description}
-          </p>
+      <div className="flex flex-col gap-3.5">
+        {/* Page head */}
+        <div>
+          <h2 className="text-xl font-semibold tracking-[-0.01em] text-text-main">Quota Tracker</h2>
+          <p className="mt-1 text-[13.5px] text-text-muted max-w-[640px]">Remaining headroom per account, with reset countdowns. The router reads these before choosing where a request lands.</p>
         </div>
-      </Card>
+        <Card>
+          <div className="text-center py-12">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full border border-border bg-surface-2 text-text-main mb-4">
+              <span className="material-symbols-outlined text-[32px]">{emptyState.icon}</span>
+            </div>
+            <p className="text-text-main font-medium mb-1">{emptyState.title}</p>
+            <p className="text-sm text-text-muted max-w-md mx-auto">
+              {emptyState.description}
+            </p>
+          </div>
+        </Card>
+      </div>
     );
   }
 
@@ -1120,6 +1129,14 @@ export default function ProviderLimits() {
         </div>
       )}
 
+      {connectionsLoading ? (
+        <div className="flex flex-col items-center justify-center py-16 text-text-muted">
+          <span className="material-symbols-outlined text-[32px] animate-spin">
+            progress_activity
+          </span>
+          <p className="mt-3 text-sm">Loading quotas...</p>
+        </div>
+      ) : (
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3.5">
         {sortedConnections.map((conn) => {
           const quota = quotaData[conn.id];
@@ -1420,6 +1437,7 @@ export default function ProviderLimits() {
           );
         })}
       </div>
+      )}
 
       <div className="rounded-brand border border-border bg-surface-2 px-3 py-2">
           <div className="flex flex-wrap items-center justify-between gap-2">

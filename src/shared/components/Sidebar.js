@@ -294,27 +294,10 @@ export default function Sidebar({ onClose }) {
               <span className="material-symbols-outlined text-[17px] group-hover:text-white transition-colors">
                 computer
               </span>
-              <span className="text-[13px] font-medium">9Remote</span>
-              <span className="ml-auto font-mono text-[10.5px] px-1.5 py-px rounded-full border border-[#39414a] text-sidebar-muted">
+              <span className="text-[13px] font-medium">Bansur Remote</span>
+              <span className="ml-auto font-mono text-[10.5px] font-semibold px-1.5 py-px rounded-full bg-white text-[#101418]">
                 HOT
               </span>
-            </a>
-
-            {/* 9English */}
-            <a
-              href="https://9english.net/"
-              target="_blank"
-              rel="noreferrer"
-              onClick={onClose}
-              className={cn(
-                "flex items-center gap-2.5 px-2.5 py-[7px] rounded-md mb-px transition-all group w-full",
-                "text-sidebar-text hover:bg-white/5 hover:text-white"
-              )}
-            >
-              <span className="material-symbols-outlined text-[17px] group-hover:text-white transition-colors">
-                translate
-              </span>
-              <span className="text-[13px] font-medium">9English</span>
             </a>
 
             {/* Settings */}

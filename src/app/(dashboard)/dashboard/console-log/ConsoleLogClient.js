@@ -5,17 +5,17 @@ import { Card, Button } from "@/shared/components";
 import { CONSOLE_LOG_CONFIG } from "@/shared/constants/config";
 
 const LOG_LEVEL_COLORS = {
-  LOG: "text-[#e8ebed]",
+  LOG: "text-[#c9ced3]",
   INFO: "text-[#9aa3ab]",
-  WARN: "text-white font-medium",
-  ERROR: "text-white font-semibold",
-  DEBUG: "text-[#7d858e]",
+  WARN: "text-white font-semibold",
+  ERROR: "text-white font-bold",
+  DEBUG: "text-[#8b949c]",
 };
 
 function colorLine(line) {
-  const match = line.match(/\[(\w+)\]/g);
-  const levelTag = match ? match[1]?.replace(/\[|\]/g, "") : null;
-  const color = LOG_LEVEL_COLORS[levelTag] || "text-text-main";
+  const match = line.match(/\[(\w+)\]/);
+  const levelTag = match ? match[1] : null;
+  const color = LOG_LEVEL_COLORS[levelTag] || "text-[#c9ced3]";
   return <span className={color}>{line}</span>;
 }
 
@@ -98,7 +98,7 @@ export default function ConsoleLogClient() {
           className="bg-[#0b0e11] rounded-b-brand p-4 font-mono text-[12.5px] leading-[1.65] h-[calc(100vh-250px)] overflow-y-auto"
         >
           {logs.length === 0 ? (
-            <span className="text-[#7d858e]">No console logs yet.</span>
+            <span className="text-[#8b949c]">No console logs yet.</span>
           ) : (
             <div className="space-y-0.5">
               {logs.map((line, i) => (
