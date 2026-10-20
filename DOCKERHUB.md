@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="https://raw.githubusercontent.com/mas-ajam/bansur-router/main/images/bansur-router.png" alt="Bansur Router" width="700"/>
+  <img src="https://raw.githubusercontent.com/mas-ajam/bansur-router/main/images/banner.png" alt="Bansur Router" width="700"/>
 </div>
 
 # Bansur Router

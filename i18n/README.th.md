@@ -1,7 +1,7 @@
 นี่คือเอกสารแปลภาษาไทยของไฟล์ Markdown ต้นฉบับ โดยรักษาโครงสร้างและซินแท็กซ์ทางเทคนิคทั้งหมดไว้เหมือนเดิม
 
 <div align="center">
-  <img src="../images/bansur-router.png?1" alt="แดชบอร์ด Bansur Router" width="800"/>
+  <img src="../images/banner.png" alt="Bansur Router" width="880"/>
   
   # Bansur Router - Free AI Router
   

@@ -2,6 +2,12 @@
 
 All notable changes to Bansur Router will be documented in this file.
 
+## 1.0.5 (2026-10-20)
+
+- **New visual identity, designed from scratch.** Bansur Router gets its own monochrome mesh logo (a network of nodes in a ring — many providers, one gateway), replacing the placeholder mark. New assets: logo SVGs (ink + light variants), app tile, README banner, social preview image, favicon and PWA icons, and a docs icon.
+- **README redesigned from zero.** New header and structure with original copy for the intro, Why, and Quick Start sections; the inherited emoji-heavy heading style is gone throughout the README family (main, CLI, Docker Hub, and all translations).
+- Removed unused Next.js template images (`next.svg`, `vercel.svg`, `globe.svg`, `file.svg`, `window.svg`) left over in `public/`.
+
 ## 1.0.4 (2026-10-20)
 
 - **Default port changed from 20128 to 667.** The old port was inherited from the upstream project; 667 is Bansur Router's own. This applies everywhere: the CLI (`bansur-router` now serves on http://localhost:667), the dashboard/API base URLs, OAuth callback, Docker image (`EXPOSE 667`), and docker-compose (`667:667`). Existing setups can keep any port with `--port` / `-p` or the `PORT` env var.

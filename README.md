@@ -1,21 +1,17 @@
 <div align="center">
-  <img src="./images/bansur-router.png?1" alt="Bansur Router Dashboard" width="800"/>
-  
-  # Bansur Router - FREE AI Router & Token Saver
-  
-  **Never stop coding. Save 20-40% tokens with RTK + auto-fallback to FREE & cheap AI models.**
-  
-  **Connect All AI Code Tools (Claude Code, Cursor, Antigravity, Copilot, Codex, Gemini, OpenCode, Cline, OpenClaw...) to 40+ AI Providers & 100+ Models.**
-  
-  [![npm](https://img.shields.io/npm/v/bansur-router.svg)](https://www.npmjs.com/package/bansur-router)
-  [![Downloads](https://img.shields.io/npm/dm/bansur-router.svg)](https://www.npmjs.com/package/bansur-router)
-  [![Docker Pulls](https://img.shields.io/docker/pulls/bansur/router.svg?logo=docker&label=Docker%20pulls)](https://hub.docker.com/r/bansur/router)
-  [![Docker Version](https://img.shields.io/docker/v/bansur/router?logo=docker&label=Docker%20version)](https://hub.docker.com/r/bansur/router)
-  [![GHCR](https://img.shields.io/badge/GHCR-mas-ajam%2Fbansur-router-blue?logo=github)](https://github.com/mas-ajam/bansur-router/pkgs/container/bansur-router)
-  [![License](https://img.shields.io/npm/l/bansur-router.svg)](https://github.com/mas-ajam/bansur-router/blob/main/LICENSE)
 
+<img src="./images/banner.png" alt="Bansur Router" width="880"/>
 
-[🚀 Quick Start](#-quick-start) • [💡 Features](#-key-features) • [📖 Setup](#-setup-guide) • [🌐 Website](https://bansur-router.pages.dev)
+**One endpoint for every AI provider.**
+
+[![npm](https://img.shields.io/npm/v/bansur-router.svg)](https://www.npmjs.com/package/bansur-router)
+[![Downloads](https://img.shields.io/npm/dm/bansur-router.svg)](https://www.npmjs.com/package/bansur-router)
+[![Docker Pulls](https://img.shields.io/docker/pulls/bansur/router.svg?logo=docker&label=Docker%20pulls)](https://hub.docker.com/r/bansur/router)
+[![Docker Version](https://img.shields.io/docker/v/bansur/router?logo=docker&label=Docker%20version)](https://hub.docker.com/r/bansur/router)
+[![GHCR](https://img.shields.io/badge/GHCR-mas-ajam%2Fbansur-router-blue?logo=github)](https://github.com/mas-ajam/bansur-router/pkgs/container/bansur-router)
+[![License](https://img.shields.io/npm/l/bansur-router.svg)](https://github.com/mas-ajam/bansur-router/blob/main/LICENSE)
+
+[Quick Start](#quick-start) · [Key Features](#key-features) · [Providers](#supported-providers) · [Setup Guide](#setup-guide) · [Documentation](https://bansur-router.pages.dev)
 
 [🇧🇷 Português (Brasil)](./i18n/README.pt-BR.md) • [🇻🇳 Tiếng Việt](./i18n/README.vi.md) • [🇨🇳 中文](./i18n/README.zh-CN.md) • [🇯🇵 日本語](./i18n/README.ja-JP.md) • [🇷🇺 Русский](./i18n/README.ru.md) • [🇹🇭 ไทย](./i18n/README.th.md) • [🇮🇷 فارسی](./i18n/README.fa_IR.md) • [🇮🇩 Indonesia](./i18n/README.id-ID.md) • [🇪🇸 Español](./i18n/README.es.md) • [🇫🇷 Français](./i18n/README.fr.md)
 
@@ -23,27 +19,80 @@
 
 ---
 
-## 🤔 Why Bansur Router?
+# Bansur Router
 
-**Stop wasting money, tokens and hitting limits:**
+Bansur Router is a local AI gateway for coding tools. It runs on your machine as a single OpenAI-compatible endpoint — `http://localhost:667/v1` — and routes every request to the best available provider behind it: your subscriptions first, then cheap APIs, then free tiers, without you switching anything by hand.
 
-- ❌ Subscription quota expires unused every month
-- ❌ Rate limits stop you mid-coding
-- ❌ Tool outputs (git diff, grep, ls...) burn tokens fast
-- ❌ Expensive APIs ($20-50/month per provider)
-- ❌ Manual switching between providers
+Point Claude Code, Codex, Cursor, Cline, OpenCode, Antigravity, Copilot, or any OpenAI-compatible tool at Bansur Router once, and it takes care of provider connections, format translation (OpenAI ↔ Claude ↔ Gemini), quota tracking, token refresh, and fallback. Its built-in RTK layer compresses tool outputs before they reach the model, cutting 20-40% of tokens per request.
 
-**Bansur Router solves this:**
+**At a glance**
 
-- ✅ **RTK Token Saver** - Auto-compress tool_result content, save 20-40% tokens per request
-- ✅ **Maximize subscriptions** - Track quota, use every bit before reset
-- ✅ **Auto fallback** - Subscription → Cheap → Free, zero downtime
-- ✅ **Multi-account** - Round-robin between accounts per provider
-- ✅ **Universal** - Works with Claude Code, Codex, Cursor, Cline, any CLI tool
+- **40+ providers, 800+ models** — OAuth subscriptions, API keys, free tiers, and self-hosted endpoints behind one key
+- **3-tier fallback** — Subscription → Cheap → Free, so a rate limit never stops your session
+- **RTK Token Saver** — tool results are compressed before they burn your quota
+- **Local-first** — your keys and traffic stay on your machine; deployable via npm, Docker, or on a VPS
+- **Zero-config start** — free providers such as Kiro AI and OpenCode Free work without signup
 
 ---
 
-## 🔄 How It Works
+## Why Bansur Router?
+
+| The problem | What Bansur Router does |
+|---|---|
+| Subscription quota expires unused every month | Tracks quota per account and spends it before it resets |
+| Rate limits stop you mid-coding | Falls back automatically: Subscription → Cheap → Free |
+| Tool outputs (git diff, grep, ls…) burn tokens fast | RTK compresses tool results, saving 20-40% of tokens per request |
+| Every provider wants $20-50/month | Routes to cheap and free tiers when they are good enough |
+| Switching providers by hand, per tool | One endpoint and one API key for every tool; multi-account round-robin per provider |
+
+---
+
+## Quick Start
+
+**1. Install and run:**
+
+```bash
+npm install -g bansur-router
+bansur-router
+```
+
+The dashboard opens at `http://localhost:667`.
+
+**2. Connect a provider:**
+
+Dashboard → Providers → Connect. Start free with **Kiro AI** (~50 credits/month free: Claude 4.5 + GLM-5 + MiniMax) or **OpenCode Free** (no auth at all) — or connect any subscription/API key you already have.
+
+**3. Point your CLI tool at Bansur Router:**
+
+```
+Endpoint: http://localhost:667/v1
+API Key:  [copy from dashboard]
+Model:    kr/claude-sonnet-4.5
+```
+
+That is it — your tool now talks to every connected provider through one endpoint.
+
+**Other ways to run it**
+
+- **Docker:** `docker compose up -d` from this repository, or pull `bansur/router` / `ghcr.io/mas-ajam/bansur-router` — see [Docker](#docker) in the Setup Guide.
+- **From source:** this repository is the app itself.
+
+```bash
+cp .env.example .env
+npm install
+npm run build
+PORT=667 HOSTNAME=0.0.0.0 NEXT_PUBLIC_BASE_URL=http://localhost:667 npm run start
+```
+
+Development mode: `PORT=667 NEXT_PUBLIC_BASE_URL=http://localhost:667 npm run dev`. On low-memory machines, add swap before building.
+
+Default URLs:
+
+- Dashboard: `http://localhost:667/dashboard`
+- OpenAI-compatible API: `http://localhost:667/v1`
+
+---
+## How It Works
 
 ```
 ┌─────────────┐
@@ -69,187 +118,188 @@
 Result: Never stop coding, minimal cost + 20-40% token savings via RTK
 ```
 
----
+## Key Features
 
-## ⚡ Quick Start
+| Feature                                                                           | What It Does                                                                             | Why It Matters                                    |
+| --------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- | ------------------------------------------------- |
+| 🚀 **RTK Token Saver** ([RTK](https://github.com/rtk-ai/rtk) ⭐40K)               | Compress tool outputs (`git diff`, `grep`, `ls`, `tree`...) before sending to LLM        | Save **20-40% input tokens** per request          |
+| 🧠 **Headroom Token Saver** ([Headroom](https://github.com/chopratejas/headroom)) | Optional external `/v1/compress` proxy before provider routing                           | Save more context tokens without changing clients |
+| 🪨 **Caveman Mode** ([Caveman](https://github.com/JuliusBrussee/caveman) ⭐52K)   | Inject caveman-speak prompt → LLM replies terse, technical substance preserved           | Save **up to 65% output tokens**                  |
+| 🐴 **Ponytail** ([Ponytail](https://github.com/DietrichGebert/ponytail))          | Inject "lazy senior dev" prompt → LLM writes minimal, YAGNI-first code (Lite/Full/Ultra) | **Fewer output tokens, less refactoring**         |
+| 🎯 **Smart 3-Tier Fallback**                                                      | Auto-route: Subscription → Cheap → Free                                                  | Never stop coding, zero downtime                  |
+| 📊 **Real-Time Quota Tracking**                                                   | Live token count + reset countdown                                                       | Maximize subscription value                       |
+| 🔄 **Format Translation**                                                         | OpenAI ↔ Claude ↔ Gemini ↔ Cursor ↔ Kiro ↔ Vertex                                        | Works with any CLI tool                           |
+| 👥 **Multi-Account Support**                                                      | Multiple accounts per provider                                                           | Load balancing + redundancy                       |
+| 🔄 **Auto Token Refresh**                                                         | OAuth tokens refresh automatically                                                       | No manual re-login needed                         |
+| 🎨 **Custom Combos**                                                              | Create unlimited model combinations                                                      | Tailor fallback to your needs                     |
+| 📝 **Request Logging**                                                            | Debug mode with full request/response logs                                               | Troubleshoot issues easily                        |
+| 💾 **Cloud Sync**                                                                 | Sync config across devices                                                               | Same setup everywhere                             |
+| 📊 **Usage Analytics**                                                            | Track tokens, cost, trends over time                                                     | Optimize spending                                 |
+| 🌐 **Deploy Anywhere**                                                            | Localhost, VPS, Docker, Cloudflare Workers                                               | Flexible deployment options                       |
 
-**1. Install globally:**
+Set `X-Bansur Router-Token-Saver: off` to bypass all token savers for one chat request.
+
+<details>
+<summary><b>📖 Feature Details</b></summary>
+
+### RTK Token Saver
+
+Tool outputs (`git diff`, `grep`, `find`, `ls`, `tree`, log dumps...) often eat 30-50% of your prompt budget. RTK detects them and applies smart, lossless compression **before** the request hits the LLM:
+
+- **Filters:** `git-diff`, `git-status`, `grep`, `find`, `ls`, `tree`, `dedup-log`, `smart-truncate`, `read-numbered`, `search-list`
+- **Auto-detect:** No config needed — RTK peeks the first 1KB of each `tool_result` and picks the right filter.
+- **Safe by design:** If a filter fails, throws, or makes output bigger, RTK silently keeps the original text. Errors never break your request.
+- **Universal:** Works across all formats (OpenAI, Claude, Gemini, Cursor, Kiro, OpenAI Responses) because it runs **before** any format translation.
+- **Default ON:** Toggle anytime in Dashboard → Endpoint settings.
+
+```
+Without RTK: 47K tokens sent to LLM
+With RTK:    28K tokens sent to LLM   (40% saved · same context · same answer)
+```
+
+### Headroom Token Saver
+
+Headroom is optional and runs separately. Bansur Router calls Headroom's local `/v1/compress` endpoint, then keeps normal routing, fallback, auth, and usage tracking:
+
+```
+Client → Bansur Router → Headroom /v1/compress → Bansur Router → provider
+```
+
+Local setup:
 
 ```bash
-npm install -g bansur-router
-bansur-router
+pip install "headroom-ai[proxy]"
+headroom proxy --port 8787
 ```
 
-🎉 Dashboard opens at `http://localhost:667`
+Enable in Dashboard → Endpoint → Token Saver → Headroom. Default URL: `http://localhost:8787`.
 
-**2. Connect a FREE provider (no signup needed):**
-
-Dashboard → Providers → Connect **Kiro AI** (~50 credits/month free: Claude 4.5 + GLM-5 + MiniMax) or **OpenCode Free** (no auth) → Done!
-
-**3. Use in your CLI tool:**
-
-```
-Claude Code/Codex/OpenClaw/Cursor/Cline Settings:
-  Endpoint: http://localhost:667/v1
-  API Key: [copy from dashboard]
-  Model: kr/claude-sonnet-4.5
-```
-
-**That's it!** Start coding with FREE AI models.
-
-**Alternative: run from source (this repository):**
-
-This repository package is private (`bansur-router-app`), so source/Docker execution is the expected local development path.
+Docker examples:
 
 ```bash
-cp .env.example .env
-npm install
-PORT=667 NEXT_PUBLIC_BASE_URL=http://localhost:667 npm run dev
+# Headroom service in same Docker network
+http://headroom:8787
+
+# Headroom running on host machine
+http://host.docker.internal:8787
 ```
 
-Production mode:
+If Headroom is down or returns an error, Bansur Router fails open and sends the original request.
 
-```bash
-# Create Temporary Memory For Build
-sudo fallocate -l 2G /swapfile_temp
-sudo chmod 600 /swapfile_temp
-sudo mkswap /swapfile_temp
-sudo swapon /swapfile_temp
+### Ponytail (Lazy Senior Dev)
 
-export MAKEFLAGS="-j1"
-export DLIB_NO_GUI_SUPPORT=1
-export CFLAGS="-mno-avx"
+Ponytail injects a _"lazy senior dev"_ system prompt into every request, biasing the LLM toward minimal, YAGNI-first code — deletion over addition, stdlib over new deps, one-liners over abstractions. Adapted from [DietrichGebert/ponytail](https://github.com/DietrichGebert/ponytail).
 
-npm run build
+- **Lite** — Build what's asked, name the lazier alternative.
+- **Full** — YAGNI ladder enforced: stdlib → native → existing deps → one-liner → minimal code.
+- **Ultra** — YAGNI extremist: deletion first, ship the one-liner, challenge the rest of the requirement in the same response.
 
-# Clear temporary swap
-sudo swapoff /swapfile_temp
-sudo rm /swapfile_temp
-
-PORT=667 HOSTNAME=0.0.0.0 NEXT_PUBLIC_BASE_URL=http://localhost:667 npm run start
+```
+Without Ponytail: verbose code, extra abstractions, "just in case" scaffolding
+With Ponytail:    shortest working diff, no unrequested abstractions, fewer tokens
 ```
 
-Default URLs:
+Never trades away: input validation, error handling that prevents data loss, security, accessibility, or anything explicitly requested. Enable in Dashboard → Endpoint → Ponytail. Stacks with Caveman (output terseness) and RTK (input compression).
 
-- Dashboard: `http://localhost:667/dashboard`
-- OpenAI-compatible API: `http://localhost:667/v1`
+### Smart 3-Tier Fallback
+
+Create combos with automatic fallback:
+
+```
+Combo: "my-coding-stack"
+  1. cc/claude-opus-4-6        (your subscription)
+  2. glm/glm-4.7               (cheap backup, $0.6/1M)
+  3. if/kimi-k2-thinking       (free fallback)
+
+→ Auto switches when quota runs out or errors occur
+```
+
+### Real-Time Quota Tracking
+
+- Token consumption per provider
+- Reset countdown (5-hour, daily, weekly)
+- Cost estimation for paid tiers
+- Monthly spending reports
+
+### Format Translation
+
+Seamless translation between formats:
+
+- **OpenAI** ↔ **Claude** ↔ **Gemini** ↔ **Cursor** ↔ **Kiro** ↔ **Vertex** ↔ **Antigravity** ↔ **Ollama** ↔ **OpenAI Responses**
+- Your CLI tool sends OpenAI format → Bansur Router translates → Provider receives native format
+- Works with any tool that supports custom OpenAI endpoints
+
+### Multi-Account Support
+
+- Add multiple accounts per provider
+- Auto round-robin or priority-based routing
+- Fallback to next account when one hits quota
+
+### Auto Token Refresh
+
+- OAuth tokens automatically refresh before expiration
+- No manual re-authentication needed
+- Seamless experience across all providers
+
+### Custom Combos
+
+- Create unlimited model combinations
+- Mix subscription, cheap, and free tiers
+- Name your combos for easy access
+- Share combos across devices with Cloud Sync
+
+### Request Logging
+
+- Enable debug mode for full request/response logs
+- Track API calls, headers, and payloads
+- Troubleshoot integration issues
+- Export logs for analysis
+
+### Cloud Sync
+
+- Sync providers, combos, and settings across devices
+- Automatic background sync
+- Secure encrypted storage
+- Access your setup from anywhere
+
+#### Cloud Runtime Notes
+
+- Prefer server-side cloud variables in production:
+  - `BASE_URL` (internal callback URL used by sync scheduler)
+  - `CLOUD_URL` (cloud sync endpoint base)
+- `NEXT_PUBLIC_BASE_URL` and `NEXT_PUBLIC_CLOUD_URL` are still supported for compatibility/UI, but server runtime now prioritizes `BASE_URL`/`CLOUD_URL`.
+- Cloud sync requests now use timeout + fail-fast behavior to avoid UI hanging when cloud DNS/network is unavailable.
+
+### Usage Analytics
+
+- Track token usage per provider and model
+- Cost estimation and spending trends
+- Monthly reports and insights
+- Optimize your AI spending
+
+> **💡 IMPORTANT - Understanding Dashboard Costs:**
+>
+> The "cost" displayed in Usage Analytics is **for tracking and comparison purposes only**.
+> Bansur Router itself **never charges** you anything. You only pay providers directly (if using paid services).
+>
+> **Example:** If your dashboard shows "$290 total cost" while using Kiro free models, this represents
+> what you would have paid using paid APIs directly. Your actual cost = **$0** (Kiro free tier: ~50 credits/mo).
+>
+> Think of it as a "savings tracker" showing how much you're saving by using free models or
+> routing through Bansur Router!
+
+### Deploy Anywhere
+
+- 💻 **Localhost** - Default, works offline
+- ☁️ **VPS/Cloud** - Share across devices
+- 🐳 **Docker** - One-command deployment
+- 🚀 **Cloudflare Workers** - Global edge network
+
+</details>
 
 ---
 
-## Video Guides
-
-<div align="center">
-
-<table>
-  <tr>
-    <td align="center" width="320">
-      <a href="https://www.youtube.com/watch?v=X69n5Lm06Yw">
-        <img src="https://img.youtube.com/vi/X69n5Lm06Yw/maxresdefault.jpg" alt="Tiết kiệm chi phí LLM với Bansur Router" width="300"/>
-      </a><br/>
-      <b>🇻🇳 Tiếng Việt</b><br/>
-      <sub>Tiết kiệm chi phí LLM cho OpenClaw với Bansur Router<br/>by <a href="https://www.youtube.com/c/M%C3%ACAIblog">Mì AI</a></sub>
-    </td>
-    <td align="center" width="320">
-      <a href="https://youtu.be/VQAw612S27Y">
-        <img src="https://img.youtube.com/vi/VQAw612S27Y/maxresdefault.jpg" alt="Bansur Router + Claude Code FREE Unlimited Setup" width="300"/>
-      </a><br/>
-      <b>🇵🇰 اردو / हिन्दी</b><br/>
-      <sub>Bansur Router + Claude Code FREE Unlimited Setup<br/>by <a href="https://www.youtube.com/@BuildAIWithHamid">Build AI With Hamid</a></sub>
-    </td>
-    <td align="center" width="320">
-      <a href="https://www.youtube.com/watch?v=raEyZPg5xE0">
-        <img src="https://img.youtube.com/vi/raEyZPg5xE0/maxresdefault.jpg" alt="Bansur Router Setup Tutorial" width="300"/>
-      </a><br/>
-      <b>🇺🇸 English</b><br/>
-      <sub>Bansur Router + Claude Code FREE Setup<br/>by <a href="https://www.youtube.com/@BuildAIWithHamid">Build AI With Hamid</a></sub>
-    </td>
-    <td align="center" width="320">
-      <a href="https://youtu.be/3dF5GIYMrcQ?si=bAyfyiHbARJQAHj_">
-        <img src="https://img.youtube.com/vi/3dF5GIYMrcQ/hqdefault.jpg" alt="Bansur Router Setup Tutorial" width="300"/>
-      </a><br/>
-      <b>🇺🇸 English</b><br/>
-      <sub>Bansur Router + Claude Code FREE Setup<br/>by <a href="https://www.youtube.com/@BuildAIWithHamid">Build AI With Hamid</a></sub>
-    </td>
-    <td align="center" width="320">
-      <a href="https://www.youtube.com/watch?v=o3qYCyjrFYg">
-        <img src="https://img.youtube.com/vi/o3qYCyjrFYg/maxresdefault.jpg" alt="Claude Code FREE Forever" width="300"/>
-      </a><br/>
-      <b>🇺🇸 English</b><br/>
-      <sub>Claude Code FREE Forever — Unlimited Models<br/>by <a href="https://www.youtube.com/@BuildAIWithHamid">Build AI With Hamid</a></sub>
-    </td>
-  </tr>
-  <tr>
-    <td align="center" width="320">
-      <a href="https://www.youtube.com/watch?v=Ttpc26m39Dw">
-        <img src="https://img.youtube.com/vi/Ttpc26m39Dw/maxresdefault.jpg" alt="Claude CLI Free Setup" width="300"/>
-      </a><br/>
-      <b>🇺🇸 English</b><br/>
-      <sub>Claude CLI Free Setup with Bansur Router 🚀<br/>by <a href="https://www.youtube.com/@CodeVerseSoban">CodeVerse Soban</a></sub>
-    </td>
-    <td align="center" width="320">
-      <a href="https://www.youtube.com/watch?v=G-5A_D5Pm6Y">
-        <img src="https://img.youtube.com/vi/G-5A_D5Pm6Y/maxresdefault.jpg" alt="Cài đặt OpenClaw Free A-Z" width="300"/>
-      </a><br/>
-      <b>🇻🇳 Tiếng Việt</b><br/>
-      <sub>Cài Đặt OpenClaw Free Từ A-Z + Bansur Router<br/>by <a href="https://www.youtube.com/@maigia">Mai Gia</a></sub>
-    </td>
-    <td align="center" width="320">
-      <a href="https://www.youtube.com/watch?v=JXmg8_gccgE">
-        <img src="https://img.youtube.com/vi/JXmg8_gccgE/maxresdefault.jpg" alt="FREE OpenClaw with Claude Opus" width="300"/>
-      </a><br/>
-      <b>🇺🇸 English</b><br/>
-      <sub>FREE OpenClaw + Claude Opus 4.6<br/>by <a href="https://www.youtube.com/@BuildAIWithHamid">Build AI With Hamid</a></sub>
-    </td>
-    <td align="center" width="320">
-      <a href="https://www.youtube.com/watch?v=CkVZZUSTXAI">
-        <img src="https://img.youtube.com/vi/CkVZZUSTXAI/mqdefault.jpg" alt="Claude CLI Free Setup" width="300"/>
-      </a><br/>
-      <b>🇮🇩 Indonesia</b><br/>
-      <sub>Koding 24 Jam Anti Rate Limit! Hemat Token AI 65% | Tutorial Quick Setup Bansur Router 🚀<br/>by <a href="https://www.youtube.com/@krisswuh">Krisswuh</a></sub>
-    </td>
-    <td align="center" width="320">
-      <a href="https://www.youtube.com/watch?v=TXGv4eofe1I">
-        <img src="https://img.youtube.com/vi/TXGv4eofe1I/mqdefault.jpg" alt="Cara Deploy Bansur Router di Hugging Face GRATIS Non-Stop! | Alternatif VPS RAM 16GB" width="300"/>
-      </a><br/>
-      <b>🇮🇩 Indonesia</b><br/>
-      <sub>Cara Deploy Bansur Router di Hugging Face GRATIS Non-Stop! | Alternatif VPS RAM 16GB<br/>by <a href="https://www.youtube.com/@krisswuh">Krisswuh</a></sub>
-    </td>
-  </tr>
-  <tr>
-    <td align="center" width="320">
-      <a href="https://www.youtube.com/watch?v=GyX-DLvePW8">
-        <img src="https://img.youtube.com/vi/GyX-DLvePW8/hqdefault.jpg" alt="این شکلی از هر API ای استفاده کن برای هوش مصنوعی" width="300"/>
-      </a><br/>
-      <b>🇮🇷 Persian-فارسی</b><br/>
-      <sub dir="rtl">این شکلی از هر API ای استفاده کن برای هوش مصنوعی<br/>by <a href="https://www.youtube.com/@Matin_SenPai">Matin SenPai</a></sub>
-    </td>
-    <td align="center" width="320">
-      <a href="https://www.youtube.com/watch?v=hPusYX-5Pmw">
-        <img src="https://img.youtube.com/vi/hPusYX-5Pmw/maxresdefault.jpg" alt="Hướng Dẫn Setup OpenClaw + Bansur Router: Tạo Bot Zalo AI Tự Động Từ A-Z" width="300"/>
-      </a><br/>
-      <b>🇻🇳 Tiếng Việt</b><br/>
-      <sub>Hướng Dẫn Setup OpenClaw + Bansur Router: Tạo Bot Zalo AI Tự Động Từ A-Z<br/>by <a href="https://github.com/tuanminhhole">tuanminhhole</a></sub>
-    </td>
-    <td align="center" width="320">
-      <a href="https://www.youtube.com/watch?v=hgnE7MKi3Y4">
-        <img src="https://img.youtube.com/vi/hgnE7MKi3Y4/maxresdefault.jpg" alt="Bye Limit! Cara Bikin Sistem 'AI Unlimited' 100% Gratis Dengan Bansur Router!
-" width="300"/>
-      </a><br/>
-      <b>🇮🇩 Indonesia</b><br/>
-      <sub>Bye Limit! Cara Bikin Sistem "AI Unlimited" 100% Gratis Dengan Bansur Router!<br/>by <a href="https://www.youtube.com/@neptiver">neptiver</a></sub>
-    </td>
-    <td align="center" width="320"></td>
-    <td align="center" width="320"></td>
-  </tr>
-</table>
-
-</div>
-
-> 🎬 **Made a video about Bansur Router?** Submit a [Pull Request](https://github.com/mas-ajam/bansur-router/pulls) adding your video to this section — we'll merge it!
-
----
-
-## 🛠️ Supported CLI Tools
+## Supported CLI Tools
 
 Bansur Router works seamlessly with all major AI coding tools:
 
@@ -338,9 +388,9 @@ Bansur Router works seamlessly with all major AI coding tools:
 
 ---
 
-## 🌐 Supported Providers
+## Supported Providers
 
-### 🔐 OAuth Providers
+### OAuth Providers
 
 <div align="center">
   <table>
@@ -373,7 +423,7 @@ Bansur Router works seamlessly with all major AI coding tools:
   </table>
 </div>
 
-### 🆓 Free Providers
+### Free Providers
 
 <div align="center">
   <table>
@@ -403,7 +453,7 @@ Bansur Router works seamlessly with all major AI coding tools:
 > **OpenCode Free** model list fluctuates over time (some models free only for limited promos) — subject to change without notice.
 > **Vertex AI**: the $300 free credit for new GCP accounts is still valid, but since Mar 2026 the **Gemini API endpoint no longer consumes these credits** — call the **Vertex AI Studio** endpoint instead.
 
-### 🔑 API Key Providers (40+)
+### API Key Providers (40+)
 
 <div align="center">
   <table>
@@ -489,7 +539,7 @@ Bansur Router works seamlessly with all major AI coding tools:
   <p><i>...and 20+ more providers including Nebius, Chutes, Hyperbolic, and custom OpenAI/Anthropic compatible endpoints</i></p>
 </div>
 
-### 🏠 Self-hosted Providers
+### Self-hosted Providers
 
 For speech and embeddings served from **your own** machine — whisper.cpp,
 faster-whisper, Speaches, Kokoro-FastAPI, openedai-speech, llama.cpp/llama-server,
@@ -531,188 +581,84 @@ a third party under a provider named "Self-hosted".
 
 ---
 
-## 💡 Key Features
-
-| Feature                                                                           | What It Does                                                                             | Why It Matters                                    |
-| --------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- | ------------------------------------------------- |
-| 🚀 **RTK Token Saver** ([RTK](https://github.com/rtk-ai/rtk) ⭐40K)               | Compress tool outputs (`git diff`, `grep`, `ls`, `tree`...) before sending to LLM        | Save **20-40% input tokens** per request          |
-| 🧠 **Headroom Token Saver** ([Headroom](https://github.com/chopratejas/headroom)) | Optional external `/v1/compress` proxy before provider routing                           | Save more context tokens without changing clients |
-| 🪨 **Caveman Mode** ([Caveman](https://github.com/JuliusBrussee/caveman) ⭐52K)   | Inject caveman-speak prompt → LLM replies terse, technical substance preserved           | Save **up to 65% output tokens**                  |
-| 🐴 **Ponytail** ([Ponytail](https://github.com/DietrichGebert/ponytail))          | Inject "lazy senior dev" prompt → LLM writes minimal, YAGNI-first code (Lite/Full/Ultra) | **Fewer output tokens, less refactoring**         |
-| 🎯 **Smart 3-Tier Fallback**                                                      | Auto-route: Subscription → Cheap → Free                                                  | Never stop coding, zero downtime                  |
-| 📊 **Real-Time Quota Tracking**                                                   | Live token count + reset countdown                                                       | Maximize subscription value                       |
-| 🔄 **Format Translation**                                                         | OpenAI ↔ Claude ↔ Gemini ↔ Cursor ↔ Kiro ↔ Vertex                                        | Works with any CLI tool                           |
-| 👥 **Multi-Account Support**                                                      | Multiple accounts per provider                                                           | Load balancing + redundancy                       |
-| 🔄 **Auto Token Refresh**                                                         | OAuth tokens refresh automatically                                                       | No manual re-login needed                         |
-| 🎨 **Custom Combos**                                                              | Create unlimited model combinations                                                      | Tailor fallback to your needs                     |
-| 📝 **Request Logging**                                                            | Debug mode with full request/response logs                                               | Troubleshoot issues easily                        |
-| 💾 **Cloud Sync**                                                                 | Sync config across devices                                                               | Same setup everywhere                             |
-| 📊 **Usage Analytics**                                                            | Track tokens, cost, trends over time                                                     | Optimize spending                                 |
-| 🌐 **Deploy Anywhere**                                                            | Localhost, VPS, Docker, Cloudflare Workers                                               | Flexible deployment options                       |
-
-Set `X-Bansur Router-Token-Saver: off` to bypass all token savers for one chat request.
+## Available Models
 
 <details>
-<summary><b>📖 Feature Details</b></summary>
+<summary><b>View all available models</b></summary>
 
-### 🚀 RTK Token Saver
+**Claude Code (`cc/`)** - Pro/Max:
 
-Tool outputs (`git diff`, `grep`, `find`, `ls`, `tree`, log dumps...) often eat 30-50% of your prompt budget. RTK detects them and applies smart, lossless compression **before** the request hits the LLM:
+- `cc/claude-opus-4-7`
+- `cc/claude-opus-4-6`
+- `cc/claude-sonnet-4-6`
+- `cc/claude-sonnet-4-5-20250929`
+- `cc/claude-haiku-4-5-20251001`
 
-- **Filters:** `git-diff`, `git-status`, `grep`, `find`, `ls`, `tree`, `dedup-log`, `smart-truncate`, `read-numbered`, `search-list`
-- **Auto-detect:** No config needed — RTK peeks the first 1KB of each `tool_result` and picks the right filter.
-- **Safe by design:** If a filter fails, throws, or makes output bigger, RTK silently keeps the original text. Errors never break your request.
-- **Universal:** Works across all formats (OpenAI, Claude, Gemini, Cursor, Kiro, OpenAI Responses) because it runs **before** any format translation.
-- **Default ON:** Toggle anytime in Dashboard → Endpoint settings.
+**Codex (`cx/`)** - Plus/Pro:
 
-```
-Without RTK: 47K tokens sent to LLM
-With RTK:    28K tokens sent to LLM   (40% saved · same context · same answer)
-```
+- `cx/gpt-5.5`
+- `cx/gpt-5.4`
+- `cx/gpt-5.3-codex`
+- `cx/gpt-5.2-codex`
+- `cx/gpt-5.1-codex-max`
 
-### 🧠 Headroom Token Saver
+**GitHub Copilot (`gh/`)**:
 
-Headroom is optional and runs separately. Bansur Router calls Headroom's local `/v1/compress` endpoint, then keeps normal routing, fallback, auth, and usage tracking:
+- `gh/gpt-5.4`
+- `gh/claude-opus-4.7`
+- `gh/claude-sonnet-4.6`
+- `gh/gemini-3.1-pro-preview`
+- `gh/grok-code-fast-1`
 
-```
-Client → Bansur Router → Headroom /v1/compress → Bansur Router → provider
-```
+**Cursor (`cu/`)** - Subscription:
 
-Local setup:
+- `cu/claude-4.6-opus-max`
+- `cu/claude-4.5-sonnet-thinking`
+- `cu/gpt-5.3-codex`
+- `cu/kimi-k2.5`
 
-```bash
-pip install "headroom-ai[proxy]"
-headroom proxy --port 8787
-```
+**GLM (`glm/`)** - $0.6/1M:
 
-Enable in Dashboard → Endpoint → Token Saver → Headroom. Default URL: `http://localhost:8787`.
+- `glm/glm-5.1`
+- `glm/glm-5`
+- `glm/glm-4.7`
 
-Docker examples:
+**MiniMax (`minimax/`)** - $0.2/1M:
 
-```bash
-# Headroom service in same Docker network
-http://headroom:8787
+- `minimax/MiniMax-M2.7`
+- `minimax/MiniMax-M2.5`
 
-# Headroom running on host machine
-http://host.docker.internal:8787
-```
+**Kimi (`kimi/`)** - $9/mo flat:
 
-If Headroom is down or returns an error, Bansur Router fails open and sends the original request.
+- `kimi/kimi-k2.5`
+- `kimi/kimi-k2.5-thinking`
 
-### 🐴 Ponytail (Lazy Senior Dev)
+**Kiro (`kr/`)** - Free (~50 credits/month, paid tiers above):
 
-Ponytail injects a _"lazy senior dev"_ system prompt into every request, biasing the LLM toward minimal, YAGNI-first code — deletion over addition, stdlib over new deps, one-liners over abstractions. Adapted from [DietrichGebert/ponytail](https://github.com/DietrichGebert/ponytail).
+- `kr/claude-sonnet-4.5`
+- `kr/claude-haiku-4.5`
+- `kr/glm-5`
+- `kr/MiniMax-M2.5`
+- `kr/qwen3-coder-next`
+- `kr/deepseek-3.2`
 
-- **Lite** — Build what's asked, name the lazier alternative.
-- **Full** — YAGNI ladder enforced: stdlib → native → existing deps → one-liner → minimal code.
-- **Ultra** — YAGNI extremist: deletion first, ship the one-liner, challenge the rest of the requirement in the same response.
+**OpenCode Free (`oc/`)** - FREE no-auth:
 
-```
-Without Ponytail: verbose code, extra abstractions, "just in case" scaffolding
-With Ponytail:    shortest working diff, no unrequested abstractions, fewer tokens
-```
+- Auto-fetched from `opencode.ai/zen/v1/models`
 
-Never trades away: input validation, error handling that prevents data loss, security, accessibility, or anything explicitly requested. Enable in Dashboard → Endpoint → Ponytail. Stacks with Caveman (output terseness) and RTK (input compression).
+**Vertex AI (`vertex/`)** - $300 free credits:
 
-### 🎯 Smart 3-Tier Fallback
-
-Create combos with automatic fallback:
-
-```
-Combo: "my-coding-stack"
-  1. cc/claude-opus-4-6        (your subscription)
-  2. glm/glm-4.7               (cheap backup, $0.6/1M)
-  3. if/kimi-k2-thinking       (free fallback)
-
-→ Auto switches when quota runs out or errors occur
-```
-
-### 📊 Real-Time Quota Tracking
-
-- Token consumption per provider
-- Reset countdown (5-hour, daily, weekly)
-- Cost estimation for paid tiers
-- Monthly spending reports
-
-### 🔄 Format Translation
-
-Seamless translation between formats:
-
-- **OpenAI** ↔ **Claude** ↔ **Gemini** ↔ **Cursor** ↔ **Kiro** ↔ **Vertex** ↔ **Antigravity** ↔ **Ollama** ↔ **OpenAI Responses**
-- Your CLI tool sends OpenAI format → Bansur Router translates → Provider receives native format
-- Works with any tool that supports custom OpenAI endpoints
-
-### 👥 Multi-Account Support
-
-- Add multiple accounts per provider
-- Auto round-robin or priority-based routing
-- Fallback to next account when one hits quota
-
-### 🔄 Auto Token Refresh
-
-- OAuth tokens automatically refresh before expiration
-- No manual re-authentication needed
-- Seamless experience across all providers
-
-### 🎨 Custom Combos
-
-- Create unlimited model combinations
-- Mix subscription, cheap, and free tiers
-- Name your combos for easy access
-- Share combos across devices with Cloud Sync
-
-### 📝 Request Logging
-
-- Enable debug mode for full request/response logs
-- Track API calls, headers, and payloads
-- Troubleshoot integration issues
-- Export logs for analysis
-
-### 💾 Cloud Sync
-
-- Sync providers, combos, and settings across devices
-- Automatic background sync
-- Secure encrypted storage
-- Access your setup from anywhere
-
-#### Cloud Runtime Notes
-
-- Prefer server-side cloud variables in production:
-  - `BASE_URL` (internal callback URL used by sync scheduler)
-  - `CLOUD_URL` (cloud sync endpoint base)
-- `NEXT_PUBLIC_BASE_URL` and `NEXT_PUBLIC_CLOUD_URL` are still supported for compatibility/UI, but server runtime now prioritizes `BASE_URL`/`CLOUD_URL`.
-- Cloud sync requests now use timeout + fail-fast behavior to avoid UI hanging when cloud DNS/network is unavailable.
-
-### 📊 Usage Analytics
-
-- Track token usage per provider and model
-- Cost estimation and spending trends
-- Monthly reports and insights
-- Optimize your AI spending
-
-> **💡 IMPORTANT - Understanding Dashboard Costs:**
->
-> The "cost" displayed in Usage Analytics is **for tracking and comparison purposes only**.
-> Bansur Router itself **never charges** you anything. You only pay providers directly (if using paid services).
->
-> **Example:** If your dashboard shows "$290 total cost" while using Kiro free models, this represents
-> what you would have paid using paid APIs directly. Your actual cost = **$0** (Kiro free tier: ~50 credits/mo).
->
-> Think of it as a "savings tracker" showing how much you're saving by using free models or
-> routing through Bansur Router!
-
-### 🌐 Deploy Anywhere
-
-- 💻 **Localhost** - Default, works offline
-- ☁️ **VPS/Cloud** - Share across devices
-- 🐳 **Docker** - One-command deployment
-- 🚀 **Cloudflare Workers** - Global edge network
+- `vertex/gemini-3.1-pro-preview`
+- `vertex/gemini-3-flash-preview`
+- `vertex/gemini-2.5-flash`
+- `vertex-partner/glm-5-maas`
+- `vertex-partner/deepseek-v3.2-maas`
 
 </details>
 
 ---
 
-## 💰 Pricing at a Glance
+## Pricing at a Glance
 
 | Tier                | Provider              | Cost         | Quota Reset      | Best For                                |
 | ------------------- | --------------------- | ------------ | ---------------- | --------------------------------------- |
@@ -732,7 +678,7 @@ Seamless translation between formats:
 
 ---
 
-### 📊 Understanding Bansur Router Costs & Billing
+### Understanding Bansur Router Costs & Billing
 
 **Bansur Router Billing Reality:**
 
@@ -769,7 +715,7 @@ Reality Check:
 
 ---
 
-## 🎯 Use Cases
+## Use Cases
 
 ### Case 1: "I have Claude Pro subscription"
 
@@ -839,116 +785,7 @@ Access via: WhatsApp, Telegram, Slack, Discord, iMessage, Signal...
 
 ---
 
-## ❓ Frequently Asked Questions
-
-<details>
-<summary><b>📊 Why does my dashboard show high costs?</b></summary>
-
-The dashboard tracks your token usage and displays **estimated costs** as if you were using paid APIs directly. This is **not actual billing** - it's a reference to show how much you're saving by using free models or existing subscriptions through Bansur Router.
-
-**Example:**
-
-- **Dashboard shows:** "$290 total cost"
-- **Reality:** You're using Kiro free models (~50 credits/mo)
-- **Your actual cost:** **$0.00**
-- **What $290 means:** Amount you **saved** by using free models instead of paid APIs!
-
-The cost display is a "savings tracker" to help you understand your usage patterns and optimization opportunities.
-
-</details>
-
-<details>
-<summary><b>💳 Will I be charged by Bansur Router?</b></summary>
-
-**No.** Bansur Router is free, open-source software that runs on your own computer. It never charges you anything.
-
-**You only pay:**
-
-- ✅ **Subscription providers** (Claude Code $20/mo, Codex $20-200/mo) → Pay them directly on their websites
-- ✅ **Cheap providers** (GLM, MiniMax) → Pay them directly, Bansur Router just routes your requests
-- ❌ **Bansur Router itself** → **Never charges anything, ever**
-
-Bansur Router is a local proxy/router. It doesn't have your credit card, can't send invoices, and has no billing system. It's completely free software.
-
-</details>
-
-<details>
-<summary><b>🆓 Are FREE providers really unlimited?</b></summary>
-
-**Mostly!** The current FREE providers (Kiro, OpenCode Free, Vertex) are genuinely free, but free tiers have limits:
-
-These are free services offered by those respective companies:
-
-- **Kiro AI**: ~50 credits/month free (plus 500 trial credits for new accounts in the first 30 days) via AWS Builder ID / Google / GitHub OAuth. Paid tiers available above that.
-- **OpenCode Free**: No-auth passthrough proxy, models auto-fetched from `opencode.ai/zen/v1/models`. The free model list fluctuates over time (some models free only for limited promos) — subject to change without notice.
-- **Vertex AI**: $300 free credits for new Google Cloud accounts (90 days). Since Mar 2026 the Gemini API endpoint no longer consumes these credits — use the **Vertex AI Studio** endpoint instead.
-
-Bansur Router just routes your requests to them - there's no "catch" or future billing from Bansur Router itself. They're truly free services, and Bansur Router makes them easy to use with fallback support.
-
-**Discontinued free tiers (no longer recommended):**
-
-- ❌ **iFlow**: Was free unlimited, now changed to paid (2026)
-- ❌ **Qwen Code**: Free OAuth tier fully discontinued by Alibaba on 2026-04-15
-- ❌ **Gemini CLI**: Service fully shut down by Google on 2026-06-18 (replaced by the closed-source Antigravity CLI). Discontinued — do not use.
-
-</details>
-
-<details>
-<summary><b>💰 How do I minimize my actual AI costs?</b></summary>
-
-**Free-First Strategy:**
-
-1. **Start with 100% free combo:**
-
-   ```
-   1. kr/glm-5 (GLM-5 free via Kiro, ~50 credits/mo)
-   2. OpenCode Free models (no auth, auto-fetched)
-   3. Vertex AI Gemini 3 Pro (using the Vertex AI Studio endpoint with $300 credits)
-   ```
-
-   **Cost: $0/month** (within Kiro's free credit cap; OpenCode/Vertex subject to their free-tier limits)
-
-2. **Add cheap backup** only if you need it:
-
-   ```
-   4. glm/glm-4.7 ($0.6/1M tokens)
-   ```
-
-   **Additional cost: Only pay for what you actually use**
-
-3. **Use subscription providers last:**
-   - Only if you already have them
-   - Bansur Router helps maximize their value through quota tracking
-
-**Result:** Most users can operate at $0/month using only free tiers!
-
-</details>
-
-<details>
-<summary><b>📈 What if my usage suddenly spikes?</b></summary>
-
-Bansur Router's smart fallback prevents surprise charges:
-
-**Scenario:** You're on a coding sprint and blow through your quotas
-
-**Without Bansur Router:**
-
-- ❌ Hit rate limit → Work stops → Frustration
-- ❌ Or: Accidentally rack up huge API bills
-
-**With Bansur Router:**
-
-- ✅ Subscription hits limit → Auto-fallback to cheap tier
-- ✅ Cheap tier gets expensive → Auto-fallback to free tier
-- ✅ Never stop coding → Predictable costs
-
-**You're in control:** Set spending limits per provider in dashboard, and Bansur Router respects them.
-
-</details>
-
----
-
-## 📖 Setup Guide
+## Setup Guide
 
 <details>
 <summary><b>🔐 Subscription Providers (Maximize Value)</b></summary>
@@ -1362,84 +1199,269 @@ Notes:
 
 ---
 
-## 📊 Available Models
+## Video Guides
+
+<div align="center">
+
+<table>
+  <tr>
+    <td align="center" width="320">
+      <a href="https://www.youtube.com/watch?v=X69n5Lm06Yw">
+        <img src="https://img.youtube.com/vi/X69n5Lm06Yw/maxresdefault.jpg" alt="Tiết kiệm chi phí LLM với Bansur Router" width="300"/>
+      </a><br/>
+      <b>🇻🇳 Tiếng Việt</b><br/>
+      <sub>Tiết kiệm chi phí LLM cho OpenClaw với Bansur Router<br/>by <a href="https://www.youtube.com/c/M%C3%ACAIblog">Mì AI</a></sub>
+    </td>
+    <td align="center" width="320">
+      <a href="https://youtu.be/VQAw612S27Y">
+        <img src="https://img.youtube.com/vi/VQAw612S27Y/maxresdefault.jpg" alt="Bansur Router + Claude Code FREE Unlimited Setup" width="300"/>
+      </a><br/>
+      <b>🇵🇰 اردو / हिन्दी</b><br/>
+      <sub>Bansur Router + Claude Code FREE Unlimited Setup<br/>by <a href="https://www.youtube.com/@BuildAIWithHamid">Build AI With Hamid</a></sub>
+    </td>
+    <td align="center" width="320">
+      <a href="https://www.youtube.com/watch?v=raEyZPg5xE0">
+        <img src="https://img.youtube.com/vi/raEyZPg5xE0/maxresdefault.jpg" alt="Bansur Router Setup Tutorial" width="300"/>
+      </a><br/>
+      <b>🇺🇸 English</b><br/>
+      <sub>Bansur Router + Claude Code FREE Setup<br/>by <a href="https://www.youtube.com/@BuildAIWithHamid">Build AI With Hamid</a></sub>
+    </td>
+    <td align="center" width="320">
+      <a href="https://youtu.be/3dF5GIYMrcQ?si=bAyfyiHbARJQAHj_">
+        <img src="https://img.youtube.com/vi/3dF5GIYMrcQ/hqdefault.jpg" alt="Bansur Router Setup Tutorial" width="300"/>
+      </a><br/>
+      <b>🇺🇸 English</b><br/>
+      <sub>Bansur Router + Claude Code FREE Setup<br/>by <a href="https://www.youtube.com/@BuildAIWithHamid">Build AI With Hamid</a></sub>
+    </td>
+    <td align="center" width="320">
+      <a href="https://www.youtube.com/watch?v=o3qYCyjrFYg">
+        <img src="https://img.youtube.com/vi/o3qYCyjrFYg/maxresdefault.jpg" alt="Claude Code FREE Forever" width="300"/>
+      </a><br/>
+      <b>🇺🇸 English</b><br/>
+      <sub>Claude Code FREE Forever — Unlimited Models<br/>by <a href="https://www.youtube.com/@BuildAIWithHamid">Build AI With Hamid</a></sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" width="320">
+      <a href="https://www.youtube.com/watch?v=Ttpc26m39Dw">
+        <img src="https://img.youtube.com/vi/Ttpc26m39Dw/maxresdefault.jpg" alt="Claude CLI Free Setup" width="300"/>
+      </a><br/>
+      <b>🇺🇸 English</b><br/>
+      <sub>Claude CLI Free Setup with Bansur Router 🚀<br/>by <a href="https://www.youtube.com/@CodeVerseSoban">CodeVerse Soban</a></sub>
+    </td>
+    <td align="center" width="320">
+      <a href="https://www.youtube.com/watch?v=G-5A_D5Pm6Y">
+        <img src="https://img.youtube.com/vi/G-5A_D5Pm6Y/maxresdefault.jpg" alt="Cài đặt OpenClaw Free A-Z" width="300"/>
+      </a><br/>
+      <b>🇻🇳 Tiếng Việt</b><br/>
+      <sub>Cài Đặt OpenClaw Free Từ A-Z + Bansur Router<br/>by <a href="https://www.youtube.com/@maigia">Mai Gia</a></sub>
+    </td>
+    <td align="center" width="320">
+      <a href="https://www.youtube.com/watch?v=JXmg8_gccgE">
+        <img src="https://img.youtube.com/vi/JXmg8_gccgE/maxresdefault.jpg" alt="FREE OpenClaw with Claude Opus" width="300"/>
+      </a><br/>
+      <b>🇺🇸 English</b><br/>
+      <sub>FREE OpenClaw + Claude Opus 4.6<br/>by <a href="https://www.youtube.com/@BuildAIWithHamid">Build AI With Hamid</a></sub>
+    </td>
+    <td align="center" width="320">
+      <a href="https://www.youtube.com/watch?v=CkVZZUSTXAI">
+        <img src="https://img.youtube.com/vi/CkVZZUSTXAI/mqdefault.jpg" alt="Claude CLI Free Setup" width="300"/>
+      </a><br/>
+      <b>🇮🇩 Indonesia</b><br/>
+      <sub>Koding 24 Jam Anti Rate Limit! Hemat Token AI 65% | Tutorial Quick Setup Bansur Router 🚀<br/>by <a href="https://www.youtube.com/@krisswuh">Krisswuh</a></sub>
+    </td>
+    <td align="center" width="320">
+      <a href="https://www.youtube.com/watch?v=TXGv4eofe1I">
+        <img src="https://img.youtube.com/vi/TXGv4eofe1I/mqdefault.jpg" alt="Cara Deploy Bansur Router di Hugging Face GRATIS Non-Stop! | Alternatif VPS RAM 16GB" width="300"/>
+      </a><br/>
+      <b>🇮🇩 Indonesia</b><br/>
+      <sub>Cara Deploy Bansur Router di Hugging Face GRATIS Non-Stop! | Alternatif VPS RAM 16GB<br/>by <a href="https://www.youtube.com/@krisswuh">Krisswuh</a></sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" width="320">
+      <a href="https://www.youtube.com/watch?v=GyX-DLvePW8">
+        <img src="https://img.youtube.com/vi/GyX-DLvePW8/hqdefault.jpg" alt="این شکلی از هر API ای استفاده کن برای هوش مصنوعی" width="300"/>
+      </a><br/>
+      <b>🇮🇷 Persian-فارسی</b><br/>
+      <sub dir="rtl">این شکلی از هر API ای استفاده کن برای هوش مصنوعی<br/>by <a href="https://www.youtube.com/@Matin_SenPai">Matin SenPai</a></sub>
+    </td>
+    <td align="center" width="320">
+      <a href="https://www.youtube.com/watch?v=hPusYX-5Pmw">
+        <img src="https://img.youtube.com/vi/hPusYX-5Pmw/maxresdefault.jpg" alt="Hướng Dẫn Setup OpenClaw + Bansur Router: Tạo Bot Zalo AI Tự Động Từ A-Z" width="300"/>
+      </a><br/>
+      <b>🇻🇳 Tiếng Việt</b><br/>
+      <sub>Hướng Dẫn Setup OpenClaw + Bansur Router: Tạo Bot Zalo AI Tự Động Từ A-Z<br/>by <a href="https://github.com/tuanminhhole">tuanminhhole</a></sub>
+    </td>
+    <td align="center" width="320">
+      <a href="https://www.youtube.com/watch?v=hgnE7MKi3Y4">
+        <img src="https://img.youtube.com/vi/hgnE7MKi3Y4/maxresdefault.jpg" alt="Bye Limit! Cara Bikin Sistem 'AI Unlimited' 100% Gratis Dengan Bansur Router!
+" width="300"/>
+      </a><br/>
+      <b>🇮🇩 Indonesia</b><br/>
+      <sub>Bye Limit! Cara Bikin Sistem "AI Unlimited" 100% Gratis Dengan Bansur Router!<br/>by <a href="https://www.youtube.com/@neptiver">neptiver</a></sub>
+    </td>
+    <td align="center" width="320"></td>
+    <td align="center" width="320"></td>
+  </tr>
+</table>
+
+</div>
+
+> 🎬 **Made a video about Bansur Router?** Submit a [Pull Request](https://github.com/mas-ajam/bansur-router/pulls) adding your video to this section — we'll merge it!
+
+---
+
+## Frequently Asked Questions
 
 <details>
-<summary><b>View all available models</b></summary>
+<summary><b>📊 Why does my dashboard show high costs?</b></summary>
 
-**Claude Code (`cc/`)** - Pro/Max:
+The dashboard tracks your token usage and displays **estimated costs** as if you were using paid APIs directly. This is **not actual billing** - it's a reference to show how much you're saving by using free models or existing subscriptions through Bansur Router.
 
-- `cc/claude-opus-4-7`
-- `cc/claude-opus-4-6`
-- `cc/claude-sonnet-4-6`
-- `cc/claude-sonnet-4-5-20250929`
-- `cc/claude-haiku-4-5-20251001`
+**Example:**
 
-**Codex (`cx/`)** - Plus/Pro:
+- **Dashboard shows:** "$290 total cost"
+- **Reality:** You're using Kiro free models (~50 credits/mo)
+- **Your actual cost:** **$0.00**
+- **What $290 means:** Amount you **saved** by using free models instead of paid APIs!
 
-- `cx/gpt-5.5`
-- `cx/gpt-5.4`
-- `cx/gpt-5.3-codex`
-- `cx/gpt-5.2-codex`
-- `cx/gpt-5.1-codex-max`
+The cost display is a "savings tracker" to help you understand your usage patterns and optimization opportunities.
 
-**GitHub Copilot (`gh/`)**:
+</details>
 
-- `gh/gpt-5.4`
-- `gh/claude-opus-4.7`
-- `gh/claude-sonnet-4.6`
-- `gh/gemini-3.1-pro-preview`
-- `gh/grok-code-fast-1`
+<details>
+<summary><b>💳 Will I be charged by Bansur Router?</b></summary>
 
-**Cursor (`cu/`)** - Subscription:
+**No.** Bansur Router is free, open-source software that runs on your own computer. It never charges you anything.
 
-- `cu/claude-4.6-opus-max`
-- `cu/claude-4.5-sonnet-thinking`
-- `cu/gpt-5.3-codex`
-- `cu/kimi-k2.5`
+**You only pay:**
 
-**GLM (`glm/`)** - $0.6/1M:
+- ✅ **Subscription providers** (Claude Code $20/mo, Codex $20-200/mo) → Pay them directly on their websites
+- ✅ **Cheap providers** (GLM, MiniMax) → Pay them directly, Bansur Router just routes your requests
+- ❌ **Bansur Router itself** → **Never charges anything, ever**
 
-- `glm/glm-5.1`
-- `glm/glm-5`
-- `glm/glm-4.7`
+Bansur Router is a local proxy/router. It doesn't have your credit card, can't send invoices, and has no billing system. It's completely free software.
 
-**MiniMax (`minimax/`)** - $0.2/1M:
+</details>
 
-- `minimax/MiniMax-M2.7`
-- `minimax/MiniMax-M2.5`
+<details>
+<summary><b>🆓 Are FREE providers really unlimited?</b></summary>
 
-**Kimi (`kimi/`)** - $9/mo flat:
+**Mostly!** The current FREE providers (Kiro, OpenCode Free, Vertex) are genuinely free, but free tiers have limits:
 
-- `kimi/kimi-k2.5`
-- `kimi/kimi-k2.5-thinking`
+These are free services offered by those respective companies:
 
-**Kiro (`kr/`)** - Free (~50 credits/month, paid tiers above):
+- **Kiro AI**: ~50 credits/month free (plus 500 trial credits for new accounts in the first 30 days) via AWS Builder ID / Google / GitHub OAuth. Paid tiers available above that.
+- **OpenCode Free**: No-auth passthrough proxy, models auto-fetched from `opencode.ai/zen/v1/models`. The free model list fluctuates over time (some models free only for limited promos) — subject to change without notice.
+- **Vertex AI**: $300 free credits for new Google Cloud accounts (90 days). Since Mar 2026 the Gemini API endpoint no longer consumes these credits — use the **Vertex AI Studio** endpoint instead.
 
-- `kr/claude-sonnet-4.5`
-- `kr/claude-haiku-4.5`
-- `kr/glm-5`
-- `kr/MiniMax-M2.5`
-- `kr/qwen3-coder-next`
-- `kr/deepseek-3.2`
+Bansur Router just routes your requests to them - there's no "catch" or future billing from Bansur Router itself. They're truly free services, and Bansur Router makes them easy to use with fallback support.
 
-**OpenCode Free (`oc/`)** - FREE no-auth:
+**Discontinued free tiers (no longer recommended):**
 
-- Auto-fetched from `opencode.ai/zen/v1/models`
+- ❌ **iFlow**: Was free unlimited, now changed to paid (2026)
+- ❌ **Qwen Code**: Free OAuth tier fully discontinued by Alibaba on 2026-04-15
+- ❌ **Gemini CLI**: Service fully shut down by Google on 2026-06-18 (replaced by the closed-source Antigravity CLI). Discontinued — do not use.
 
-**Vertex AI (`vertex/`)** - $300 free credits:
+</details>
 
-- `vertex/gemini-3.1-pro-preview`
-- `vertex/gemini-3-flash-preview`
-- `vertex/gemini-2.5-flash`
-- `vertex-partner/glm-5-maas`
-- `vertex-partner/deepseek-v3.2-maas`
+<details>
+<summary><b>💰 How do I minimize my actual AI costs?</b></summary>
+
+**Free-First Strategy:**
+
+1. **Start with 100% free combo:**
+
+   ```
+   1. kr/glm-5 (GLM-5 free via Kiro, ~50 credits/mo)
+   2. OpenCode Free models (no auth, auto-fetched)
+   3. Vertex AI Gemini 3 Pro (using the Vertex AI Studio endpoint with $300 credits)
+   ```
+
+   **Cost: $0/month** (within Kiro's free credit cap; OpenCode/Vertex subject to their free-tier limits)
+
+2. **Add cheap backup** only if you need it:
+
+   ```
+   4. glm/glm-4.7 ($0.6/1M tokens)
+   ```
+
+   **Additional cost: Only pay for what you actually use**
+
+3. **Use subscription providers last:**
+   - Only if you already have them
+   - Bansur Router helps maximize their value through quota tracking
+
+**Result:** Most users can operate at $0/month using only free tiers!
+
+</details>
+
+<details>
+<summary><b>📈 What if my usage suddenly spikes?</b></summary>
+
+Bansur Router's smart fallback prevents surprise charges:
+
+**Scenario:** You're on a coding sprint and blow through your quotas
+
+**Without Bansur Router:**
+
+- ❌ Hit rate limit → Work stops → Frustration
+- ❌ Or: Accidentally rack up huge API bills
+
+**With Bansur Router:**
+
+- ✅ Subscription hits limit → Auto-fallback to cheap tier
+- ✅ Cheap tier gets expensive → Auto-fallback to free tier
+- ✅ Never stop coding → Predictable costs
+
+**You're in control:** Set spending limits per provider in dashboard, and Bansur Router respects them.
 
 </details>
 
 ---
 
-## 🐛 Troubleshooting
+## API Reference
+
+### Chat Completions
+
+```bash
+POST http://localhost:667/v1/chat/completions
+Authorization: Bearer your-api-key
+Content-Type: application/json
+
+{
+  "model": "cc/claude-opus-4-6",
+  "messages": [
+    {"role": "user", "content": "Write a function to..."}
+  ],
+  "stream": true
+}
+```
+
+### List Models
+
+```bash
+GET http://localhost:667/v1/models
+Authorization: Bearer your-api-key
+
+→ Returns all models + combos in OpenAI format
+```
+
+---
+
+## Tech Stack
+
+- **Runtime**: Node.js 20+
+- **Framework**: Next.js 16
+- **UI**: React 19 + Tailwind CSS 4
+- **Database**: SQLite (better-sqlite3 / node:sqlite / sql.js fallback)
+- **Streaming**: Server-Sent Events (SSE)
+- **Auth**: OAuth 2.0 (PKCE) + JWT + API Keys
+
+---
+
+## Troubleshooting
 
 **"Language model did not provide messages"**
 
@@ -1478,45 +1500,7 @@ Notes:
 
 ---
 
-## 🛠️ Tech Stack
-
-- **Runtime**: Node.js 20+
-- **Framework**: Next.js 16
-- **UI**: React 19 + Tailwind CSS 4
-- **Database**: SQLite (better-sqlite3 / node:sqlite / sql.js fallback)
-- **Streaming**: Server-Sent Events (SSE)
-- **Auth**: OAuth 2.0 (PKCE) + JWT + API Keys
-
----
-
-## 📝 API Reference
-
-### Chat Completions
-
-```bash
-POST http://localhost:667/v1/chat/completions
-Authorization: Bearer your-api-key
-Content-Type: application/json
-
-{
-  "model": "cc/claude-opus-4-6",
-  "messages": [
-    {"role": "user", "content": "Write a function to..."}
-  ],
-  "stream": true
-}
-```
-
-### List Models
-
-```bash
-GET http://localhost:667/v1/models
-Authorization: Bearer your-api-key
-
-→ Returns all models + combos in OpenAI format
-```
-
-## 📧 Support
+## Support
 
 - **Website**: [bansur-router.pages.dev](https://bansur-router.pages.dev)
 - **GitHub**: [github.com/mas-ajam/bansur-router](https://github.com/mas-ajam/bansur-router)
@@ -1524,7 +1508,7 @@ Authorization: Bearer your-api-key
 
 ---
 
-## 👥 Contributors
+## Contributors
 
 Thanks to all contributors who helped make Bansur Router better!
 
@@ -1532,17 +1516,19 @@ Thanks to all contributors who helped make Bansur Router better!
 
 ---
 
-## 📊 Star Chart
+## Star Chart
 
 [![Star Chart](https://starchart.cc/mas-ajam/bansur-router.svg?variant=adaptive)](https://starchart.cc/mas-ajam/bansur-router)
 
-## 🔀 Forks
+---
+
+## Forks
 
 **[OmniRoute](https://github.com/diegosouzapw/OmniRoute)** — A full-featured TypeScript fork of Bansur Router. Adds 36+ providers, 4-tier auto-fallback, multi-modal APIs (images, embeddings, audio, TTS), circuit breaker, semantic cache, LLM evaluations, and a polished dashboard. 368+ unit tests. Available via npm and Docker.
 
 ---
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 Built on the shoulders of giants:
 
@@ -1555,7 +1541,7 @@ Huge thanks to these authors — without their work, Bansur Router's token-savin
 
 ---
 
-## 📄 License
+## License
 
 MIT License - see [LICENSE](LICENSE) for details.
 

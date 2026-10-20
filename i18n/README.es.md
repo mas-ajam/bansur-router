@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="../images/bansur-router.png?1" alt="Panel de control de Bansur Router" width="800"/>
+  <img src="../images/banner.png" alt="Bansur Router" width="880"/>
   
   # Bansur Router - Enrutador de IA GRATUITO y ahorrador de tokens
   

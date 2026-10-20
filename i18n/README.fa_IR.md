@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="./images/bansur-router.png?1" alt="داشبورد Bansur Router" width="800"/>
+  <img src="./images/banner.png" alt="Bansur Router" width="880"/>
   
   # Bansur Router - مسیریاب رایگان هوش مصنوعی و ذخیره‌ساز توکن
   

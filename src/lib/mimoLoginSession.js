@@ -34,8 +34,7 @@ const APP_PREFIXES = [
   "/login", "/landing", "/__mimo_login/", "/i18n/", "/icons/", "/providers/",
 ];
 const APP_FILES = new Set([
-  "/favicon.svg", "/favicon.ico", "/file.svg", "/globe.svg", "/next.svg",
-  "/vercel.svg", "/window.svg", "/sw.js", "/robots.txt", "/manifest.webmanifest",
+  "/favicon.svg", "/favicon.ico", "/sw.js", "/robots.txt", "/manifest.webmanifest",
 ]);
 
 const APP_PATH_MATCHES = (pathname) =>
