@@ -1,7 +1,7 @@
 {
   "name": "bansur-router",
   "version": "1.0.1",
-  "description": "Bansur Router CLI - Start and manage Bansur Router server",
+  "description": "Bansur Router - FREE AI Router & Token Saver: one OpenAI-compatible endpoint across 40+ AI providers",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/mas-ajam/bansur-router.git"

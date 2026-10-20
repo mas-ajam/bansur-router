@@ -1,3 +1,7 @@
+<div align="center">
+  <img src="https://raw.githubusercontent.com/mas-ajam/bansur-router/main/images/bansur-router.png" alt="Bansur Router" width="700"/>
+</div>
+
 # Bansur Router - FREE AI Router & Token Saver
 
 **Never stop coding. Save 20-40% tokens with RTK + auto-fallback to FREE & cheap AI models.**
