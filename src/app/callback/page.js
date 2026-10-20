@@ -99,8 +99,8 @@ function CallbackContent() {
 
         {(status === "success" || status === "done") && (
           <>
-            <div className="size-16 mx-auto mb-4 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
-              <span className="material-symbols-outlined text-3xl text-green-600">check_circle</span>
+            <div className="size-16 mx-auto mb-4 rounded-full bg-surface-2 dark:bg-surface-2 flex items-center justify-center">
+              <span className="material-symbols-outlined text-3xl text-text-main">check_circle</span>
             </div>
             <h1 className="text-xl font-semibold mb-2">Authorization Successful!</h1>
             <p className="text-text-muted">
@@ -111,8 +111,8 @@ function CallbackContent() {
 
         {status === "manual" && (
           <>
-            <div className="size-16 mx-auto mb-4 rounded-full bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center">
-              <span className="material-symbols-outlined text-3xl text-yellow-600">info</span>
+            <div className="size-16 mx-auto mb-4 rounded-full bg-surface-2 dark:bg-surface-2 flex items-center justify-center">
+              <span className="material-symbols-outlined text-3xl text-text-muted">info</span>
             </div>
             <h1 className="text-xl font-semibold mb-2">Copy This URL</h1>
             <p className="text-text-muted mb-4">

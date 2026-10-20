@@ -45,26 +45,26 @@ function formatResetTimeDisplay(resetTime) {
 function getColorClasses(remainingPercentage) {
   if (remainingPercentage > 70) {
     return {
-      text: "text-green-600 dark:text-green-400",
-      bg: "bg-green-500",
-      bgLight: "bg-green-500/10",
+      text: "text-text-main dark:text-text-main",
+      bg: "bg-brand-500",
+      bgLight: "bg-surface-2",
       emoji: "🟢",
     };
   }
 
   if (remainingPercentage >= 30) {
     return {
-      text: "text-yellow-600 dark:text-yellow-400",
-      bg: "bg-yellow-500",
-      bgLight: "bg-yellow-500/10",
+      text: "text-text-muted dark:text-text-muted",
+      bg: "bg-brand-500",
+      bgLight: "bg-surface-2",
       emoji: "🟡",
     };
   }
 
   return {
-    text: "text-red-600 dark:text-red-400",
-    bg: "bg-red-500",
-    bgLight: "bg-red-500/10",
+    text: "text-text-main dark:text-text-main",
+    bg: "bg-brand-500",
+    bgLight: "bg-surface-2",
     emoji: "🔴",
   };
 }
@@ -153,7 +153,7 @@ export default function QuotaTable({
           const isUnlimited = quota.unlimited === true;
           const isCreditBalance = quota.isCreditBalance === true;
           const colors = isCreditBalance
-            ? { text: "text-blue-600 dark:text-blue-400", bg: "bg-blue-500", bgLight: "bg-blue-500/10", emoji: "💰" }
+            ? { text: "text-text-muted dark:text-text-muted", bg: "bg-brand-500", bgLight: "bg-surface-2", emoji: "💰" }
             : getColorClasses(quota.remaining);
           // Qoder flags open-ended plans with `neverExpires` (its API reports a
           // year-9999 sentinel). Return "-"/"Never expires" rather than an empty
@@ -239,7 +239,7 @@ export default function QuotaTable({
                           quota.unit ? ` ${quota.unit}` : ""
                         }`}
                   </span>
-                  <span className={`font-medium ${isUnlimited ? "text-green-600 dark:text-green-400" : isCreditBalance ? "text-blue-600 dark:text-blue-400" : colors.text} shrink-0`}>
+                  <span className={`font-medium ${isUnlimited ? "text-text-main dark:text-text-main" : isCreditBalance ? "text-text-muted dark:text-text-muted" : colors.text} shrink-0`}>
                     {isUnlimited ? "Unlimited" : isCreditBalance ? "" : `${quota.remaining}%`}
                   </span>
                 </div>

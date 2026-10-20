@@ -320,7 +320,7 @@ export default function Header({ onMenuClick, showMenuButton = true }) {
         <HeaderSearch />
         <button
           onClick={() => setDonateOpen(true)}
-          className="hidden sm:flex items-center gap-1.5 px-3 h-8 rounded-lg border border-pink-500/30 bg-pink-500/10 text-pink-600 dark:text-pink-400 hover:bg-pink-500/20 transition-colors text-sm font-medium"
+          className="hidden sm:flex items-center gap-1.5 px-3 h-8 rounded-lg border border-border bg-surface-2 text-text-main hover:bg-surface-3 transition-colors text-sm font-medium"
           aria-label="Donate"
         >
           <span className="material-symbols-outlined text-[18px]">volunteer_activism</span>

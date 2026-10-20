@@ -101,7 +101,7 @@ function RouterNode({ data }) {
     <div
       className={`relative z-[1] flex items-center justify-center px-5 py-3 rounded-xl border-2 min-w-[130px] ${
         powering
-          ? "topology-router-core border-yellow-300 bg-gradient-to-br from-primary/30 via-yellow-400/20 to-cyan-400/25"
+          ? "topology-router-core border-border bg-gradient-to-br from-primary/30 via-surface-2 to-surface-2"
           : "border-primary bg-primary/5 shadow-md"
       }`}
     >
@@ -117,11 +117,11 @@ function RouterNode({ data }) {
         loading="lazy"
         decoding="async"
       />
-      <span className={`text-sm font-bold ${powering ? "topology-router-label text-yellow-300" : "text-primary"}`}>
+      <span className={`text-sm font-bold ${powering ? "topology-router-label text-text-muted" : "text-primary"}`}>
         Bansur Router
       </span>
       {data.activeCount > 0 && (
-        <span className="ml-2 px-1.5 py-0.5 rounded-full bg-yellow-400 text-black text-xs font-bold topology-router-badge">
+        <span className="ml-2 px-1.5 py-0.5 rounded-full bg-brand-500 text-black text-xs font-bold topology-router-badge">
           {data.activeCount}
         </span>
       )}
@@ -175,7 +175,7 @@ function TopologyEdge({
       <path
         d={edgePath}
         fill="none"
-        stroke="#22d3ee"
+        stroke="#8b949c"
         strokeWidth={10}
         strokeOpacity={0.35}
         strokeLinecap="round"
@@ -186,7 +186,7 @@ function TopologyEdge({
       <path
         d={edgePath}
         fill="none"
-        stroke="#4ade80"
+        stroke="#5d666e"
         strokeWidth={5}
         strokeOpacity={0.85}
         strokeLinecap="round"
@@ -205,9 +205,9 @@ function TopologyEdge({
         <circle
           key={`${id}-p-${i}`}
           r={i % 2 === 0 ? 4 : 2.5}
-          fill={i % 3 === 0 ? "#fde047" : i % 3 === 1 ? "#67e8f9" : "#fff"}
+          fill={i % 3 === 0 ? "#c9ced3" : i % 3 === 1 ? "#8b949c" : "#fff"}
           opacity={0.95}
-          style={{ filter: "drop-shadow(0 0 4px #22d3ee)" }}
+          style={{ filter: "drop-shadow(0 0 4px #8b949c)" }}
         >
           <animateMotion
             dur={`${0.4 + i * 0.08}s`}
@@ -222,7 +222,7 @@ function TopologyEdge({
         <circle
           key={`${id}-s-${i}`}
           r={1.8}
-          fill="#e0f2fe"
+          fill="#e7e7e9"
           opacity={0}
         >
           <animate
@@ -292,9 +292,9 @@ function buildLayout(providers, activeSet, lastSet, errorSet) {
   });
 
   const edgeStyle = (active, last, error) => {
-    if (error) return { stroke: "#ef4444", strokeWidth: 2.5, opacity: 0.9 };
-    if (active) return { stroke: "#22d3ee", strokeWidth: 3.5, opacity: 1 };
-    if (last) return { stroke: "#f59e0b", strokeWidth: 2, opacity: 0.7 };
+    if (error) return { stroke: "#101418", strokeWidth: 2.5, opacity: 0.9 };
+    if (active) return { stroke: "#8b949c", strokeWidth: 3.5, opacity: 1 };
+    if (last) return { stroke: "#5d666e", strokeWidth: 2, opacity: 0.7 };
     return { stroke: "var(--color-border)", strokeWidth: 1, opacity: 0.3 };
   };
 

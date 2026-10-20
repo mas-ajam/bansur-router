@@ -2,13 +2,15 @@
 
 import { cn } from "@/shared/utils/cn";
 
+/* Monochrome status: meaning is carried by the label; solid = affirmative,
+   outlined = error/attention, tinted = neutral. */
 const variants = {
   default: "bg-surface-2 text-text-muted",
-  primary: "bg-brand-500/10 text-brand-600 dark:text-brand-300",
-  success: "bg-green-500/10 text-green-600 dark:text-green-400",
-  warning: "bg-yellow-500/10 text-yellow-600 dark:text-yellow-400",
-  error: "bg-red-500/10 text-red-600 dark:text-red-400",
-  info: "bg-blue-500/10 text-blue-600 dark:text-blue-400",
+  primary: "bg-brand-500 text-on-brand",
+  success: "bg-brand-500 text-on-brand",
+  warning: "bg-surface-2 text-text-muted border border-border",
+  error: "bg-surface text-text-main border border-text-main",
+  info: "bg-surface-2 text-text-muted",
 };
 
 const sizes = {
@@ -37,13 +39,9 @@ export default function Badge({
       {dot && (
         <span
           className={cn(
-            "size-1.5 rounded-full",
-            variant === "success" && "bg-green-500",
-            variant === "warning" && "bg-yellow-500",
-            variant === "error" && "bg-red-500",
-            variant === "info" && "bg-blue-500",
-            variant === "primary" && "bg-brand-500",
-            variant === "default" && "bg-gray-500"
+            "size-1.5 rounded-full bg-current",
+            /* error = hollow dot (shape carries the meaning, not color) */
+            variant === "error" && "bg-transparent border-[1.5px] border-current"
           )}
         />
       )}

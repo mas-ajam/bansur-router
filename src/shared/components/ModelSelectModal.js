@@ -661,7 +661,7 @@ export default function ModelSelectModal({
               </span>
             )}
             {parsedQuery.negativeTerms.length > 0 && !parsedQuery.isRegex && (
-              <span className="text-[10px] px-1 py-0.2 rounded bg-amber-500/10 text-amber-500 font-mono font-medium">
+              <span className="text-[10px] px-1 py-0.2 rounded bg-surface-2 text-text-muted font-mono font-medium">
                 !exclude
               </span>
             )}

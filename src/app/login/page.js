@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Card, Button, Input } from "@/shared/components";
+import LogoMark from "@/shared/components/LogoMark";
 
 export default function LoginPage() {
   const [password, setPassword] = useState("");
@@ -140,7 +141,7 @@ export default function LoginPage() {
   // Show loading state while checking password
   if (hasPassword === null) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-bg p-4">
+      <div className="dark min-h-screen flex items-center justify-center bg-[#0b0e11] p-4">
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
           <p className="text-text-muted mt-4">Loading...</p>
@@ -150,13 +151,26 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-bg p-4 relative overflow-hidden">
-      {/* Faint grid background */}
-      <div className="landing-grid absolute inset-0 pointer-events-none" aria-hidden="true" />
+    <div className="dark min-h-screen flex items-center justify-center bg-[#0b0e11] p-4 relative overflow-hidden">
+      {/* Subtle dot pattern (prototype login backdrop) */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          backgroundImage: "radial-gradient(circle at 1px 1px, rgba(255,255,255,0.07) 1px, transparent 0)",
+          backgroundSize: "26px 26px",
+        }}
+        aria-hidden="true"
+      />
       <div className="relative z-10 w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-primary mb-2">Bansur Router</h1>
-          <p className="text-text-muted">
+          <div className="flex justify-center mb-4">
+            <LogoMark size={54} className="text-white" />
+          </div>
+          <h1 className="text-xl text-white mb-2">
+            <span className="font-extrabold tracking-[0.22em]">BANSUR</span>{" "}
+            <span className="font-light tracking-[0.22em]">ROUTER</span>
+          </h1>
+          <p className="text-[#8b949c] text-sm">
             {samlAvailable
               ? "Sign in with SAML 2.0 Single Sign-On"
               : oidcAvailable
@@ -168,7 +182,7 @@ export default function LoginPage() {
         <Card>
           {mustChange ? (
             <form onSubmit={handleSetNewPassword} className="flex flex-col gap-4">
-              <p className="text-sm text-amber-600 dark:text-amber-400 text-center">
+              <p className="text-sm text-text-muted text-center">
                 Set a new password before accessing the dashboard remotely.
               </p>
               <div className="flex flex-col gap-2">
@@ -181,7 +195,7 @@ export default function LoginPage() {
                   required
                   autoFocus
                 />
-                {error && <p className="text-xs text-red-500">{error}</p>}
+                {error && <p className="text-xs text-text-main font-medium underline underline-offset-2">{error}</p>}
               </div>
               <Button type="submit" variant="primary" className="w-full" loading={loading} disabled={!newPassword}>
                 Set password
@@ -206,7 +220,7 @@ export default function LoginPage() {
             {passwordAvailable ? (
               <form onSubmit={handleLogin} className="flex flex-col gap-4">
                 {isSsoEnabled && !ssoAvailable && (
-                  <p className="text-xs text-amber-600 dark:text-amber-400 text-center">
+                  <p className="text-xs text-text-muted text-center">
                     {activeSsoType === "saml" ? "SAML SSO" : "OIDC"} login is enabled, but configuration is incomplete. Password login is still available for recovery.
                   </p>
                 )}
@@ -227,9 +241,9 @@ export default function LoginPage() {
                     required
                     autoFocus={!oidcAvailable}
                   />
-                  {error && <p className="text-xs text-red-500">{error}</p>}
+                  {error && <p className="text-xs text-text-main font-medium underline underline-offset-2">{error}</p>}
                   {retryAfter > 0 && (
-                    <p className="text-xs text-amber-600 dark:text-amber-400">
+                    <p className="text-xs text-text-muted">
                       Locked. Retry in <span className="font-mono">{retryAfter}s</span>.
                     </p>
                   )}
@@ -254,13 +268,13 @@ export default function LoginPage() {
                   Default password is <code className="bg-sidebar px-1 rounded">123456</code>
                 </p>
                 {hasPassword === false && (
-                  <p className="text-xs text-center text-amber-600 dark:text-amber-400">
+                  <p className="text-xs text-center text-text-muted">
                     Security risk: no password set. You will be asked to set one when logging in remotely.
                   </p>
                 )}
               </form>
             ) : (
-              error && <p className="text-xs text-red-500">{error}</p>
+              error && <p className="text-xs text-text-main font-medium underline underline-offset-2">{error}</p>
             )}
           </div>
           )}

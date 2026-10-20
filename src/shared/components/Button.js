@@ -3,18 +3,18 @@
 import { cn } from "@/shared/utils/cn";
 
 const variants = {
-  primary: "bg-brand-500 hover:bg-brand-600 text-white shadow-sm disabled:bg-surface-3 disabled:text-text-muted",
+  primary: "bg-brand-500 hover:bg-brand-600 text-on-brand shadow-sm disabled:bg-surface-3 disabled:text-text-muted",
   secondary: "bg-surface-2 hover:bg-surface-3 text-text-main border border-border disabled:opacity-50",
-  outline: "border border-border text-text-main hover:bg-surface-2 hover:border-brand-500/40",
+  outline: "border border-border text-text-main hover:bg-surface-2 hover:border-text-muted",
   ghost: "text-text-muted hover:bg-surface-2 hover:text-text-main",
-  danger: "bg-red-500 hover:bg-red-600 text-white shadow-sm disabled:bg-surface-3 disabled:text-text-muted",
-  success: "bg-green-600 hover:bg-green-700 text-white shadow-sm disabled:bg-surface-3 disabled:text-text-muted",
+  danger: "bg-transparent border border-text-main text-text-main hover:bg-surface-2 disabled:bg-surface-3 disabled:text-text-muted disabled:border-transparent",
+  success: "bg-brand-500 hover:bg-brand-600 text-on-brand shadow-sm disabled:bg-surface-3 disabled:text-text-muted",
 };
 
 const sizes = {
   xs: "h-6 px-2.5 text-[11px] rounded-[6px] gap-1.5",
   sm: "h-7 px-3 text-xs rounded-[8px]",
-  md: "h-9 px-4 text-sm rounded-[10px]",
+  md: "h-9 px-4 text-sm rounded-brand",
   lg: "h-11 px-6 text-sm rounded-[10px]",
 };
 

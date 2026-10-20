@@ -25,9 +25,9 @@ export default function Card({
   return (
     <div
       className={cn(
-        "bg-surface border border-border-subtle",
-        elev ? "rounded-[14px] shadow-[var(--shadow-elev)]" : "rounded-[14px] shadow-[var(--shadow-soft)]",
-        hover && "hover:shadow-[var(--shadow-warm)] hover:border-brand-500/30 transition-all cursor-pointer",
+        "bg-surface border border-border",
+        elev ? "rounded-brand-lg shadow-[var(--shadow-elev)]" : "rounded-brand-lg shadow-[var(--shadow-soft)]",
+        hover && "hover:shadow-[var(--shadow-warm)] hover:border-text-subtle transition-all cursor-pointer",
         paddings[padding],
         className
       )}
@@ -37,7 +37,7 @@ export default function Card({
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             {icon && (
-              <div className="p-2 rounded-[10px] bg-bg text-text-muted">
+              <div className="p-2 rounded-brand bg-surface-2 text-text-muted">
                 <span className="material-symbols-outlined text-[20px]">{icon}</span>
               </div>
             )}
@@ -62,8 +62,8 @@ Card.Section = function CardSection({ children, className, ...props }) {
   return (
     <div
       className={cn(
-        "p-4 rounded-[10px]",
-        "bg-bg border border-border-subtle",
+        "p-4 rounded-brand",
+        "bg-surface-2 border border-border-subtle",
         className
       )}
       {...props}

@@ -372,7 +372,7 @@ export default function RequestDetailsTab() {
                 <span className="text-text-muted">Status:</span>{" "}
                 <span className={cn(
                   "font-medium",
-                  selectedDetail.status === "success" ? "text-green-600" : "text-red-600"
+                  selectedDetail.status === "success" ? "text-text-main" : "text-text-main"
                 )}>
                   {selectedDetail.status}
                 </span>
@@ -421,8 +421,8 @@ export default function RequestDetailsTab() {
                   <span className={cn(
                     "text-xs px-2 py-0.5 rounded",
                     selectedDetail.pxpipe.applied
-                      ? "bg-green-500/15 text-green-600"
-                      : "bg-amber-500/15 text-amber-600"
+                      ? "bg-surface-2 text-text-main"
+                      : "bg-surface-2 text-text-muted"
                   )}>
                     {selectedDetail.pxpipe.applied ? "Activated" : "Skipped"}
                   </span>
@@ -439,7 +439,7 @@ export default function RequestDetailsTab() {
                     </div>
                     <div>
                       <span className="text-text-muted block text-xs">Saved</span>
-                      <span className="font-mono text-green-600">{selectedDetail.pxpipe.savedPct || 0}%</span>
+                      <span className="font-mono text-text-main">{selectedDetail.pxpipe.savedPct || 0}%</span>
                     </div>
                     <div>
                       <span className="text-text-muted block text-xs">Images</span>
@@ -488,7 +488,7 @@ export default function RequestDetailsTab() {
                       <span className="material-symbols-outlined text-[16px]">psychology</span>
                       Thinking Process
                     </h4>
-                    <pre className="max-h-[200px] max-w-full overflow-auto rounded-lg border border-amber-200 bg-amber-50 p-3 font-mono text-xs text-amber-900 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100 sm:p-4">
+                    <pre className="max-h-[200px] max-w-full overflow-auto rounded-lg border border-border bg-surface-2 p-3 font-mono text-xs text-text-muted dark:border-border dark:bg-surface-2 dark:text-text-muted sm:p-4">
                       {selectedDetail.response.thinking}
                     </pre>
                   </div>

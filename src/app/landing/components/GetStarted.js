@@ -21,7 +21,7 @@ export default function GetStarted() {
             
             <div className="flex flex-col gap-6">
               <div className="flex gap-4">
-                <div className="flex-none w-8 h-8 rounded-full bg-[#f97815]/20 text-[#f97815] flex items-center justify-center font-bold">1</div>
+                <div className="flex-none w-8 h-8 rounded-full bg-[#101418]/20 text-[#101418] flex items-center justify-center font-bold">1</div>
                 <div>
                   <h4 className="font-bold text-lg">Install Bansur Router</h4>
                   <p className="text-sm text-gray-500 mt-1">Run npx command to start the server instantly</p>
@@ -29,7 +29,7 @@ export default function GetStarted() {
               </div>
               
               <div className="flex gap-4">
-                <div className="flex-none w-8 h-8 rounded-full bg-[#f97815]/20 text-[#f97815] flex items-center justify-center font-bold">2</div>
+                <div className="flex-none w-8 h-8 rounded-full bg-[#101418]/20 text-[#101418] flex items-center justify-center font-bold">2</div>
                 <div>
                   <h4 className="font-bold text-lg">Open Dashboard</h4>
                   <p className="text-sm text-gray-500 mt-1">Configure providers and API keys via web interface</p>
@@ -37,7 +37,7 @@ export default function GetStarted() {
               </div>
               
               <div className="flex gap-4">
-                <div className="flex-none w-8 h-8 rounded-full bg-[#f97815]/20 text-[#f97815] flex items-center justify-center font-bold">3</div>
+                <div className="flex-none w-8 h-8 rounded-full bg-[#101418]/20 text-[#101418] flex items-center justify-center font-bold">3</div>
                 <div>
                   <h4 className="font-bold text-lg">Route Requests</h4>
                   <p className="text-sm text-gray-500 mt-1">Point your CLI tools to http://localhost:667</p>
@@ -51,9 +51,9 @@ export default function GetStarted() {
             <div className="rounded-xl overflow-hidden bg-[#1e1e1e] border border-[#3a2f27] shadow-2xl">
               {/* Terminal header */}
               <div className="flex items-center gap-2 px-4 py-3 bg-[#252526] border-b border-gray-700">
-                <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-                <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                <div className="w-3 h-3 rounded-full bg-brand-500"></div>
+                <div className="w-3 h-3 rounded-full bg-brand-500"></div>
+                <div className="w-3 h-3 rounded-full bg-brand-500"></div>
                 <div className="ml-2 text-xs text-gray-500 font-mono">terminal</div>
               </div>
               
@@ -63,7 +63,7 @@ export default function GetStarted() {
                   className="flex items-center gap-2 mb-4 group cursor-pointer"
                   onClick={() => handleCopy("npx bansur-router")}
                 >
-                  <span className="text-green-400">$</span>
+                  <span className="text-text-main">$</span>
                   <span className="text-white">npx bansur-router</span>
                   <span className="ml-auto text-gray-500 text-xs opacity-0 group-hover:opacity-100">
                     {copied === "landing" ? "✓ Copied" : "Copy"}
@@ -71,10 +71,10 @@ export default function GetStarted() {
                 </div>
                 
                 <div className="text-gray-400 mb-6">
-                  <span className="text-[#f97815]">&gt;</span> Starting Bansur Router...<br/>
-                  <span className="text-[#f97815]">&gt;</span> Server running on <span className="text-blue-400">http://localhost:667</span><br/>
-                  <span className="text-[#f97815]">&gt;</span> Dashboard: <span className="text-blue-400">http://localhost:667/dashboard</span><br/>
-                  <span className="text-green-400">&gt;</span> Ready to route! ✓
+                  <span className="text-[#101418]">&gt;</span> Starting Bansur Router...<br/>
+                  <span className="text-[#101418]">&gt;</span> Server running on <span className="text-text-muted">http://localhost:667</span><br/>
+                  <span className="text-[#101418]">&gt;</span> Dashboard: <span className="text-text-muted">http://localhost:667/dashboard</span><br/>
+                  <span className="text-text-main">&gt;</span> Ready to route! ✓
                 </div>
                 
                 <div className="text-xs text-gray-500 mb-2 border-t border-gray-700 pt-4">
@@ -82,7 +82,7 @@ export default function GetStarted() {
                 </div>
                 
                 <div className="text-gray-400 text-xs">
-                  <span className="text-purple-400">Data Location:</span><br/>
+                  <span className="text-text-muted">Data Location:</span><br/>
                   <span className="text-gray-500">  macOS/Linux:</span> ~/.bansur-router/db/data.sqlite<br/>
                   <span className="text-gray-500">  Windows:</span> %APPDATA%/bansur-router/db/data.sqlite
                 </div>

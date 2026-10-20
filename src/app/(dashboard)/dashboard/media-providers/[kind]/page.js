@@ -185,7 +185,7 @@ export default function MediaProviderKindPage() {
   const customProviders = customNodes.map((n) => ({
     id: n.id,
     name: n.name || "Custom Embedding",
-    color: "#6366F1",
+    color: "#101418",
     textIcon: "CE",
   }));
 

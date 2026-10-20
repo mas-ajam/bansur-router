@@ -14,7 +14,7 @@ import {
 } from "recharts";
 import Card from "@/shared/components/Card";
 
-const COLORS = ["#6366f1", "#14b8a6", "#f59e0b", "#ef4444", "#8b5cf6"];
+const COLORS = ["#101418", "#3a4048", "#5d666e", "#8b949c", "#b7babe"];
 
 const fmtTokens = (n) => {
   if (n >= 1000000) return `${(n / 1000000).toFixed(1)}M`;

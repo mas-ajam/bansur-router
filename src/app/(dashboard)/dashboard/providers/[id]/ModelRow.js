@@ -4,15 +4,15 @@ import { CapacityBadges } from "@/shared/components";
 export default function ModelRow({ model, fullModel, alias, copied, onCopy, testStatus, isCustom, isFree, onDeleteAlias, onTest, isTesting, onDisable, caps, thinkingSuffix }) {
   const displayModel = thinkingSuffix ? `${fullModel}(${thinkingSuffix})` : fullModel;
   const borderColor = testStatus === "ok"
-    ? "border-green-500/40"
+    ? "border-border"
     : testStatus === "error"
-    ? "border-red-500/40"
+    ? "border-border"
     : "border-border";
 
   const iconColor = testStatus === "ok"
-    ? "#22c55e"
+    ? "var(--color-text-main)"
     : testStatus === "error"
-    ? "#ef4444"
+    ? "var(--color-text-main)"
     : undefined;
 
   return (
@@ -64,7 +64,7 @@ export default function ModelRow({ model, fullModel, alias, copied, onCopy, test
           {isCustom ? (
             <button
               onClick={onDeleteAlias}
-              className="rounded p-0.5 text-text-muted opacity-100 transition-opacity hover:bg-red-500/10 hover:text-red-500 sm:opacity-0 sm:group-hover:opacity-100"
+              className="rounded p-0.5 text-text-muted opacity-100 transition-opacity hover:bg-surface-2 hover:text-text-main sm:opacity-0 sm:group-hover:opacity-100"
               title="Remove custom model"
             >
               <span className="material-symbols-outlined text-sm">close</span>
@@ -72,7 +72,7 @@ export default function ModelRow({ model, fullModel, alias, copied, onCopy, test
           ) : onDisable ? (
             <button
               onClick={onDisable}
-              className="rounded p-0.5 text-text-muted opacity-100 transition-opacity hover:bg-red-500/10 hover:text-red-500 sm:opacity-0 sm:group-hover:opacity-100"
+              className="rounded p-0.5 text-text-muted opacity-100 transition-opacity hover:bg-surface-2 hover:text-text-main sm:opacity-0 sm:group-hover:opacity-100"
               title="Disable this model"
             >
               <span className="material-symbols-outlined text-sm">close</span>

@@ -1,4 +1,4 @@
-import { Inter } from "next/font/google";
+import { IBM_Plex_Sans, IBM_Plex_Mono } from "next/font/google";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import "material-symbols/outlined.css";
 import "./globals.css";
@@ -11,9 +11,17 @@ import { RuntimeI18nProvider } from "@/i18n/RuntimeI18nProvider";
 // Hook console immediately at module load time (server-side only, runs once)
 initConsoleLogCapture();
 
-const inter = Inter({
+const plexSans = IBM_Plex_Sans({
   subsets: ["latin"],
-  variable: "--font-inter",
+  // Variable font: covers weights 100-700 (Google Fonts has no static 800
+  // for IBM Plex Sans; font-extrabold clamps to 700).
+  variable: "--font-plex-sans",
+});
+
+const plexMono = IBM_Plex_Mono({
+  subsets: ["latin"],
+  weight: ["400", "500"],
+  variable: "--font-plex-mono",
 });
 
 export const metadata = {
@@ -46,7 +54,7 @@ export default function RootLayout({ children }) {
           }}
         />
       </head>
-      <body className={`${inter.variable} font-sans antialiased`}>
+      <body className={`${plexSans.variable} ${plexMono.variable} font-sans antialiased`}>
         <ThemeProvider>
           <RuntimeI18nProvider>
             {children}

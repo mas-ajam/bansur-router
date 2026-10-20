@@ -7,15 +7,15 @@ import { getProviderCustomModelRows } from "@/shared/utils/providerCustomModels"
 
 function PassthroughModelRow({ modelId, fullModel, copied, onCopy, onDeleteAlias, onTest, testStatus, isTesting }) {
   const borderColor = testStatus === "ok"
-    ? "border-green-500/40"
+    ? "border-border"
     : testStatus === "error"
-    ? "border-red-500/40"
+    ? "border-border"
     : "border-border";
 
   const iconColor = testStatus === "ok"
-    ? "#22c55e"
+    ? "var(--color-text-main)"
     : testStatus === "error"
-    ? "#ef4444"
+    ? "var(--color-text-main)"
     : undefined;
 
   return (
@@ -67,7 +67,7 @@ function PassthroughModelRow({ modelId, fullModel, copied, onCopy, onDeleteAlias
       {/* Delete button */}
       <button
         onClick={onDeleteAlias}
-        className="p-1 hover:bg-red-50 rounded text-red-500"
+        className="p-1 hover:bg-surface-2 rounded text-text-main"
         title="Remove model"
       >
         <span className="material-symbols-outlined text-sm">delete</span>
