@@ -2,6 +2,11 @@
   "name": "bansur-router",
   "version": "1.0.0",
   "description": "Bansur Router CLI - Start and manage Bansur Router server",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mas-ajam/bansur-router.git"
+  },
+  "homepage": "https://bansur-router.pages.dev",
   "bin": {
     "bansur-router": "./cli.js"
   },

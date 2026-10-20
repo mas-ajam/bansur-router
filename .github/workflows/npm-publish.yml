@@ -1,0 +1,170 @@
+name: Publish to npm
+
+# Publish the bansur-router CLI package to the npm registry WITHOUT any
+# stored npm token. This uses npm's Trusted Publishing (OIDC): GitHub Actions
+# mints a short-lived identity token for this exact workflow run, and npm
+# verifies it against the "Trusted Publisher" registered on the package's
+# npmjs.com settings page before accepting the publish.
+#
+# npm-side setup (one-time, must be done by an account maintainer):
+#   https://www.npmjs.com/package/bansur-router  ->  Settings  ->
+#   "Trusted Publisher" -> "Add trusted publisher" -> GitHub Actions
+#     Organization or user:  mas-ajam
+#     Repository:            bansur-router
+#     Workflow filename:     npm-publish.yml
+#     Environment name:      (leave empty)
+#     Allowed actions:       Allow `npm publish`
+# NOTE: a newly added trusted publisher EXPIRES if its first publish does not
+# succeed within 48 hours, so only add it when a publish is about to run.
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: "Existing vX.Y.Z tag to publish to npm"
+        required: true
+        type: string
+      dist_tag:
+        description: "npm dist-tag this version will be published under"
+        required: false
+        default: "latest"
+        type: choice
+        options:
+          - "latest"
+          - "next"
+          - "beta"
+
+# Never let two npm publishes race each other: a stale run could overwrite
+# dist-tags or publish an older version after a newer one.
+concurrency:
+  group: npm-publish-${{ github.repository }}
+  cancel-in-progress: false
+
+# id-token: write is REQUIRED for npm Trusted Publishing (OIDC).
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  validate:
+    name: Validate release
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+
+    outputs:
+      tag: ${{ steps.release.outputs.tag }}
+      version: ${{ steps.release.outputs.version }}
+      dist_tag: ${{ steps.release.outputs.dist_tag }}
+
+    steps:
+      - name: Check out release tag
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.release_tag }}
+          fetch-depth: 1
+
+      - name: Validate tag and package versions
+        id: release
+        env:
+          RELEASE_TAG: ${{ inputs.release_tag }}
+          REPOSITORY: ${{ github.repository }}
+          DIST_TAG: ${{ inputs.dist_tag }}
+        run: |
+          node <<'NODE'
+          const { appendFileSync } = require("fs");
+          const { env } = process;
+          const tag = (env.RELEASE_TAG || "").trim();
+          if (!/^v\d+\.\d+\.\d+(-[\w.]+)?$/.test(tag)) {
+            console.error(`::error::release_tag must look like v1.2.3 (got: ${tag})`);
+            process.exit(1);
+          }
+          const version = tag.slice(1);
+          const cliPkg = JSON.parse(require("fs").readFileSync("cli/package.json", "utf8"));
+          if (cliPkg.name !== "bansur-router") {
+            console.error(`::error::expected cli/package.json name "bansur-router", got "${cliPkg.name}"`);
+            process.exit(1);
+          }
+          if (cliPkg.version !== version) {
+            console.error(`::error::tag ${tag} but cli/package.json version is ${cliPkg.version}`);
+            process.exit(1);
+          }
+          const distTag = (env.DIST_TAG || "latest").trim() || "latest";
+          if (!["latest", "next", "beta"].includes(distTag)) {
+            console.error(`::error::unsupported dist_tag: ${distTag}`);
+            process.exit(1);
+          }
+          // Fail fast if this exact version is already published; npm would
+          // reject it anyway with a 403, but this message is much clearer.
+          const res = require("child_process")
+            .spawnSync("curl", ["-sf", "https://registry.npmjs.org/bansur-router"], { encoding: "utf8" });
+          if (res.status === 0) {
+            const versions = JSON.parse(res.stdout).versions || {};
+            if (versions[version]) {
+              console.error(`::error::bansur-router@${version} is already published on npm. Bump the version and tag first.`);
+              process.exit(1);
+            }
+          } else {
+            console.log("::warning::could not query the npm registry to check for an existing version; continuing");
+          }
+          appendFileSync(process.env.GITHUB_OUTPUT, `tag=${tag}\nversion=${version}\ndist_tag=${distTag}\n`);
+          console.log(`Validated ${tag} -> npm dist-tag "${distTag}"`);
+          NODE
+
+  publish:
+    name: Publish bansur-router to npm
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out release tag
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.validate.outputs.tag }}
+          fetch-depth: 1
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Ensure npm supports trusted publishing
+        # npm Trusted Publishing (OIDC) requires npm CLI >= 11.5.1.
+        run: npm install -g npm@latest && npm --version
+
+      - name: Install app dependencies
+        run: npm ci
+
+      - name: Install CLI dependencies
+        run: npm ci --prefix cli
+
+      - name: Build the CLI package
+        # Runs the Next.js app build, copies the standalone output into
+        # cli/app, and bundles the MITM helpers (esbuild) — the exact same
+        # build the manual 1.0.0 release used.
+        run: npm run build
+        working-directory: cli
+
+      - name: Sanity-check the packed tarball
+        run: npm pack --dry-run
+        working-directory: cli
+
+      - name: Publish to npm (trusted publishing, no token)
+        run: npm publish --access public --provenance --tag "${{ needs.validate.outputs.dist_tag }}"
+        working-directory: cli
+
+      - name: Verify the published version
+        env:
+          VERSION: ${{ needs.validate.outputs.version }}
+          DIST_TAG: ${{ needs.validate.outputs.dist_tag }}
+        run: |
+          sleep 10
+          published="$(npm view bansur-router@${VERSION} version 2>/dev/null || true)"
+          if [ "$published" != "$VERSION" ]; then
+            echo "::error::bansur-router@${VERSION} not visible on the registry after publish"
+            exit 1
+          fi
+          echo "Verified live on npm: bansur-router@${VERSION} (dist-tag ${DIST_TAG})"
