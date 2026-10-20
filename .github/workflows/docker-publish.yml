@@ -40,7 +40,6 @@ jobs:
       commit: ${{ steps.release.outputs.commit }}
       publish_dockerhub: ${{ steps.release.outputs.publish_dockerhub }}
       promote_latest: ${{ steps.release.outputs.promote_latest }}
-      ghcr_image: ${{ steps.release.outputs.ghcr_image }}
 
     steps:
       - name: Check out release tag
@@ -106,7 +105,6 @@ jobs:
 
           const commit = execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim();
           const publishDockerHub = process.env.REPOSITORY === "mas-ajam/bansur-router" && process.env.DOCKERHUB_USERNAME !== "";
-          const ghcrImage = `ghcr.io/${process.env.REPOSITORY.toLowerCase()}`;
           const isPrerelease = version.includes("-");
           const promoteLatest = (process.env.EVENT_NAME === "push" && !isPrerelease)
             || process.env.PROMOTE_LATEST_INPUT === "true";
@@ -117,7 +115,6 @@ jobs:
           fs.appendFileSync(output, `commit=${commit}\n`);
           fs.appendFileSync(output, `publish_dockerhub=${publishDockerHub}\n`);
           fs.appendFileSync(output, `promote_latest=${promoteLatest}\n`);
-          fs.appendFileSync(output, `ghcr_image=${ghcrImage}\n`);
 
           console.log(`Validated ${tag} at ${commit}`);
           console.log(`latest promotion: ${promoteLatest ? "enabled" : "disabled"}`);
@@ -128,8 +125,11 @@ jobs:
     needs: prepare
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 60
+    # NOTE: do not pass the GHCR image name through job outputs — GitHub skips any
+    # output whose value contains a secret value, and DOCKERHUB_USERNAME ("bansur")
+    # is a substring of the image name, which used to blank this variable.
     env:
-      GHCR_IMAGE: ${{ needs.prepare.outputs.ghcr_image }}
+      GHCR_IMAGE: ghcr.io/${{ github.repository }}
     strategy:
       fail-fast: false
       matrix:
@@ -249,8 +249,10 @@ jobs:
       - build
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    # Same note as in the build job: compute the GHCR image name directly instead
+    # of via job outputs, so a secret value matching part of the name can't blank it.
     env:
-      GHCR_IMAGE: ${{ needs.prepare.outputs.ghcr_image }}
+      GHCR_IMAGE: ghcr.io/${{ github.repository }}
     permissions:
       contents: read
       packages: write
