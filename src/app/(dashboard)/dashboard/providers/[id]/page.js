@@ -3,8 +3,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import Image from "next/image";
-import { getProviderIconSrc, markProviderIconMissing } from "@/shared/utils/providerIcon";
 import { Card, Button, Badge, Input, Modal, CardSkeleton, OAuthModal, KiroOAuthWrapper, CursorAuthModal, ZedAuthModal, XiaomiMimoAuthModal, IFlowCookieModal, GitLabAuthModal, Toggle, Select, EditConnectionModal, NoAuthProxyCard, ConfirmModal } from "@/shared/components";
 import { OAUTH_PROVIDERS, APIKEY_PROVIDERS, FREE_PROVIDERS, FREE_TIER_PROVIDERS, WEB_COOKIE_PROVIDERS, getProviderAlias, isOpenAICompatibleProvider, isAnthropicCompatibleProvider, AI_PROVIDERS } from "@/shared/constants/providers";
 import { getModelsByProviderId, getModelKind } from "@/shared/constants/models";
@@ -26,6 +24,8 @@ import BulkImportGrokCliModal from "./BulkImportGrokCliModal";
 import CustomConfigCard from "./CustomConfigCard";
 import AutoPingScheduleModal from "./AutoPingScheduleModal";
 import { getScheduleSlotLabels } from "@/shared/services/quotaPingSchedule";
+import { useNotificationStore } from "@/store/notificationStore";
+import { parseQuotaData, getRemainingPercentage } from "@/app/(dashboard)/dashboard/usage/components/ProviderLimits/utils";
 
 const ONE_BY_ONE_DELAY_MS = 1000;
 
@@ -60,7 +60,11 @@ export default function ProviderDetailPage() {
   const [selectedConnection, setSelectedConnection] = useState(null);
   const [modelAliases, setModelAliases] = useState({});
   const [customModels, setCustomModels] = useState([]);
-  const [headerImgError, setHeaderImgError] = useState(false);
+  const [quotaData, setQuotaData] = useState({});
+  const [refreshingQuotas, setRefreshingQuotas] = useState(false);
+  const [lastTest, setLastTest] = useState(null);
+  const quotaFetchedRef = useRef(new Set());
+  const notify = useNotificationStore();
   const [modelTestResults, setModelTestResults] = useState({});
   const [modelsTestError, setModelsTestError] = useState("");
   const [testingModelIds, setTestingModelIds] = useState(() => new Set());
@@ -358,6 +362,43 @@ export default function ProviderDetailPage() {
       setLoading(false);
     }
   }, [providerId, isCompatible]);
+
+  // D-03: per-connection plan + quota windows, fetched the same way the
+  // Quota screen does (GET /api/usage/[connectionId] + parseQuotaData).
+  const fetchQuotaForConnection = useCallback(async (conn, force = false) => {
+    try {
+      const res = await fetch(`/api/usage/${conn.id}${force ? "?force=1" : ""}`, { cache: "no-store" });
+      if (!res.ok) return;
+      const data = await res.json();
+      const parsed = parseQuotaData(conn.provider || providerId, data);
+      setQuotaData((prev) => ({
+        ...prev,
+        [conn.id]: { plan: data.plan || null, quotas: parsed, message: data.message || null },
+      }));
+    } catch (error) {
+      console.log("Error fetching quota:", error);
+    }
+  }, [providerId]);
+
+  useEffect(() => {
+    connections.forEach((conn) => {
+      if (quotaFetchedRef.current.has(conn.id)) return;
+      quotaFetchedRef.current.add(conn.id);
+      fetchQuotaForConnection(conn);
+    });
+  }, [connections, fetchQuotaForConnection]);
+
+  // D-01 header action: Refresh quotas (existing quota fetch, forced).
+  const handleRefreshQuotas = async () => {
+    if (refreshingQuotas) return;
+    setRefreshingQuotas(true);
+    try {
+      await Promise.all(connections.map((conn) => fetchQuotaForConnection(conn, true)));
+      notify.success("Quotas refreshed");
+    } finally {
+      setRefreshingQuotas(false);
+    }
+  };
 
   const handleUpdateNode = async (formData) => {
     try {
@@ -733,10 +774,20 @@ export default function ProviderDetailPage() {
           [connection.id]: { state: "testing", error: null },
         }));
 
+        const testStartedAt = Date.now();
         try {
           const res = await fetch(`/api/providers/${connection.id}/test`, { method: "POST" });
           const data = await res.json();
           const valid = !!data.valid;
+          // D-06: most recent test this session feeds the Last test card.
+          // The single-test route returns no latencyMs, so the elapsed
+          // time of the request itself is recorded.
+          setLastTest({
+            valid,
+            latencyMs: Date.now() - testStartedAt,
+            checkedAt: new Date().toISOString(),
+            error: valid ? null : (data.error || null),
+          });
 
           if (valid) {
             passed += 1;
@@ -1025,65 +1076,280 @@ export default function ProviderDetailPage() {
 
   const isSelected = (connectionId) => selectedConnectionIds.includes(connectionId);
 
-  const connectionsList = (
-    <div className="flex min-w-0 flex-col divide-y divide-black/[0.03] dark:divide-white/[0.03] max-h-[500px] overflow-y-auto pr-1">
-      {connections
-        .map((conn, index) => (
-          <div key={conn.id} className="flex min-w-0 items-stretch">
-            <div className="flex shrink-0 items-center pl-1 sm:pl-2">
-              <input
-                type="checkbox"
-                checked={isSelected(conn.id)}
-                onChange={() => toggleSelectConnection(conn.id)}
-                className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-              />
-            </div>
-            <div className="flex-1 min-w-0">
-              <ConnectionRow
-                connection={conn}
-                proxyPools={proxyPools}
-                isOAuth={isOAuth}
-                isFirst={index === 0}
-                isLast={index === connections.length - 1}
-                onMoveUp={() => handleSwapPriority(index, index - 1)}
-                onMoveDown={() => handleSwapPriority(index, index + 1)}
-                onToggleActive={(isActive) => handleUpdateConnectionStatus(conn.id, isActive)}
-                autoPing={AUTO_PING_SETTINGS_KEYS[providerId] && conn.authType === "oauth" ? {
-                  isActive: autoPing.connections[conn.id] === true || autoPing.schedules?.[conn.id]?.enabled === true,
-                  reactiveOn: autoPing.connections[conn.id] === true,
-                  provider: providerId,
-                  scheduleOn: autoPing.schedules?.[conn.id]?.enabled === true,
-                  scheduleSummary: getScheduleSlotLabels(autoPing.schedules?.[conn.id]).join(" / "),
-                  onConfigure: () => setScheduleConnection(conn),
-                } : null}
-                onUpdateProxy={async (proxyPoolId) => {
-                  try {
-                    const res = await fetch(`/api/providers/${conn.id}`, {
-                      method: "PUT",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({ proxyPoolId: proxyPoolId || null }),
-                    });
-                    if (res.ok) {
-                      setConnections(prev => prev.map(c =>
-                        c.id === conn.id
-                          ? { ...c, providerSpecificData: { ...c.providerSpecificData, proxyPoolId: proxyPoolId || null } }
-                          : c
-                      ));
-                    }
-                  } catch (error) {
-                    console.log("Error updating proxy:", error);
-                  }
-                }}
-                onEdit={() => {
-                  setSelectedConnection(conn);
-                  setShowEditModal(true);
-                }}
-                onDelete={() => handleDelete(conn.id)}
-                oneByOneStatus={oneByOneResults[conn.id] || null}
-              />
-            </div>
+  // --- D-03: Connected accounts table helpers ---
+  const getAccountLabel = (conn) =>
+    conn.email?.trim() ||
+    conn.name?.trim() ||
+    conn.displayName?.trim() ||
+    (conn.authType === "oauth" ? "OAuth Account" : conn.authType === "cookie" ? "Cookie Account" : "API Key");
+
+  const getWindowQuota = (quotas, kind) => {
+    if (!Array.isArray(quotas)) return null;
+    const matches = (q) => {
+      const hay = `${q.name || ""} ${q.quotaType || ""} ${q.modelKey || ""}`.toLowerCase();
+      return kind === "session"
+        ? /session|5h|5-hour|five[_ ]hour|5 hour/.test(hay)
+        : /weekly|7d|7-day|seven[_ ]day|week/.test(hay);
+    };
+    return quotas.find(matches) || null;
+  };
+
+  const getWindowCell = (quota) => {
+    if (!quota) return <span className="text-text-muted">—</span>;
+    const pct =
+      quota.remainingPercentage !== undefined
+        ? Math.max(0, Math.round(quota.remainingPercentage))
+        : getRemainingPercentage(quota);
+    return (
+      <div className="flex items-center gap-2.5">
+        <div className="h-[6px] flex-1 rounded-full bg-[#e7eaec] overflow-hidden">
+          <span className="block h-full rounded-full bg-brand-500" style={{ width: `${pct}%` }} />
+        </div>
+        <span className="font-mono text-[12px]">{pct}%</span>
+      </div>
+    );
+  };
+
+  // D-04: status as st-ok / st-err mono text.
+  const getStatusCell = (conn) => {
+    const status = (conn.testStatus || "").toLowerCase();
+    if (status === "error" || status === "expired" || status === "unavailable") {
+      const raw = String(conn.lastErrorType || conn.errorCode || conn.lastError || "error");
+      const reason = /expired/i.test(raw) ? "token expired" : raw;
+      return (
+        <span className="font-mono text-[11.5px] font-semibold underline underline-offset-[3px]">
+          ERROR · {reason}
+        </span>
+      );
+    }
+    if (status === "active" || status === "success" || status === "ok") {
+      return <span className="font-mono text-[11.5px] font-semibold">OK</span>;
+    }
+    if (conn.testStatus) {
+      return (
+        <span className="font-mono text-[11.5px] font-semibold">
+          {String(conn.testStatus).toUpperCase()}
+        </span>
+      );
+    }
+    return <span className="text-text-muted">—</span>;
+  };
+
+  const thClass = "text-left text-[11px] font-semibold uppercase tracking-[0.07em] text-text-subtle px-3.5 py-[9px] border-b border-border whitespace-nowrap";
+  const tdClass = "px-3.5 py-2.5 border-b border-border align-middle";
+
+  const accountsTable = (
+    <div className="overflow-x-auto">
+      <table className="w-full border-collapse text-[13px] [&_tbody_tr:last-child_td]:border-b-0">
+        <thead>
+          <tr>
+            <th className={thClass}>Account</th>
+            <th className={thClass}>Plan</th>
+            <th className={thClass} style={{ width: "26%" }}>5-hour window</th>
+            <th className={thClass} style={{ width: "26%" }}>Weekly window</th>
+            <th className={thClass}>Status</th>
+            <th className={thClass}>Enabled</th>
+            <th className={thClass}></th>
+          </tr>
+        </thead>
+        <tbody>
+          {connections.map((conn, index) => {
+            const entry = quotaData[conn.id];
+            const plan = entry?.plan || conn.plan;
+            const isErrorStatus = ["error", "expired", "unavailable"].includes(
+              (conn.testStatus || "").toLowerCase(),
+            );
+            return (
+              <tr key={conn.id}>
+                <td className={tdClass}>
+                  <div className="flex items-start gap-2">
+                    <input
+                      type="checkbox"
+                      checked={isSelected(conn.id)}
+                      onChange={() => toggleSelectConnection(conn.id)}
+                      className="mt-1 h-3.5 w-3.5 shrink-0"
+                      aria-label="Select connection"
+                    />
+                    <div className="min-w-0">
+                      <span className="block truncate font-semibold">{getAccountLabel(conn)}</span>
+                      <div className="font-mono text-xs text-text-muted">acct ···· {String(conn.id).slice(-4)}</div>
+                      {oneByOneResults[conn.id] && (
+                        <div className="text-xs text-text-muted">
+                          {oneByOneResults[conn.id].state}
+                          {oneByOneResults[conn.id].error ? `: ${oneByOneResults[conn.id].error}` : ""}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </td>
+                <td className={tdClass}>{typeof plan === "string" && plan ? plan : "—"}</td>
+                <td className={tdClass}>{getWindowCell(getWindowQuota(entry?.quotas, "session"))}</td>
+                <td className={tdClass}>{getWindowCell(getWindowQuota(entry?.quotas, "weekly"))}</td>
+                <td className={tdClass}>{getStatusCell(conn)}</td>
+                <td className={tdClass}>
+                  <Toggle
+                    size="sm"
+                    checked={conn.isActive ?? true}
+                    onChange={(isActive) => handleUpdateConnectionStatus(conn.id, isActive)}
+                  />
+                </td>
+                <td className={tdClass}>
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => {
+                        setSelectedConnection(conn);
+                        setShowEditModal(true);
+                      }}
+                    >
+                      Edit
+                    </Button>
+                    {isErrorStatus ? (
+                      <Button size="sm" variant="secondary" onClick={triggerAddConnection}>
+                        Re-auth
+                      </Button>
+                    ) : (
+                      <Button size="sm" variant="ghost" onClick={() => handleDelete(conn.id)}>
+                        Remove
+                      </Button>
+                    )}
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => handleSwapPriority(index, index - 1)}
+                      disabled={index === 0}
+                      title="Move up"
+                    >
+                      ↑
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => handleSwapPriority(index, index + 1)}
+                      disabled={index === connections.length - 1}
+                      title="Move down"
+                    >
+                      ↓
+                    </Button>
+                    {AUTO_PING_SETTINGS_KEYS[providerId] && conn.authType === "oauth" && (
+                      <Button size="sm" variant="ghost" onClick={() => setScheduleConnection(conn)}>
+                        Auto-ping
+                      </Button>
+                    )}
+                  </div>
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
+
+  // Carry-over tools row (bulk select / proxy / one-by-one test / round-robin
+  // strategy + the add-connection flows) — kept minimally below the spec
+  // table; flagged in the Phase 2A report.
+  const accountsTools = (
+    <div className="flex flex-col gap-3 px-[18px] py-3.5">
+      {oneByOneSummary && (
+        <div className="rounded-lg border border-border bg-surface-2 px-3 py-2 text-xs text-text-muted">
+          <div className="flex flex-wrap items-center gap-3">
+            <span>Total: {oneByOneSummary.total}</span>
+            <span>Completed: {oneByOneSummary.completed}</span>
+            <span>Passed: {oneByOneSummary.passed}</span>
+            <span>Failed: {oneByOneSummary.failed}</span>
+            {oneByOneSummary.stopped && <span>Stopped</span>}
+            {oneByOneRunning && oneByOneCurrentConnectionId && (
+              <span>Running: {connections.find((conn) => conn.id === oneByOneCurrentConnectionId)?.name || oneByOneCurrentConnectionId}</span>
+            )}
           </div>
-        ))}
+        </div>
+      )}
+      <div className="flex flex-wrap items-center gap-2">
+        <label className="flex cursor-pointer items-center gap-1.5 text-xs text-text-muted hover:text-text-main">
+          <input
+            type="checkbox"
+            checked={allSelected}
+            onChange={toggleSelectAllConnections}
+            className="h-3.5 w-3.5"
+          />
+          Select All
+        </label>
+        {selectedConnectionIds.length > 0 && (
+          <Button size="sm" variant="danger" onClick={handleBulkDelete}>
+            Delete Selected ({selectedConnectionIds.length})
+          </Button>
+        )}
+        {proxyPools.length > 0 && (
+          <Button size="sm" variant="secondary" onClick={openBulkProxyModal}>
+            Apply Proxy
+          </Button>
+        )}
+        <Button
+          size="sm"
+          variant="secondary"
+          onClick={handleRunOneByOneTest}
+          disabled={oneByOneRunning}
+        >
+          {oneByOneRunning ? "Testing Connection One-by-One..." : "Test Connection One-by-One"}
+        </Button>
+        {oneByOneRunning && (
+          <Button size="sm" variant="ghost" onClick={handleStopOneByOneTest} disabled={oneByOneStopping}>
+            {oneByOneStopping ? "Stopping..." : "Stop"}
+          </Button>
+        )}
+        <div className="flex flex-wrap items-center gap-2 sm:ml-auto">
+          <span className="text-xs text-text-muted font-medium">Round Robin</span>
+          <Toggle checked={providerStrategy === "round-robin"} onChange={handleRoundRobinToggle} />
+          {providerStrategy === "round-robin" && (
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs text-text-muted">Sticky:</span>
+              <input
+                type="number"
+                min={1}
+                value={providerStickyLimit}
+                onChange={(e) => handleStickyLimitChange(e.target.value)}
+                placeholder="1"
+                className="w-14 px-2 py-1 text-xs border border-border rounded-md bg-background focus:outline-none focus:border-primary"
+              />
+            </div>
+          )}
+        </div>
+      </div>
+      {!isCompatible && (
+        <div className="flex flex-wrap gap-2">
+          {providerId === "iflow" && (
+            <Button size="sm" variant="secondary" onClick={() => setShowIFlowCookieModal(true)} title="Add connection using browser cookie">
+              Cookie
+            </Button>
+          )}
+          {providerId === "codex" && (
+            <Button size="sm" variant="secondary" onClick={() => setShowBulkImportCodex(true)} title={translate("Bulk import codex accounts from JSON")}>
+              {translate("Bulk Add")}
+            </Button>
+          )}
+          {providerId === "grok-cli" && (
+            <Button size="sm" variant="secondary" onClick={() => setShowBulkImportGrokCli(true)} title={translate("Bulk import Grok CLI accounts from JSON")}>
+              {translate("Bulk Add")}
+            </Button>
+          )}
+          {hasDualAuthModes ? (
+            <>
+              <Button size="sm" variant="secondary" onClick={triggerOAuthConnection}>
+                {oauthConnectionLabel}
+              </Button>
+              <Button size="sm" onClick={triggerApiKeyConnection}>
+                {apiKeyConnectionLabel}
+              </Button>
+            </>
+          ) : (
+            <Button size="sm" onClick={triggerAddConnection}>
+              Add
+            </Button>
+          )}
+        </div>
+      )}
     </div>
   );
 
@@ -1363,71 +1629,81 @@ export default function ProviderDetailPage() {
     );
   }
 
-  // Determine icon path: OpenAI Compatible providers use specialized icons
-  const getHeaderIconPath = () => {
-    if (isOpenAICompatible && providerInfo.apiType) {
-      return providerInfo.apiType === "responses" ? "/providers/oai-r.png" : "/providers/oai-cc.png";
+  // D-01 header values. Descriptor is class C (audit P-06): registry
+  // entries carry no vendor-descriptor field, so it stays null and the
+  // sub-line falls back to the auth kind alone.
+  const providerDescriptor =
+    providerInfo.descriptor || providerInfo.vendor || providerInfo.subtitle || null;
+  const authKindLabel = isOAuth
+    ? "OAuth"
+    : supportsApiKeyAuth
+      ? "API Key"
+      : isFreeNoAuth
+        ? "Free"
+        : "API Key";
+  const activeAccountCount = connections.filter((c) => c.isActive !== false).length;
+  const providerGlyph =
+    providerInfo.textIcon || providerInfo.id.slice(0, 2).toUpperCase();
+  const addActionLabel = isOAuth || hasDualAuthModes ? "+ Add account" : "+ Add key";
+
+  // D-05: models served rows from the models data already on the page
+  // (static/live catalog; custom models for compatible providers).
+  const modelKvRows = (() => {
+    const seen = new Set();
+    const rows = [];
+    const push = (id, name) => {
+      if (!id || seen.has(id)) return;
+      seen.add(id);
+      rows.push({ id, name: name || id });
+    };
+    models.forEach((m) => push(m.id, m.name));
+    if (isCompatible) {
+      customModels
+        .filter(
+          (entry) =>
+            entry.providerAlias === providerStorageAlias &&
+            (entry.kind || entry.type || "llm") === "llm",
+        )
+        .forEach((entry) => push(entry.id, entry.name));
     }
-    if (isAnthropicCompatible) {
-      return "/providers/anthropic-m.png";
-    }
-    return getProviderIconSrc(providerInfo.id);
-  };
+    return rows;
+  })();
 
   return (
     <div className="flex min-w-0 flex-col gap-3.5">
-      {/* Header */}
+      {/* Header — D-02 back link, D-01 letter tile + actions */}
       <div className="min-w-0">
         <Link
           href="/dashboard/providers"
-          className="inline-flex items-center gap-1.5 h-[30px] px-2.5 -ml-2.5 rounded-md text-[12.5px] font-medium text-text-muted hover:bg-surface-2 hover:text-text-main transition-colors mb-2"
+          className="inline-flex items-center gap-1.5 h-[30px] px-2.5 -ml-2.5 rounded-md text-[12.5px] font-medium text-text-main hover:bg-[#eef0f1] transition-colors mb-2"
         >
-          <span className="material-symbols-outlined text-[16px]">arrow_back</span>
-          Back to Providers
+          ← All providers
         </Link>
-        <div className="flex min-w-0 items-center gap-3">
-          <div
-            className="flex size-[44px] shrink-0 items-center justify-center rounded-md border border-border bg-surface-2 overflow-hidden"
-          >
-            {headerImgError || !getHeaderIconPath() ? (
-              <span className="text-sm font-bold" style={{ color: providerInfo.color }}>
-                {providerInfo.textIcon || providerInfo.id.slice(0, 2).toUpperCase()}
-              </span>
-            ) : (
-              <Image
-                src={getHeaderIconPath()}
-                alt={providerInfo.name}
-                width={48}
-                height={48}
-                className="max-h-[28px] max-w-[28px] rounded object-contain"
-                sizes="48px"
-                onError={() => {
-                  markProviderIconMissing(providerInfo.id);
-                  setHeaderImgError(true);
-                }}
-              loading="lazy"
-              decoding="async"
-              />
-            )}
+        <div className="flex min-w-0 flex-wrap items-center gap-3">
+          <div className="flex w-[44px] h-[44px] shrink-0 items-center justify-center rounded-md border border-border-strong bg-surface-2 font-mono text-[15px] font-semibold">
+            {providerGlyph}
           </div>
-          <div className="min-w-0">
-            <div className="flex items-center gap-3 flex-wrap">
-              <h1 className="truncate text-xl font-semibold tracking-[-0.01em]">{providerInfo.name}</h1>
-              {(providerInfo.notice?.apiKeyUrl || providerInfo.notice?.signupUrl || providerInfo.website) && (
-                <a
-                  href={providerInfo.notice?.apiKeyUrl || providerInfo.notice?.signupUrl || providerInfo.website}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-xs text-primary hover:underline inline-flex items-center gap-1"
-                >
-                  <span className="material-symbols-outlined text-sm">open_in_new</span>
-                  {providerInfo.notice?.apiKeyUrl ? "Get API Key" : "Sign up / Learn more"}
-                </a>
-              )}
-            </div>
+          <div className="min-w-0 flex-1">
+            <h1 className="truncate text-xl font-semibold tracking-[-0.01em]">{providerInfo.name}</h1>
             <p className="text-[13.5px] text-text-muted">
-              {connections.length} connection{connections.length === 1 ? "" : "s"}
+              {providerDescriptor ? `${providerDescriptor} via ${authKindLabel}` : authKindLabel}
+              {" · "}
+              <span className="inline-block w-2 h-2 rounded-full bg-brand-500 align-middle" />{" "}
+              {activeAccountCount} account{activeAccountCount === 1 ? "" : "s"} active
             </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button variant="secondary" onClick={triggerAddConnection}>
+              {addActionLabel}
+            </Button>
+            <Button
+              variant="secondary"
+              onClick={handleRefreshQuotas}
+              disabled={refreshingQuotas}
+              loading={refreshingQuotas}
+            >
+              Refresh quotas
+            </Button>
           </div>
         </div>
       </div>
@@ -1455,6 +1731,112 @@ export default function ProviderDetailPage() {
           )}
         </div>
       )}
+
+      {/* D-03: Connected accounts */}
+      <Card padding="none">
+        <div className="flex items-center gap-2.5 px-[18px] py-[14px] border-b border-border">
+          <h3 className="text-[13.5px] font-semibold">Connected accounts</h3>
+          <div className="flex-1" />
+          <Badge variant="default">Round-robin rotation</Badge>
+        </div>
+        {isFreeNoAuth ? (
+          <div className="px-[18px] py-4">
+            <p className="text-[13px] text-text-muted">
+              This provider needs no account — it is ready to use. Its proxy options are in the card below.
+            </p>
+          </div>
+        ) : connections.length === 0 ? (
+          <div className="flex flex-col gap-3 px-[18px] py-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-3">
+              <div className="inline-flex items-center justify-center w-9 h-9 rounded-full bg-primary/10 text-primary shrink-0">
+                <span className="material-symbols-outlined text-[18px]">{isOAuth ? "lock" : "key"}</span>
+              </div>
+              <div className="min-w-0">
+                <p className="text-sm text-text-muted">No connections yet</p>
+                {hasDualAuthModes && (
+                  <p className="text-xs text-text-muted">
+                    Choose {oauthConnectionLabel} or {apiKeyConnectionLabel}.
+                  </p>
+                )}
+              </div>
+            </div>
+            <div className="flex gap-2">
+              {hasDualAuthModes ? (
+                <>
+                  <Button size="sm" variant="secondary" onClick={triggerOAuthConnection}>
+                    {oauthConnectionLabel}
+                  </Button>
+                  <Button size="sm" onClick={triggerApiKeyConnection}>
+                    {apiKeyConnectionLabel}
+                  </Button>
+                </>
+              ) : (
+                <>
+                  {!isCompatible && providerId === "iflow" && (
+                    <Button size="sm" variant="secondary" onClick={() => setShowIFlowCookieModal(true)}>
+                      Cookie
+                    </Button>
+                  )}
+                  {providerId === "codex" && (
+                    <Button size="sm" variant="secondary" onClick={() => setShowBulkImportCodex(true)}>
+                      {translate("Bulk Add")}
+                    </Button>
+                  )}
+                  {providerId === "grok-cli" && (
+                    <Button size="sm" variant="secondary" onClick={() => setShowBulkImportGrokCli(true)}>
+                      {translate("Bulk Add")}
+                    </Button>
+                  )}
+                  <Button size="sm" onClick={triggerAddConnection}>
+                    {isCompatible ? "Add API Key" : providerId === "iflow" ? "OAuth" : "Add Connection"}
+                  </Button>
+                </>
+              )}
+            </div>
+          </div>
+        ) : (
+          <>
+            {accountsTable}
+            {accountsTools}
+          </>
+        )}
+      </Card>
+
+      {/* D-05 Models served (KV) + D-06 Last test (KV) */}
+      <div className="grid grid-cols-1 min-[821px]:grid-cols-2 gap-3.5">
+        <Card>
+          <h3 className="text-[13.5px] font-semibold mb-3.5">Models served</h3>
+          {modelKvRows.length > 0 ? (
+            modelKvRows.map((row) => (
+              <div
+                key={row.id}
+                className="flex justify-between gap-3.5 py-2 border-b border-dashed border-border text-[13px] last:border-b-0"
+              >
+                <span className="text-text-muted">{row.name}</span>
+                <span className="font-mono text-[12.5px] text-right">kr/{row.id}</span>
+              </div>
+            ))
+          ) : (
+            <p className="text-[13px] text-text-muted">No models listed for this provider.</p>
+          )}
+        </Card>
+        <Card>
+          <h3 className="text-[13.5px] font-semibold mb-3.5">Last test</h3>
+          {[
+            ["Result", lastTest ? (lastTest.valid ? "OK" : `ERROR${lastTest.error ? ` · ${lastTest.error}` : ""}`) : "—"],
+            ["Latency", lastTest ? `${lastTest.latencyMs} ms` : "—"],
+            ["Checked", lastTest ? new Date(lastTest.checkedAt).toLocaleTimeString("en-GB") : "—"],
+          ].map(([k, v]) => (
+            <div
+              key={k}
+              className="flex justify-between gap-3.5 py-2 border-b border-dashed border-border text-[13px] last:border-b-0"
+            >
+              <span className="text-text-muted">{k}</span>
+              <span className="font-mono text-[12.5px] text-right">{v}</span>
+            </div>
+          ))}
+        </Card>
+      </div>
 
       {isCompatible && providerNode && (
         <Card>
@@ -1517,321 +1899,14 @@ export default function ProviderDetailPage() {
         </Card>
       )}
 
-      {/* Connections */}
-      {isFreeNoAuth ? (
-        <NoAuthProxyCard providerId={providerId} />
-      ) : (
-        <Card>
-          <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <h2 className="text-[13.5px] font-semibold">Connections</h2>
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
-              {connections.length > 0 && proxyPools.length > 0 && (
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  icon="lan"
-                  onClick={() => setShowBulkProxyModal(true)}
-                >
-                  Apply Proxy
-                </Button>
-              )}
-              {connections.length > 0 && (
-                <>
-                  {selectedConnectionIds.length > 0 && (
-                    <Button
-                      size="sm"
-                      variant="danger"
-                      icon="delete"
-                      onClick={handleBulkDelete}
-                    >
-                      Delete Selected ({selectedConnectionIds.length})
-                    </Button>
-                  )}
-                  <Button
-                    size="sm"
-                    variant="secondary"
-                    icon="sync"
-                    onClick={handleRunOneByOneTest}
-                    disabled={oneByOneRunning}
-                  >
-                    {oneByOneRunning ? "Testing Connection One-by-One..." : "Test Connection One-by-One"}
-                  </Button>
-                  {oneByOneRunning && (
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      icon="stop"
-                      onClick={handleStopOneByOneTest}
-                      disabled={oneByOneStopping}
-                    >
-                      {oneByOneStopping ? "Stopping..." : "Stop"}
-                    </Button>
-                  )}
-                </>
-              )}
-              {/* Round Robin toggle */}
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="text-xs text-text-muted font-medium">Round Robin</span>
-                <Toggle
-                  checked={providerStrategy === "round-robin"}
-                  onChange={handleRoundRobinToggle}
-                />
-                {providerStrategy === "round-robin" && (
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-xs text-text-muted">Sticky:</span>
-                    <input
-                      type="number"
-                      min={1}
-                      value={providerStickyLimit}
-                      onChange={(e) => handleStickyLimitChange(e.target.value)}
-                      placeholder="1"
-                      className="w-14 px-2 py-1 text-xs border border-border rounded-md bg-background focus:outline-none focus:border-primary"
-                    />
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {connections.length === 0 ? (
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex items-center gap-3">
-                <div className="inline-flex items-center justify-center w-9 h-9 rounded-full bg-primary/10 text-primary shrink-0">
-                  <span className="material-symbols-outlined text-[18px]">{isOAuth ? "lock" : "key"}</span>
-                </div>
-                <div className="min-w-0">
-                  <p className="text-sm text-text-muted">No connections yet</p>
-                  {hasDualAuthModes && (
-                    <p className="text-xs text-text-muted">
-                      Choose {oauthConnectionLabel} or {apiKeyConnectionLabel}.
-                    </p>
-                  )}
-                </div>
-              </div>
-              <div className="flex gap-2">
-                {hasDualAuthModes ? (
-                  <>
-                    <Button size="sm" icon="lock" variant="secondary" onClick={triggerOAuthConnection}>
-                      {oauthConnectionLabel}
-                    </Button>
-                    <Button size="sm" icon="key" onClick={triggerApiKeyConnection}>
-                      {apiKeyConnectionLabel}
-                    </Button>
-                  </>
-                ) : (
-                  <>
-                    {!isCompatible && providerId === "iflow" && (
-                      <Button size="sm" icon="cookie" variant="secondary" onClick={() => setShowIFlowCookieModal(true)}>
-                        Cookie
-                      </Button>
-                    )}
-                    {providerId === "codex" && (
-                      <Button size="sm" icon="playlist_add" variant="secondary" onClick={() => setShowBulkImportCodex(true)}>
-                        {translate("Bulk Add")}
-                      </Button>
-                    )}
-                    {providerId === "grok-cli" && (
-                      <Button size="sm" icon="playlist_add" variant="secondary" onClick={() => setShowBulkImportGrokCli(true)}>
-                        {translate("Bulk Add")}
-                      </Button>
-                    )}
-                    <Button
-                      size="sm"
-                      icon="add"
-                      onClick={triggerAddConnection}
-                    >
-                      {isCompatible ? "Add API Key" : (providerId === "iflow" ? "OAuth" : "Add Connection")}
-                    </Button>
-                  </>
-                )}
-              </div>
-            </div>
-          ) : (
-            <>
-              {oneByOneSummary && (
-                <div className="mb-4 rounded-lg border border-black/10 bg-black/[0.02] px-3 py-2 text-xs text-text-muted dark:border-white/10 dark:bg-white/[0.03]">
-                  <div className="flex flex-wrap items-center gap-3">
-                    <span>Total: {oneByOneSummary.total}</span>
-                    <span>Completed: {oneByOneSummary.completed}</span>
-                    <span>Passed: {oneByOneSummary.passed}</span>
-                    <span>Failed: {oneByOneSummary.failed}</span>
-                    {oneByOneSummary.stopped && (
-                      <span className="text-text-muted dark:text-text-muted">Stopped</span>
-                    )}
-                    {oneByOneRunning && oneByOneCurrentConnectionId && (
-                      <span>Running: {connections.find((conn) => conn.id === oneByOneCurrentConnectionId)?.name || oneByOneCurrentConnectionId}</span>
-                    )}
-                  </div>
-                </div>
-              )}
-              {connections.length > 0 && (
-                <div className="mb-3 flex items-center gap-2 border-b border-black/[0.03] pb-2 dark:border-white/[0.03]">
-                  <label className="flex cursor-pointer items-center gap-1.5 text-xs text-text-muted hover:text-primary">
-                    <input
-                      type="checkbox"
-                      checked={allSelected}
-                      onChange={toggleSelectAllConnections}
-                      className="h-3.5 w-3.5 rounded border-gray-300 text-primary focus:ring-primary"
-                    />
-                    Select All
-                  </label>
-                </div>
-              )}
-              {connectionsList}
-              {!isCompatible && (
-                <div className="mt-4 grid grid-cols-1 gap-2 sm:flex">
-                  {providerId === "iflow" && (
-                    <Button
-                      size="sm"
-                      icon="cookie"
-                      variant="secondary"
-                      onClick={() => setShowIFlowCookieModal(true)}
-                      title="Add connection using browser cookie"
-                      className="w-full sm:w-auto"
-                    >
-                      Cookie
-                    </Button>
-                  )}
-                  {providerId === "codex" && (
-                    <Button
-                      size="sm"
-                      icon="playlist_add"
-                      variant="secondary"
-                      onClick={() => setShowBulkImportCodex(true)}
-                      title={translate("Bulk import codex accounts from JSON")}
-                      className="w-full sm:w-auto"
-                    >
-                      {translate("Bulk Add")}
-                    </Button>
-                  )}
-                  {providerId === "grok-cli" && (
-                    <Button
-                      size="sm"
-                      icon="playlist_add"
-                      variant="secondary"
-                      onClick={() => setShowBulkImportGrokCli(true)}
-                      title={translate("Bulk import Grok CLI accounts from JSON")}
-                      className="w-full sm:w-auto"
-                    >
-                      {translate("Bulk Add")}
-                    </Button>
-                  )}
-                  {hasDualAuthModes ? (
-                    <>
-                      <Button
-                        size="sm"
-                        icon="lock"
-                        variant="secondary"
-                        onClick={triggerOAuthConnection}
-                        className="w-full sm:w-auto"
-                      >
-                        {oauthConnectionLabel}
-                      </Button>
-                      <Button
-                        size="sm"
-                        icon="key"
-                        onClick={triggerApiKeyConnection}
-                        className="w-full sm:w-auto"
-                      >
-                        {apiKeyConnectionLabel}
-                      </Button>
-                    </>
-                  ) : (
-                    <Button
-                      size="sm"
-                      icon="add"
-                      onClick={triggerAddConnection}
-                      className="w-full sm:w-auto"
-                    >
-                      Add
-                    </Button>
-                  )}
-                </div>
-              )}
-            </>
-          )}
-        </Card>
-      )}
-
-      {/* Per-provider user overrides (custom headers / connect timeout) */}
+      {/* Per-provider user overrides (custom headers / connect timeout) — D-07 carry-over */}
       <CustomConfigCard providerId={providerId} />
 
-      {/* Models */}
-      <Card>
-        <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <h2 className="text-[13.5px] font-semibold">
-              {"Available Models"}
-            </h2>
-            {providerThinkingLevels && (
-              <select
-                value={thinkingMode}
-                onChange={(e) => handleThinkingModeChange(e.target.value)}
-                title="Appends (level) suffix to copied model names"
-                className="rounded-md border border-border bg-background px-2 py-1 text-xs focus:border-primary focus:outline-none"
-              >
-                {providerThinkingLevels.map((opt) => (
-                  <option key={opt} value={opt}>{`Thinking: ${opt.charAt(0).toUpperCase() + opt.slice(1)}`}</option>
-                ))}
-              </select>
-            )}
-          </div>
-          {!isCompatible && (() => {
-            const allIds = [
-              ...models,
-              ...kiloFreeModels.filter((fm) => !models.some((m) => m.id === fm.id)),
-            ].filter((m) => { const k = getModelKind(m); return !k || k === "llm"; }).map((m) => m.id);
-            const activeIds = allIds.filter((id) => !disabledModelIds.includes(id));
-            return (
-              <div className="flex gap-2">
-                {disabledModelIds.length > 0 && (
-                  <Button size="sm" variant="secondary" icon="restart_alt" onClick={handleEnableAll}>
-                    Active All
-                  </Button>
-                )}
-                {activeIds.length > 0 && (
-                  <Button size="sm" variant="secondary" icon="block" onClick={() => handleDisableAll(activeIds)}>
-                    Disable All
-                  </Button>
-                )}
-              </div>
-            );
-          })()}
-        </div>
-        {!!modelsTestError && (
-          <div className="mb-3">
-            <p className="text-xs text-text-main break-words">{modelsTestError}</p>
-            {/RegionError|hosted in China|regionNotAllowed/i.test(modelsTestError) && (() => {
-              const str = typeof modelsTestError === "string" ? modelsTestError : JSON.stringify(modelsTestError);
-              const linkMatch = str.match(/https:\/\/opencode\.ai\/workspace\/[^\s"')]+/);
-              const wrkMatch = str.match(/wrk_[0-9A-Za-z]+/);
-              const targetUrl = linkMatch
-                ? (linkMatch[0].endsWith("/go") ? linkMatch[0] : `${linkMatch[0]}/go`)
-                : wrkMatch
-                  ? `https://opencode.ai/workspace/${wrkMatch[0]}/go`
-                  : "https://opencode.ai";
+      {isFreeNoAuth && <NoAuthProxyCard providerId={providerId} />}
 
-              return (
-                <div className="mt-1.5">
-                  <a
-                    href={targetUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex items-center gap-1 rounded-md bg-surface-2 px-2 py-0.5 text-xs font-medium text-text-muted hover:bg-surface-2 dark:text-text-muted transition-colors"
-                  >
-                    <span>Allow China-hosted models</span>
-                    <span className="material-symbols-outlined text-[13px]">open_in_new</span>
-                  </a>
-                </div>
-              );
-            })()}
-          </div>
-        )}
-        {providerId === "zed" && !!liveModelsError && (
-          <p className="text-xs text-text-main mb-3 break-words">{liveModelsError}</p>
-        )}
-        {renderModelsSection()}
-      </Card>
+      {/* D-07 carry-over: compatible providers manage their model list in
+          this section (add/alias/delete) — no other home exists for it. */}
+      {isCompatible && <Card>{renderModelsSection()}</Card>}
 
       {bulkActionModal}
 
