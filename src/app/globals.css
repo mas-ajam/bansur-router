@@ -88,67 +88,6 @@
   color-scheme: light;
 }
 
-.dark {
-  /* Brand scale (dark) - inverted for dark surfaces */
-  --color-brand-50: #17191d;
-  --color-brand-100: #1e2126;
-  --color-brand-200: #26292f;
-  --color-brand-300: #33373e;
-  --color-brand-400: #6b7280;
-  --color-brand-500: #f2f3f4;
-  --color-brand-600: #ffffff;
-  --color-brand-700: #e7e7e9;
-  --color-brand-800: #c9ced3;
-  --color-brand-900: #101418;
-
-  --color-primary: #f2f3f4;
-  --color-primary-hover: #ffffff;
-
-  --color-on-brand: #101418;
-
-  /* Surfaces (dark) */
-  --color-bg: #101214;
-  --color-bg-alt: #14161a;
-  --color-surface: #17191d;
-  --color-surface-2: #1e2126;
-  --color-surface-3: #26292f;
-  --color-sidebar: rgba(30, 33, 38, 0.85);
-
-  /* Sidebar dark rail (dark mode) */
-  --color-sidebar-bg: #0b0d10;
-  --color-sidebar-text: #c9ced3;
-  --color-sidebar-muted: #7d858e;
-  --color-sidebar-border: #1e2126;
-  --color-sidebar-active: rgba(255, 255, 255, 0.07);
-  --color-sidebar-hover: #1b2026;
-
-  --color-border: #26292f;
-  --color-border-subtle: #1e2126;
-  --color-border-strong: #33373e;
-  --color-switch-off: #33373e;
-
-  --color-text: #f2f3f4;
-  --color-text-main: #f2f3f4;
-  --color-text-muted: #9aa1a9;
-  --color-text-subtle: #6b7280;
-
-  /* Status — all monochrome */
-  --color-danger: #f2f3f4;
-  --color-success: #f2f3f4;
-  --color-warning: #9aa1a9;
-  --color-info: #9aa1a9;
-
-  --shadow-soft: 0 1px 2px rgba(0, 0, 0, 0.4), 0 4px 16px rgba(0, 0, 0, 0.3);
-  --shadow-warm: 0 1px 2px rgba(0, 0, 0, 0.4), 0 4px 16px rgba(0, 0, 0, 0.3);
-  --shadow-elevated: 0 12px 28px -4px rgba(0, 0, 0, 0.5);
-  --shadow-elev:
-    inset 0 1px 0 0 rgba(255,255,255,0.06),
-    0 1px 2px rgba(0,0,0,0.4),
-    0 16px 48px -8px rgba(0,0,0,0.55);
-  --shadow-focus: 0 0 0 3px rgba(255, 255, 255, 0.25);
-
-  color-scheme: dark;
-}
 
 /* ============================================================
    Fix native select dropdowns in dark mode
@@ -157,14 +96,7 @@ select {
   color-scheme: light;
 }
 
-.dark select {
-  color-scheme: dark;
-}
 
-.dark select option {
-  background-color: var(--color-surface);
-  color: var(--color-text-main);
-}
 
 @theme inline {
   /* Brand scale */
@@ -257,10 +189,6 @@ body {
   background-color: #101418;
   color: #fff;
 }
-.dark ::selection {
-  background-color: rgba(242, 243, 244, 0.25);
-  color: var(--color-text-main);
-}
 
 /* iOS keyboard accent */
 input, textarea {
@@ -296,26 +224,17 @@ input, textarea {
   scrollbar-width: thin;
   scrollbar-color: rgba(16, 20, 24, 0.45) transparent;
 }
-.dark .scroll-thin-x {
-  scrollbar-color: rgba(255, 255, 255, 0.4) transparent;
-}
 .scroll-thin-x::-webkit-scrollbar { height: 3px; }
 .scroll-thin-x::-webkit-scrollbar-track { background: transparent; }
 .scroll-thin-x::-webkit-scrollbar-thumb {
   background: rgba(16, 20, 24, 0.45);
   border-radius: 3px;
 }
-.dark .scroll-thin-x::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.4);
-}
 
 /* Global thin mac-like scrollbars (overrides clunky Windows/Linux default) */
 * {
   scrollbar-width: thin;
   scrollbar-color: rgba(120, 120, 120, 0.35) transparent;
-}
-.dark * {
-  scrollbar-color: rgba(180, 180, 180, 0.3) transparent;
 }
 *::-webkit-scrollbar {
   width: 8px;
@@ -332,12 +251,6 @@ input, textarea {
 }
 *::-webkit-scrollbar-thumb:hover {
   background-color: rgba(120, 120, 120, 0.55);
-}
-.dark *::-webkit-scrollbar-thumb {
-  background-color: rgba(180, 180, 180, 0.3);
-}
-.dark *::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(180, 180, 180, 0.5);
 }
 
 /* Reusable elevated card */
@@ -362,9 +275,6 @@ input, textarea {
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   background: rgba(255, 255, 255, 0.72);
-}
-.dark .bg-vibrancy {
-  background: rgba(23, 25, 29, 0.72);
 }
 
 /* macOS Traffic Lights — neutral grays */
@@ -507,9 +417,6 @@ button:disabled,
   background-image: radial-gradient(circle at 1px 1px, rgba(16, 20, 24, 0.09) 1px, transparent 0);
   background-size: 26px 26px;
 }
-.dark .dot-grid-bg {
-  background-image: radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.06) 1px, transparent 0);
-}
 
 /* Landing-style faint grid overlay (use absolute pos inside relative parent) */
 .landing-grid {
@@ -518,9 +425,6 @@ button:disabled,
     linear-gradient(to bottom, var(--color-accent) 1px, transparent 1px);
   background-size: 40px 40px;
   opacity: 0.08;
-}
-.dark .landing-grid {
-  opacity: 0.04;
 }
 
 /* Topology: router card pulse + edge beam (monochrome grays/white) */

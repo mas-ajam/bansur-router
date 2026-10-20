@@ -77,7 +77,7 @@ function getProviderGlyph(provider, providerId) {
    absent when no snapshot exists — never fabricated. */
 function getStatusText(stats, kind, isNoAuth) {
   if (isNoAuth) return "Ready";
-  const { connected, error, errorCode, total, allDisabled, plan, remainingPct } = stats;
+  const { connected, error, errorCode, total, allDisabled, plan, remainingPct, keySuffix } = stats;
   if (!total) return kind === "apikey" ? "No key saved" : "Not connected";
   if (allDisabled) return "Disabled";
   const parts = [];
@@ -102,6 +102,7 @@ function getStatusText(stats, kind, isNoAuth) {
   }
   if (plan) parts.push(plan);
   if (typeof remainingPct === "number") parts.push(`${remainingPct}% left`);
+  if (keySuffix && (kind === "apikey" || kind === "self")) parts.push(`ends …${keySuffix}`);
   return parts.join(" · ");
 }
 
@@ -228,7 +229,11 @@ export default function ProvidersPage() {
       .filter((v) => typeof v === "number" && Number.isFinite(v));
     const remainingPct = remainingValues.length ? Math.min(...remainingValues) : null;
 
-    return { connected, error, total, errorCode, errorTime, allDisabled, plan, remainingPct };
+    // P-07: masked suffix of the single saved key ("ends …8f2c") — only
+    // meaningful when the provider holds exactly one keyed connection.
+    const keySuffix = total === 1 ? providerConnections[0]?.keySuffix || null : null;
+
+    return { connected, error, total, errorCode, errorTime, allDisabled, plan, remainingPct, keySuffix };
   };
 
   // Per-provider test (P-08 `Test` button): the existing test-batch

@@ -81,6 +81,9 @@ export async function GET() {
         ...toProviderConnectionResponse(c),
         name,
         quotaSnapshot: quotaSnapshots[c.id] || null,
+        // P-07: masked key suffix for the card status line ("ends …8f2c").
+        // Only the last 4 characters ever leave the server.
+        keySuffix: c.apiKey && String(c.apiKey).length >= 4 ? String(c.apiKey).slice(-4) : null,
       };
     });
 

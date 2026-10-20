@@ -53,7 +53,15 @@ async function getLatestVersionCached() {
 }
 
 export async function GET() {
-  const latestVersion = await getLatestVersionCached();
+  // SE-05: Local Mode means no outbound calls — the npm registry lookup
+  // is skipped and the route reports only the installed version.
+  let localMode = false;
+  try {
+    const { getSettings } = await import("@/lib/localDb");
+    localMode = (await getSettings())?.localMode === true;
+  } catch { /* settings read failure must not break the version probe */ }
+
+  const latestVersion = localMode ? null : await getLatestVersionCached();
   const currentVersion = pkg.version;
   const hasUpdate = latestVersion ? compareVersions(latestVersion, currentVersion) > 0 : false;
 
