@@ -54,6 +54,7 @@ jobs:
         env:
           RELEASE_TAG: ${{ inputs.release_tag || github.ref_name }}
           REPOSITORY: ${{ github.repository }}
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
           EVENT_NAME: ${{ github.event_name }}
           PROMOTE_LATEST_INPUT: ${{ inputs.promote_latest && 'true' || 'false' }}
         run: |
@@ -104,7 +105,7 @@ jobs:
           }
 
           const commit = execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim();
-          const publishDockerHub = process.env.REPOSITORY === "mas-ajam/bansur-router";
+          const publishDockerHub = process.env.REPOSITORY === "mas-ajam/bansur-router" && process.env.DOCKERHUB_USERNAME !== "";
           const ghcrImage = `ghcr.io/${process.env.REPOSITORY.toLowerCase()}`;
           const isPrerelease = version.includes("-");
           const promoteLatest = (process.env.EVENT_NAME === "push" && !isPrerelease)

@@ -1,6 +1,6 @@
 {
   "name": "bansur-router",
-  "version": "0.5.104",
+  "version": "1.0.0",
   "description": "Bansur Router CLI - Start and manage Bansur Router server",
   "bin": {
     "bansur-router": "./cli.js"

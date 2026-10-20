@@ -2,7 +2,7 @@
 
 All notable changes to Bansur Router will be documented in this file.
 
-## 0.5.104 (2026-10-20)
+## 1.0.0 (2026-10-20)
 
 - Initial Bansur Router release: local AI routing gateway + web dashboard.
 - One OpenAI-compatible endpoint (`/v1/*`) routing across 40+ upstream providers, with format translation, model-combo fallback, and multi-account fallback.

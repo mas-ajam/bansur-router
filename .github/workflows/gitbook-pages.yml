@@ -41,7 +41,7 @@ jobs:
         uses: peaceiris/actions-gh-pages@v4
         with:
           deploy_key: ${{ secrets.GH_PAGES_DEPLOY_KEY }}
-          external_repository: bansur-router/bansur-router.github.io
+          external_repository: mas-ajam/mas-ajam.github.io
           publish_branch: main
           publish_dir: gitbook/out
           force_orphan: true
