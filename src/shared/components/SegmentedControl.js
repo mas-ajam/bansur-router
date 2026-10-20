@@ -11,15 +11,14 @@ export default function SegmentedControl({
 }) {
   const sizes = {
     sm: "h-7 text-xs",
-    md: "h-9 text-sm",
-    lg: "h-11 text-base",
+    md: "h-8 text-[12.5px]",
+    lg: "h-10 text-sm",
   };
 
   return (
     <div
       className={cn(
-        "inline-flex items-center p-1 rounded-[10px] overflow-x-auto",
-        "bg-surface-2",
+        "inline-flex items-center rounded-md border border-border bg-surface overflow-x-auto",
         className
       )}
     >
@@ -28,10 +27,10 @@ export default function SegmentedControl({
           key={option.value}
           onClick={() => onChange(option.value)}
           className={cn(
-            "shrink-0 px-4 rounded-[8px] font-medium transition-all",
+            "shrink-0 px-[13px] font-medium transition-all border-r border-border last:border-r-0",
             sizes[size],
             value === option.value
-              ? "bg-surface text-text-main shadow-sm"
+              ? "bg-brand-500 text-on-brand"
               : "text-text-muted hover:text-text-main"
           )}
         >

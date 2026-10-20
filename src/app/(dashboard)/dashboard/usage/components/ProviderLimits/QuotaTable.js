@@ -197,11 +197,11 @@ export default function QuotaTable({
           return (
             <div
               key={`${quota.name}-${quota.index}`}
-              className={`flex items-center gap-2 border-b border-black/5 dark:border-white/5 hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors ${cellPad}`}
+              className={`flex items-center gap-2 border-b border-border-subtle hover:bg-surface-2/50 transition-colors ${cellPad}`}
             >
               {/* Name */}
               <div className="flex w-36 min-w-0 items-center gap-1.5">
-                <span className="text-[10px] shrink-0">{colors.emoji}</span>
+                <span className={`size-2 shrink-0 rounded-full ${quota.remaining > 70 ? "bg-text-main" : quota.remaining >= 30 ? "bg-white border-[2.5px] border-text-main" : "bg-transparent border-[1.5px] border-[#a7afb6]"}`} />
                 <span className={`${nameText} font-medium text-text-primary truncate`}>
                   {quota.name}
                 </span>
@@ -211,7 +211,7 @@ export default function QuotaTable({
               <div className={`min-w-0 flex-1 ${compact ? "space-y-1" : "space-y-1.5"}`}>
                 {!isUnlimited && !isCreditBalance && (
                 <div className={`${compact ? "h-1" : "h-1.5"} rounded-full overflow-hidden border ${colors.bgLight} ${
-                  quota.remaining === 0 ? "border-black/10 dark:border-white/10" : "border-transparent"
+                  quota.remaining === 0 ? "border-border" : "border-transparent"
                 }`}>
                   <div
                     className={`h-full transition-all duration-300 ${colors.bg}`}

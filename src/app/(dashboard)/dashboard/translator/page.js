@@ -211,12 +211,12 @@ export default function TranslatorPage() {
   };
 
   return (
-    <div className="p-8 space-y-3">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-2">
+    <div className="flex flex-col gap-3.5">
+      {/* Page head */}
+      <div className="flex items-start justify-between gap-3 flex-wrap">
         <div>
-          <h1 className="text-2xl font-bold text-text-main">Translator Debug</h1>
-          <p className="text-sm text-text-muted mt-1">Replay request flow — matches log files</p>
+          <h2 className="text-xl font-semibold tracking-[-0.01em] text-text-main">Translator</h2>
+          <p className="mt-1 text-[13.5px] text-text-muted max-w-[640px]">Replay request flow — matches log files. The router converts between provider formats on the fly; each step below is one stage of that conversion.</p>
         </div>
         {meta && (
           <div className="flex items-center gap-2 flex-wrap justify-end">
@@ -235,16 +235,16 @@ export default function TranslatorPage() {
         const content = contents[step.id] || "";
 
         return (
-          <Card key={step.id}>
-            <div className="p-4 space-y-3">
+          <Card key={step.id} padding="none">
+            <div className="px-[18px] py-4 flex flex-col gap-3">
               {/* Step header */}
               <div className="flex items-center justify-between">
-                <button onClick={() => toggle(step.id)} className="flex items-center gap-2 flex-1 text-left group">
+                <button onClick={() => toggle(step.id)} className="flex items-center gap-2.5 flex-1 text-left group">
                   <span className="material-symbols-outlined text-[20px] text-text-muted group-hover:text-primary transition-colors">
                     {isExpanded ? "expand_more" : "chevron_right"}
                   </span>
-                  <span className="text-xs font-mono text-text-muted/60 w-4">{step.id}</span>
-                  <h3 className="text-sm font-semibold text-text-main">{step.label}</h3>
+                  <span className="flex size-[22px] shrink-0 items-center justify-center rounded-full border-[1.5px] border-text-main font-mono text-[11.5px] font-semibold text-text-main">{step.id}</span>
+                  <h3 className="text-[13.5px] font-semibold text-text-main">{step.label}</h3>
                   <span className="text-xs text-text-muted/60 font-mono">{step.file}</span>
                   {content && <span className="text-xs text-text-main">({content.length} chars)</span>}
                 </button>
@@ -259,7 +259,7 @@ export default function TranslatorPage() {
               {/* Expanded content */}
               {isExpanded && (
                 <>
-                  <div className="border border-border rounded-lg overflow-hidden">
+                  <div className="border border-border rounded-brand overflow-hidden">
                     <Editor
                       height="400px"
                       defaultLanguage={step.lang === "text" ? "plaintext" : "json"}

@@ -87,12 +87,12 @@ export default function QuotaProgressBar({
     <div className="space-y-2">
       {/* Label and percentage */}
       <div className="flex items-center justify-between text-sm">
-        <span className="font-semibold text-text-primary">
+        <span className="text-xs text-text-muted">
           {label}
         </span>
         <div className="flex items-center gap-1.5">
-          <span className="text-xs">{colors.emoji}</span>
-          <span className={cn("font-medium", colors.text)}>
+          <span className={`size-2 shrink-0 rounded-full ${remaining > 70 ? "bg-text-main" : remaining >= 30 ? "bg-white border-[2.5px] border-text-main" : "bg-transparent border-[1.5px] border-[#a7afb6]"}`} />
+          <span className="font-mono text-[12.5px] text-text-main">
             {remaining}%
           </span>
         </div>
@@ -100,7 +100,7 @@ export default function QuotaProgressBar({
 
       {/* Progress bar */}
       {!unlimited && (
-        <div className={cn("h-2 rounded-full overflow-hidden", colors.bgLight)}>
+        <div className={cn("h-1.5 rounded-full overflow-hidden", colors.bgLight)}>
           <div
             className={cn("h-full transition-all duration-300", colors.bg)}
             style={{ width: `${Math.min(remaining, 100)}%` }}

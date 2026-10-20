@@ -42,7 +42,12 @@ function UsageContent() {
   };
 
   return (
-    <div className="flex min-w-0 flex-col gap-6 px-1 sm:px-0">
+    <div className="flex min-w-0 flex-col gap-3.5">
+      {/* Page head */}
+      <div>
+        <h2 className="text-xl font-semibold tracking-[-0.01em] text-text-main">Usage</h2>
+        <p className="mt-1 text-[13.5px] text-text-muted max-w-[640px]">Monitor your API usage, token consumption, and request logs.</p>
+      </div>
       {/* Tabs + period selector on same row */}
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <SegmentedControl

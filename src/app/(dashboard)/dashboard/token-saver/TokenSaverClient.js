@@ -474,19 +474,21 @@ export default function TokenSaverClient() {
       : "bg-warning/15 text-warning";
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="flex flex-col gap-3.5">
+      {/* Page head */}
+      <div>
+        <h2 className="text-xl font-semibold tracking-[-0.01em] text-text-main">Token Saver</h2>
+        <p className="mt-1 text-[13.5px] text-text-muted max-w-[640px]">Compress tool output before it reaches the model, and trim oversized context — same answers, fewer tokens burned.</p>
+      </div>
       <Card id="rtk">
         <div className="flex items-center justify-between mb-2">
-          <h2 className="text-lg font-semibold flex items-center gap-2">
-            <span className="material-symbols-outlined text-primary">
-              bolt
-            </span>
+          <h2 className="text-[13.5px] font-semibold">
             Token Saver
           </h2>
         </div>
-        <div className="flex items-center justify-between pt-2 pb-4 border-b border-border gap-4">
+        <div className="flex items-center justify-between pb-[13px] border-b border-border gap-4">
           <div className="min-w-0 flex-1">
-            <p className="font-medium">
+            <p className="font-semibold text-[13.5px]">
               Compress tool output{" "}
               <a
                 href="https://github.com/rtk-ai/rtk"
@@ -497,7 +499,7 @@ export default function TokenSaverClient() {
                 (RTK)
               </a>
             </p>
-            <p className="text-sm text-text-muted">
+            <p className="text-[12.5px] text-text-muted">
               git/grep/ls/tree/logs → 60-90% fewer input tokens
             </p>
           </div>
@@ -506,10 +508,10 @@ export default function TokenSaverClient() {
             onChange={() => handleRtkEnabled(!rtkEnabled)}
           />
         </div>
-        <div className="flex items-center justify-between py-4 gap-4 flex-wrap">
+        <div className="flex items-center justify-between py-[13px] gap-4 flex-wrap">
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-3 flex-wrap">
-              <p className="font-medium">
+              <p className="font-semibold text-[13.5px]">
                 Compress context{" "}
                 <a
                   href="https://github.com/chopratejas/headroom"
@@ -533,7 +535,7 @@ export default function TokenSaverClient() {
                 {headroomRunning ? "Manage" : "Setup"}
               </button>
             </div>
-            <p className="text-sm text-text-muted mt-1">
+            <p className="text-[12.5px] text-text-muted mt-1">
               Compress prompts via /v1/compress before routing to the model
             </p>
           </div>
@@ -610,7 +612,7 @@ export default function TokenSaverClient() {
                 <button
                   onClick={handleInstallExtras}
                   disabled={extrasActionLoading}
-                  className="text-xs px-2.5 py-1 rounded bg-primary text-white hover:opacity-90 disabled:opacity-50"
+                  className="text-xs px-2.5 py-1 rounded-md bg-brand-500 text-on-brand hover:opacity-90 disabled:opacity-50"
                 >
                   {extrasActionLoading
                     ? "Installing…"
@@ -640,9 +642,9 @@ export default function TokenSaverClient() {
             </p>
           </div>
         )}
-        <div className="flex items-center justify-between pt-4 border-t border-border gap-4 flex-wrap">
+        <div className="flex items-center justify-between pt-[13px] border-t border-border gap-4 flex-wrap">
           <div className="min-w-0 flex-1">
-            <p className="font-medium">
+            <p className="font-semibold text-[13.5px]">
               Compress LLM output{" "}
               <a
                 href="https://github.com/JuliusBrussee/caveman"
@@ -653,7 +655,7 @@ export default function TokenSaverClient() {
                 (Caveman)
               </a>
             </p>
-            <p className="text-sm text-text-muted">
+            <p className="text-[12.5px] text-text-muted">
               Terse-style system prompt → ~65% fewer output tokens (up to 87%)
             </p>
           </div>
@@ -665,9 +667,9 @@ export default function TokenSaverClient() {
                     <button
                       key={lvl.id}
                       onClick={() => handleCavemanLevel(lvl.id)}
-                      className={`px-3 py-1.5 rounded text-xs font-medium border transition-colors ${
+                      className={`px-[13px] py-1.5 rounded-md text-[12.5px] font-medium border transition-colors ${
                         cavemanLevel === lvl.id
-                          ? "bg-primary text-white border-primary"
+                          ? "bg-brand-500 text-on-brand border-brand-500"
                           : "bg-transparent border-border text-text-muted hover:bg-surface-2"
                       }`}
                       title={lvl.desc}
@@ -690,9 +692,9 @@ export default function TokenSaverClient() {
             />
           </div>
         </div>
-        <div className="flex items-center justify-between pt-4 mt-4 border-t border-border gap-4 flex-wrap">
+        <div className="flex items-center justify-between pt-[13px] mt-[13px] border-t border-border gap-4 flex-wrap">
           <div className="min-w-0 flex-1">
-            <p className="font-medium">
+            <p className="font-semibold text-[13.5px]">
               Lazy senior dev{" "}
               <a
                 href="https://github.com/DietrichGebert/ponytail"
@@ -703,7 +705,7 @@ export default function TokenSaverClient() {
                 (Ponytail)
               </a>
             </p>
-            <p className="text-sm text-text-muted">
+            <p className="text-[12.5px] text-text-muted">
               Bias the model toward minimal code: YAGNI, reuse stdlib,
               deletion over addition
             </p>
@@ -716,9 +718,9 @@ export default function TokenSaverClient() {
                     <button
                       key={lvl.id}
                       onClick={() => handlePonytailLevel(lvl.id)}
-                      className={`px-3 py-1.5 rounded text-xs font-medium border transition-colors ${
+                      className={`px-[13px] py-1.5 rounded-md text-[12.5px] font-medium border transition-colors ${
                         ponytailLevel === lvl.id
-                          ? "bg-primary text-white border-primary"
+                          ? "bg-brand-500 text-on-brand border-brand-500"
                           : "bg-transparent border-border text-text-muted hover:bg-surface-2"
                       }`}
                       title={lvl.desc}
@@ -743,10 +745,10 @@ export default function TokenSaverClient() {
         </div>
         {/* PXPIPE hidden from UI — experimental, not exposed to users yet */}
         {false && (
-        <div className="flex items-center justify-between pt-4 mt-4 border-t border-border gap-4 flex-wrap">
+        <div className="flex items-center justify-between pt-[13px] mt-[13px] border-t border-border gap-4 flex-wrap">
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-3 flex-wrap">
-              <p className="font-medium">
+              <p className="font-semibold text-[13.5px]">
                 Compress prompts as images{" "}
                 <a
                   href="https://github.com/teamchong/pxpipe"
@@ -774,7 +776,7 @@ export default function TokenSaverClient() {
                 Dashboard
               </a>
             </div>
-            <p className="text-sm text-text-muted mt-1">
+            <p className="text-[12.5px] text-text-muted mt-1">
               Transforms large textual context into optimized images before
               sending to the LLM. Ideal for huge prompts, tool outputs and long
               conversations.
@@ -916,7 +918,7 @@ export default function TokenSaverClient() {
         onClose={() => setShowPxpipeModal(false)}
       >
         <div className="flex flex-col gap-4">
-          <p className="text-sm text-text-muted">
+          <p className="text-[12.5px] text-text-muted">
             Compress prompts using multimodal encoding. Runs in-process — no
             extra server or environment variables required.
           </p>

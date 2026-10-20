@@ -35,16 +35,16 @@ function ValueCells({ item, viewMode, isSummary = false }) {
   if (viewMode === "tokens") {
     return (
       <>
-        <td className="px-6 py-3 text-right text-text-muted">
+        <td className="px-3.5 py-2.5 text-right text-text-muted">
           {isSummary && item.promptTokens === undefined ? "—" : fmt(item.promptTokens)}
         </td>
-        <td className="px-6 py-3 text-right text-text-muted">
+        <td className="px-3.5 py-2.5 text-right text-text-muted">
           {item.cachedTokens ? fmt(item.cachedTokens) : "—"}
         </td>
-        <td className="px-6 py-3 text-right text-text-muted">
+        <td className="px-3.5 py-2.5 text-right text-text-muted">
           {isSummary && item.completionTokens === undefined ? "—" : fmt(item.completionTokens)}
         </td>
-        <td className="px-6 py-3 text-right font-medium">
+        <td className="px-3.5 py-2.5 text-right font-medium">
           {fmt(item.totalTokens)}
         </td>
       </>
@@ -52,16 +52,16 @@ function ValueCells({ item, viewMode, isSummary = false }) {
   }
   return (
     <>
-      <td className="px-6 py-3 text-right text-text-muted">
+      <td className="px-3.5 py-2.5 text-right text-text-muted">
         {isSummary && item.inputCost === undefined ? "—" : fmtCost(item.inputCost)}
       </td>
-      <td className="px-6 py-3 text-right text-text-muted">
+      <td className="px-3.5 py-2.5 text-right text-text-muted">
         {item.cachedCost ? fmtCost(item.cachedCost) : "—"}
       </td>
-      <td className="px-6 py-3 text-right text-text-muted">
+      <td className="px-3.5 py-2.5 text-right text-text-muted">
         {isSummary && item.outputCost === undefined ? "—" : fmtCost(item.outputCost)}
       </td>
-      <td className="px-6 py-3 text-right font-medium text-warning">
+      <td className="px-3.5 py-2.5 text-right font-medium text-warning">
         {fmtCost(item.totalCost || item.cost)}
       </td>
     </>
@@ -161,12 +161,12 @@ export default function UsageTable({
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-sm text-left">
-          <thead className="bg-bg-subtle/30 text-text-muted uppercase text-xs">
+          <thead className="text-text-subtle uppercase text-[11px] font-semibold tracking-[0.07em]">
             <tr>
               {columns.map((col) => (
                 <th
                   key={col.field}
-                  className={`px-6 py-3 cursor-pointer hover:bg-bg-subtle/50 ${col.align === "right" ? "text-right" : ""}`}
+                  className={`px-3.5 py-[9px] cursor-pointer hover:bg-surface-2 ${col.align === "right" ? "text-right" : ""}`}
                   onClick={() => onToggleSort(tableType, col.field)}
                 >
                   {col.label}{" "}
@@ -176,7 +176,7 @@ export default function UsageTable({
               {valueColumns.map((col) => (
                 <th
                   key={col.field}
-                  className="px-6 py-3 text-right cursor-pointer hover:bg-bg-subtle/50"
+                  className="px-3.5 py-[9px] text-right cursor-pointer hover:bg-surface-2"
                   onClick={() => onToggleSort(tableType, col.field)}
                 >
                   {col.label}{" "}
@@ -193,7 +193,7 @@ export default function UsageTable({
                   className="group-summary cursor-pointer hover:bg-bg-subtle/50 transition-colors"
                   onClick={() => toggleGroup(group.groupKey)}
                 >
-                  <td className="px-6 py-3">
+                  <td className="px-3.5 py-2.5">
                     <div className="flex items-center gap-2">
                       <span className={`material-symbols-outlined text-[18px] text-text-muted transition-transform ${expanded.has(group.groupKey) ? "rotate-90" : ""}`}>
                         chevron_right
