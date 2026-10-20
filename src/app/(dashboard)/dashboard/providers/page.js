@@ -71,11 +71,13 @@ function getProviderGlyph(provider, providerId) {
   return (providerId || "??").slice(0, 2).toUpperCase();
 }
 
-/* P-07: status line as plain 12px muted text (no Badge).
-   Plan / key-suffix are not carried by the card data — open-C, see audit. */
+/* P-07: status line as plain 12px muted text (no Badge). Plan and
+   remaining % come from the last quota snapshot recorded server-side
+   (/api/usage/[connectionId] → quotaSnapshot on each connection);
+   absent when no snapshot exists — never fabricated. */
 function getStatusText(stats, kind, isNoAuth) {
   if (isNoAuth) return "Ready";
-  const { connected, error, errorCode, total, allDisabled } = stats;
+  const { connected, error, errorCode, total, allDisabled, plan, remainingPct } = stats;
   if (!total) return kind === "apikey" ? "No key saved" : "Not connected";
   if (allDisabled) return "Disabled";
   const parts = [];
@@ -98,6 +100,8 @@ function getStatusText(stats, kind, isNoAuth) {
         : `${total} account${total === 1 ? "" : "s"} connected`,
     );
   }
+  if (plan) parts.push(plan);
+  if (typeof remainingPct === "number") parts.push(`${remainingPct}% left`);
   return parts.join(" · ");
 }
 
@@ -215,7 +219,16 @@ export default function ProvidersPage() {
       ? latestError.lastErrorAt
       : null;
 
-    return { connected, error, total, errorCode, errorTime, allDisabled };
+    // P-07: quota snapshot enrichment — plan from any snapshotted
+    // connection; remaining % is the minimum across them (binding window).
+    const snapshots = providerConnections.map((c) => c.quotaSnapshot).filter(Boolean);
+    const plan = snapshots.find((s) => s.plan)?.plan || null;
+    const remainingValues = snapshots
+      .map((s) => s.remainingPct)
+      .filter((v) => typeof v === "number" && Number.isFinite(v));
+    const remainingPct = remainingValues.length ? Math.min(...remainingValues) : null;
+
+    return { connected, error, total, errorCode, errorTime, allDisabled, plan, remainingPct };
   };
 
   // Per-provider test (P-08 `Test` button): the existing test-batch
@@ -501,7 +514,7 @@ export default function ProvidersPage() {
                   stats={card.stats}
                   kind={card.kind}
                   authLabel={card.authLabel}
-                  descriptor={card.descriptor}
+                  descriptor={card.descriptor || card.info.descriptor}
                   onTest={(id) => handleBatchTest("provider", id)}
                   testing={testingMode === card.key}
                 />
@@ -584,9 +597,9 @@ function ProviderCard({
         ? "bg-brand-500"
         : "border-[1.5px] border-[#a7afb6]";
 
-  // P-06: meta line is `{descriptor} · {auth}`; registry entries carry no
-  // vendor descriptor (open-C), so the auth label renders alone unless a
-  // descriptor was supplied (compatible nodes).
+  // P-06: meta line is `{descriptor} · {auth}`. The descriptor now comes
+  // from the registry entry's display.descriptor (wired by the caller);
+  // the auth label renders alone when a provider has none.
   const meta = descriptor ? `${descriptor} · ${authLabel}` : authLabel;
 
   const connectLabel =
@@ -659,6 +672,8 @@ ProviderCard.propTypes = {
     errorCode: PropTypes.string,
     total: PropTypes.number,
     allDisabled: PropTypes.bool,
+    plan: PropTypes.string,
+    remainingPct: PropTypes.number,
   }).isRequired,
   kind: PropTypes.string.isRequired,
   authLabel: PropTypes.string.isRequired,

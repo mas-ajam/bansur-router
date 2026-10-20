@@ -36,11 +36,12 @@ const ROUTING_OPTIONS = [
 ];
 
 function deriveRouting(settings) {
+  if (settings.fallbackStrategy === "quota") return "quota";
   if (settings.fallbackStrategy === "round-robin") {
     return (settings.stickyRoundRobinLimit || 3) > 1 ? "sticky" : "roundrobin";
   }
   // "fill-first" (the app default) has no artifact counterpart; the select
-  // shows Round Robin and saving applies it. Flagged SE-04 partial.
+  // shows Round Robin and saving applies it.
   return "roundrobin";
 }
 
@@ -122,9 +123,12 @@ export default function SettingsPage() {
       if (pool?.proxyUrl) payload.outboundProxyUrl = pool.proxyUrl;
     }
 
-    // "Most quota remaining" has no backend strategy value (SE-04 partial):
-    // it is left unsaved rather than mapped onto a different strategy.
-    if (routing === "roundrobin") {
+    // SE-04 resolved: "Most quota remaining" saves fallbackStrategy
+    // "quota" — getProviderCredentials orders candidates by their last
+    // quota snapshot's remainingPct.
+    if (routing === "quota") {
+      payload.fallbackStrategy = "quota";
+    } else if (routing === "roundrobin") {
       payload.fallbackStrategy = "round-robin";
       payload.stickyRoundRobinLimit = 1;
     } else if (routing === "sticky") {

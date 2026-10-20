@@ -5,6 +5,7 @@ export default {
   alias: "if",
   display: {
     name: "iFlow AI",
+    descriptor: "iFlow",
     icon: "water_drop",
     color: "#6366F1",
     website: "https://iflow.cn",

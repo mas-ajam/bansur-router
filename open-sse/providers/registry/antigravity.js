@@ -7,6 +7,7 @@ export default {
   uiAlias: "ag",
   display: {
     name: "Antigravity",
+    descriptor: "Google",
     icon: "rocket_launch",
     color: "#F59E0B",
     website: "https://antigravity.google",

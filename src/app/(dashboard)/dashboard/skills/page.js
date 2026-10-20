@@ -1,19 +1,16 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, Button, Toggle } from "@/shared/components";
+import { Card, Button, Toggle, Input } from "@/shared/components";
 import { useNotificationStore } from "@/store/notificationStore";
-import { SKILLS } from "@/shared/constants/skills";
 
-/* Skills (audit SK-01, SK-02; SK-03/SK-04 flagged).
-   SKILLS constants carry {id, name, description, icon, endpoint} — no
-   category, no version, no enabled state (SK-03-C). Card meta therefore
-   falls back to the skill's endpoint path in mono, and the toggle is a
-   localStorage-backed client preference (default all on), not backend
-   skill-pack state. The removed "Paste this to your AI:" and "More on
-   GitHub" cards (§II.24 / SK-04) are why endpoints appear as card meta. */
-
-const STORAGE_KEY = "bansur-router:skills-enabled";
+/* Skills (audit SK-01..SK-04; SK-03/SK-04 resolved in Phase 4).
+   The list comes from GET /api/skills: built-in SKILLS constants merged
+   with imported packs from DATA_DIR/skills, each entry carrying
+   {category, version, enabled, source}. Enabled state persists
+   server-side (settings.skillStates) via PATCH /api/skills; the dashed
+   card imports a pack from a Git URL via POST /api/skills/import.
+   Category/version render "—" when the pack carries none. */
 
 function skillGlyph(skill) {
   const words = (skill.name || skill.id || "?").split(/[\s-]+/).filter(Boolean);
@@ -21,31 +18,76 @@ function skillGlyph(skill) {
   return (words[0] || "?").slice(0, 2).toUpperCase();
 }
 
-function loadEnabledMap() {
-  try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : {};
-  } catch {
-    return {};
-  }
+function skillMeta(skill) {
+  const parts = [];
+  if (skill.category) parts.push(skill.category);
+  if (skill.version) parts.push(`v${skill.version}`);
+  return parts.length ? parts.join(" · ") : "—";
 }
 
 export default function SkillsPage() {
   const notify = useNotificationStore();
-  const [enabledMap, setEnabledMap] = useState({});
+  const [skills, setSkills] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [importUrl, setImportUrl] = useState("");
+  const [importing, setImporting] = useState(false);
 
   useEffect(() => {
-    setEnabledMap(loadEnabledMap());
-  }, []);
-
-  const toggleSkill = (id, next) => {
-    setEnabledMap((prev) => {
-      const map = { ...prev, [id]: next };
+    (async () => {
       try {
-        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(map));
-      } catch { /* ignore */ }
-      return map;
-    });
+        const res = await fetch("/api/skills", { cache: "no-store" });
+        const data = await res.json().catch(() => ({}));
+        if (res.ok) setSkills(data.skills || []);
+        else notify.error(data.error || "Failed to load skills");
+      } catch {
+        notify.error("Failed to load skills");
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const toggleSkill = async (id, next) => {
+    setSkills((prev) => prev.map((s) => (s.id === id ? { ...s, enabled: next } : s)));
+    try {
+      const res = await fetch("/api/skills", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, enabled: next }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Failed to update skill");
+      }
+    } catch (error) {
+      setSkills((prev) => prev.map((s) => (s.id === id ? { ...s, enabled: !next } : s)));
+      notify.error(error.message || "Failed to update skill");
+    }
+  };
+
+  const handleImport = async () => {
+    const url = importUrl.trim();
+    if (!url || importing) return;
+    setImporting(true);
+    try {
+      const res = await fetch("/api/skills/import", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        notify.error(data.error || "Skill import failed");
+        return;
+      }
+      setSkills((prev) => (prev.some((s) => s.id === data.id) ? prev : [...prev, data]));
+      setImportUrl("");
+      notify.success(`Skill imported: ${data.name || data.id}`);
+    } catch {
+      notify.error("Skill import failed");
+    } finally {
+      setImporting(false);
+    }
   };
 
   return (
@@ -57,8 +99,8 @@ export default function SkillsPage() {
       </div>
 
       <div className="grid gap-3.5 grid-cols-1 min-[561px]:grid-cols-2 min-[1081px]:grid-cols-3">
-        {SKILLS.map((skill) => {
-          const enabled = enabledMap[skill.id] !== false;
+        {skills.map((skill) => {
+          const enabled = skill.enabled !== false;
           return (
             <Card key={skill.id} padding="none" className="p-4 flex flex-col gap-3 h-full">
               <div className="flex items-start gap-3">
@@ -67,32 +109,40 @@ export default function SkillsPage() {
                 </div>
                 <div className="grow min-w-0">
                   <div className="font-semibold text-sm leading-[1.25]">{skill.name}</div>
-                  {skill.endpoint ? (
-                    <div className="text-xs text-text-muted font-mono">{skill.endpoint}</div>
-                  ) : (
-                    <div className="text-xs text-text-muted">Entry point</div>
-                  )}
+                  <div className="text-xs text-text-muted">{skillMeta(skill)}</div>
                 </div>
                 <Toggle checked={enabled} onChange={(v) => toggleSkill(skill.id, v)} />
               </div>
-              <div className="text-xs text-text-muted">{skill.description}</div>
+              <div className="text-xs text-text-muted">{skill.description || "—"}</div>
             </Card>
           );
         })}
 
-        {/* Add skill — no import mechanism exists in this build (SK-04-C) */}
+        {/* Add skill — import from a Git URL (SK-04) */}
         <Card padding="none" className="p-4 flex flex-col gap-3 h-full border-dashed items-start justify-center">
           <div className="font-semibold text-sm leading-[1.25]">+ Add skill</div>
           <div className="text-xs text-text-muted">
             Drop a skill folder into <span className="font-mono">~/.bansur-router/skills</span> or import from a Git URL.
           </div>
-          <Button
-            size="sm"
-            variant="secondary"
-            onClick={() => notify.error("Skill import is not available in this build")}
-          >
-            Import
-          </Button>
+          <div className="flex w-full items-center gap-2">
+            <Input
+              placeholder="https://github.com/…/skill.git"
+              value={importUrl}
+              onChange={(e) => setImportUrl(e.target.value)}
+              disabled={importing || loading}
+              aria-label="Skill Git URL"
+              className="grow"
+            />
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={handleImport}
+              loading={importing}
+              disabled={!importUrl.trim() || loading}
+            >
+              Import
+            </Button>
+          </div>
         </Card>
       </div>
     </div>

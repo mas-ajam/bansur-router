@@ -7,6 +7,7 @@ import { isUnrecoverableRefreshError } from "open-sse/services/tokenRefresh.js";
 import { getExecutor } from "open-sse/executors/index.js";
 import { resolveConnectionProxyConfig } from "@/lib/network/connectionProxy";
 import { USAGE_APIKEY_PROVIDERS } from "@/shared/constants/providers";
+import { recordQuotaSnapshot } from "@/lib/telemetry.js";
 
 // Detect auth-expired messages returned by usage providers instead of throwing
 const AUTH_EXPIRED_PATTERNS = ["expired", "authentication", "unauthorized", "401", "re-authorize"];
@@ -193,6 +194,29 @@ export async function GET(request, { params }) {
         console.warn(`[Usage] ${connection.provider}: force refresh failed: ${retryError.message}`);
       }
     }
+
+    // P-07: persist a quota snapshot (plan + binding remaining %) so the
+    // Providers cards and the "quota" routing strategy can read the last
+    // observed values without re-polling every provider. Derived only
+    // from this payload; never breaks the route.
+    try {
+      const plan = typeof usage?.plan === "string" && usage.plan ? usage.plan : null;
+      let remainingPct = null;
+      const quotas = usage?.quotas && typeof usage.quotas === "object" ? Object.values(usage.quotas) : [];
+      for (const quota of quotas) {
+        if (!quota || quota.unlimited) continue;
+        let pct = null;
+        if (typeof quota.remainingPercentage === "number" && Number.isFinite(quota.remainingPercentage)) {
+          pct = quota.remainingPercentage;
+        } else if (typeof quota.remaining === "number" && typeof quota.total === "number" && quota.total > 0) {
+          pct = (quota.remaining / quota.total) * 100;
+        }
+        if (pct != null && Number.isFinite(pct)) {
+          remainingPct = remainingPct == null ? pct : Math.min(remainingPct, pct);
+        }
+      }
+      recordQuotaSnapshot(connectionId, { plan, remainingPct });
+    } catch { /* snapshot persistence must never break the usage route */ }
 
     return Response.json(usage);
   } catch (error) {

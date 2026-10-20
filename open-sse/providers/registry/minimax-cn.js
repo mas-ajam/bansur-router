@@ -6,6 +6,7 @@ export default {
   alias: "minimax-cn",
   display: {
     name: "Minimax (China)",
+    descriptor: "MiniMax",
     icon: "memory",
     color: "#DC2626",
     textIcon: "MC",

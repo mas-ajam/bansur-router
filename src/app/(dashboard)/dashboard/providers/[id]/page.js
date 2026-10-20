@@ -324,6 +324,19 @@ export default function ProviderDetailPage() {
       if (connectionsRes.ok) {
         const filtered = (connectionsData.connections || []).filter(c => c.provider === providerId);
         setConnections(filtered);
+        // D-06: persisted per-provider last test (from /api/providers'
+        // providerLastTests map) seeds the Last test card; a test run in
+        // this session takes precedence once recorded.
+        const persisted = (connectionsData.providerLastTests || {})[providerId];
+        if (persisted) {
+          setLastTest((prev) => prev ?? {
+            valid: persisted.status === "ok",
+            latencyMs: persisted.latencyMs,
+            statusCode: persisted.statusCode,
+            checkedAt: persisted.checkedAt,
+            error: null,
+          });
+        }
       }
       if (proxyPoolsRes.ok) {
         setProxyPools(proxyPoolsData.proxyPools || []);
@@ -779,13 +792,13 @@ export default function ProviderDetailPage() {
           const res = await fetch(`/api/providers/${connection.id}/test`, { method: "POST" });
           const data = await res.json();
           const valid = !!data.valid;
-          // D-06: most recent test this session feeds the Last test card.
-          // The single-test route returns no latencyMs, so the elapsed
-          // time of the request itself is recorded.
+          // D-06: most recent test this session feeds the Last test card
+          // (the route also persists it server-side per provider).
           setLastTest({
             valid,
-            latencyMs: Date.now() - testStartedAt,
-            checkedAt: new Date().toISOString(),
+            latencyMs: typeof data.latencyMs === "number" ? data.latencyMs : Date.now() - testStartedAt,
+            statusCode: data.statusCode || null,
+            checkedAt: data.testedAt || new Date().toISOString(),
             error: valid ? null : (data.error || null),
           });
 
@@ -1629,9 +1642,9 @@ export default function ProviderDetailPage() {
     );
   }
 
-  // D-01 header values. Descriptor is class C (audit P-06): registry
-  // entries carry no vendor-descriptor field, so it stays null and the
-  // sub-line falls back to the auth kind alone.
+  // D-01 header values. P-06 resolved: registry entries now carry a
+  // vendor descriptor in display.descriptor, spread into providerInfo by
+  // buildProviderEntry; providers without one fall back to auth kind alone.
   const providerDescriptor =
     providerInfo.descriptor || providerInfo.vendor || providerInfo.subtitle || null;
   const authKindLabel = isOAuth
@@ -1823,8 +1836,8 @@ export default function ProviderDetailPage() {
         <Card>
           <h3 className="text-[13.5px] font-semibold mb-3.5">Last test</h3>
           {[
-            ["Result", lastTest ? (lastTest.valid ? "OK" : `ERROR${lastTest.error ? ` · ${lastTest.error}` : ""}`) : "—"],
-            ["Latency", lastTest ? `${lastTest.latencyMs} ms` : "—"],
+            ["Result", lastTest ? (lastTest.valid ? `OK${lastTest.statusCode ? ` · ${lastTest.statusCode}` : ""}` : `ERROR${lastTest.statusCode ? ` · ${lastTest.statusCode}` : ""}${lastTest.error ? ` · ${lastTest.error}` : ""}`) : "—"],
+            ["Latency", lastTest && lastTest.latencyMs != null ? `${lastTest.latencyMs} ms` : "—"],
             ["Checked", lastTest ? new Date(lastTest.checkedAt).toLocaleTimeString("en-GB") : "—"],
           ].map(([k, v]) => (
             <div

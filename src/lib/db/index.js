@@ -80,6 +80,11 @@ export {
   recordQuotaSnapshot, getQuotaSnapshot, getAllQuotaSnapshots, resetQuotaSnapshots,
 } from "./repos/quotaSnapshotRepo.js";
 
+// Provider last-test records (D-06)
+export {
+  recordProviderTest, getProviderLastTests, getProviderLastTest,
+} from "./repos/providerTestRepo.js";
+
 // Export/import full DB
 export async function exportDb() {
   const db = await getAdapter();

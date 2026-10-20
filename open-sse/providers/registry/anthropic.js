@@ -4,6 +4,7 @@ export default {
   alias: "anthropic",
   display: {
     name: "Anthropic",
+    descriptor: "API key · pay per token",
     icon: "smart_toy",
     color: "#D97757",
     textIcon: "AN",

@@ -5,6 +5,7 @@ export default {
   uiAlias: "kr",
   display: {
     name: "Kiro AI",
+    descriptor: "AWS Builder ID",
     icon: "psychology_alt",
     color: "#FF6B35",
     website: "https://kiro.dev",

@@ -12,6 +12,7 @@ export default {
   uiAlias: "cx",
   display: {
     name: "OpenAI Codex",
+    descriptor: "ChatGPT subscription",
     icon: "code",
     color: "#3B82F6",
     website: "https://chatgpt.com/codex",

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Card, Button, Toggle, Input, Select, Badge } from "@/shared/components";
+import { Card, Button, Toggle, Input, Select, Badge, ConfirmModal } from "@/shared/components";
 import { useNotificationStore } from "@/store/notificationStore";
 import { cn } from "@/shared/utils/cn";
 import { LOCALE_COOKIE, normalizeLocale } from "@/i18n/config";
@@ -446,6 +446,8 @@ export default function ProfilePage() {
   const [displayName, setDisplayName] = useState("");
   const [instanceName, setInstanceName] = useState("");
   const [profileSaving, setProfileSaving] = useState(false);
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [resetting, setResetting] = useState(false);
 
   const LANGUAGE_OPTIONS = [
     { value: "en", label: "English" },
@@ -507,6 +509,27 @@ export default function ProfilePage() {
       }
     } catch {
       notify.error("Failed to update cloud sync");
+    }
+  };
+
+  // PF-11: reset router data — deletes accounts, keys, combos, and logs
+  // server-side; settings and the dashboard password are kept.
+  const handleResetData = async () => {
+    setResetting(true);
+    try {
+      const res = await fetch("/api/settings/reset-data", { method: "POST" });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) {
+        notify.success("Router data reset");
+        setShowResetConfirm(false);
+        window.location.reload();
+      } else {
+        notify.error(data.error || "Failed to reset router data");
+      }
+    } catch {
+      notify.error("Failed to reset router data");
+    } finally {
+      setResetting(false);
     }
   };
 
@@ -1159,7 +1182,7 @@ export default function ProfilePage() {
                 <b className="block text-[13.5px] font-semibold">Reset router data</b>
                 <span className="text-[12.5px] text-text-muted">Deletes accounts, keys, combos, and logs stored on this machine.</span>
               </div>
-              <Button variant="danger" disabled>
+              <Button variant="danger" onClick={() => setShowResetConfirm(true)}>
                 Reset…
               </Button>
             </div>
@@ -1175,6 +1198,17 @@ export default function ProfilePage() {
           </Card>
         </div>
       </div>
+
+      <ConfirmModal
+        isOpen={showResetConfirm}
+        onClose={() => !resetting && setShowResetConfirm(false)}
+        onConfirm={handleResetData}
+        title="Reset router data"
+        message="Deletes accounts, keys, combos, and logs stored on this machine. Settings and your dashboard password are kept. This cannot be undone."
+        confirmText="Reset…"
+        variant="danger"
+        loading={resetting}
+      />
     </div>
   );
 }

@@ -6,6 +6,7 @@ export default {
   alias: "glm",
   display: {
     name: "Zai GLM Coding",
+    descriptor: "Zhipu AI",
     icon: "code",
     color: "#2563EB",
     textIcon: "GL",

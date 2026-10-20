@@ -8,6 +8,7 @@ import {
   ANTHROPIC_COMPATIBLE_PREFIX,
 } from "@/shared/constants/providers";
 import { testSingleConnection } from "../[id]/test/testUtils.js";
+import { recordProviderTest } from "@/lib/localDb";
 
 function getAuthGroup(providerId, connection = null) {
   // Prioritize authType from connection if available
@@ -97,6 +98,15 @@ export async function POST(request) {
           statusCode: data.statusCode || null,
           testedAt: data.testedAt || new Date().toISOString(),
         });
+        // D-06: persist per-provider last test for the detail page.
+        try {
+          recordProviderTest(conn.provider, {
+            status: data.valid ? "ok" : "error",
+            latencyMs: data.latencyMs || 0,
+            statusCode: data.statusCode || null,
+            checkedAt: data.testedAt || new Date().toISOString(),
+          });
+        } catch { /* persistence must never break testing */ }
       } catch (error) {
         results.push({
           provider: conn.provider,
@@ -110,6 +120,14 @@ export async function POST(request) {
           statusCode: null,
           testedAt: new Date().toISOString(),
         });
+        try {
+          recordProviderTest(conn.provider, {
+            status: "error",
+            latencyMs: 0,
+            statusCode: null,
+            checkedAt: new Date().toISOString(),
+          });
+        } catch { /* ignore */ }
       }
     }
 

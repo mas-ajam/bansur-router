@@ -4,6 +4,7 @@ import { formatRetryAfter, checkFallbackError, isModelLockActive, buildModelLock
 import { MAX_RATE_LIMIT_COOLDOWN_MS } from "open-sse/config/errorConfig.js";
 import { resolveProviderId, FREE_PROVIDERS } from "@/shared/constants/providers.js";
 import { getAntigravityQuotaCache, getAntigravityModelQuota } from "./antigravityQuota.js";
+import { getAllQuotaSnapshots } from "@/lib/telemetry.js";
 import * as log from "../utils/logger.js";
 
 // Mutex to prevent race conditions during account selection
@@ -155,6 +156,28 @@ export async function getProviderCredentials(provider, excludeConnectionIds = nu
     }
     if (connection) {
       // skip strategy
+    } else if (strategy === "quota") {
+      // SE-04 "Most quota remaining": order candidates by their last
+      // observed quota snapshot (remainingPct descending); connections
+      // without a snapshot go last, stable order otherwise.
+      try {
+        const snapshots = await getAllQuotaSnapshots();
+        const ranked = availableConnections
+          .map((c, index) => {
+            const pct = snapshots?.[c.id]?.remainingPct;
+            return { c, index, pct: typeof pct === "number" && Number.isFinite(pct) ? pct : null };
+          })
+          .sort((a, b) => {
+            if (a.pct == null && b.pct == null) return a.index - b.index;
+            if (a.pct == null) return 1;
+            if (b.pct == null) return -1;
+            if (b.pct !== a.pct) return b.pct - a.pct;
+            return a.index - b.index;
+          });
+        connection = ranked[0]?.c || availableConnections[0];
+      } catch {
+        connection = availableConnections[0];
+      }
     } else if (strategy === "round-robin") {
       const stickyLimit = providerOverride.stickyRoundRobinLimit || settings.stickyRoundRobinLimit || 3;
 

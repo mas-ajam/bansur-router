@@ -11,12 +11,12 @@ import { AI_PROVIDERS, getProviderAlias } from "@/shared/constants/providers";
 // Validate combo name: only a-z, A-Z, 0-9, -, _
 const VALID_NAME_REGEX = /^[a-zA-Z0-9_.\-]+$/;
 
-// Capacity adapter (global, settings.capacityAdapter): fallback pools of models
-// per input-modality capability. The artifact's per-combo Vision Adapter select
-// cannot persist per combo — POST /api/combos only accepts {name, models, kind}
-// and the combos table has no vision column — so the select in the combo form is
-// bound to the GLOBAL vision pool (first model / Off), the same settings entry
-// this page PATCHed before. Flagged C-08-C; per-combo binding is Phase-4.
+// Vision Adapter (C-08, Phase 4): the select in the combo form is bound
+// to the combo being edited — combo.visionAdapter (null = Off/none) — and
+// is saved with the combo payload via POST/PUT /api/combos. The global
+// settings.capacityAdapter pools still exist for the capacity-adapter
+// runtime fallback; this page only reads the global vision pool to keep
+// its model selectable in the per-combo options.
 const CAPACITY_ADAPTER_CAPS = [
   { key: "vision", label: "Vision" },
   { key: "audioInput", label: "Audio" },
@@ -112,12 +112,6 @@ export default function CombosPage() {
         normalized[cap.key] = normalizeCapEntry(rawAdapter[cap.key]);
       }
       setCapacityAdapter((prev) => ({ ...prev, ...normalized }));
-      setFormVision((prev) =>
-        // Keep an in-progress pick; otherwise mirror the global pool.
-        prev === VISION_OFF || normalized.vision?.models?.includes(prev)
-          ? visionValueFromAdapter({ vision: normalized.vision })
-          : prev
-      );
       return llmCombos;
     } catch (error) {
       console.log("Error fetching data:", error);
@@ -130,19 +124,6 @@ export default function CombosPage() {
   useEffect(() => {
     fetchData();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const handleSetCapacityAdapter = async (next) => {
-    setCapacityAdapter(next);
-    try {
-      await fetch("/api/settings", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ capacityAdapter: next }),
-      });
-    } catch (error) {
-      console.log("Error updating capacity adapter:", error);
-    }
-  };
 
   const pruneStrategiesForNames = (names, base = comboStrategies) => {
     const updated = { ...base };
@@ -236,7 +217,7 @@ export default function CombosPage() {
     setFormName("");
     setFormStrategy("fallback");
     setFormModels([]);
-    setFormVision(visionValueFromAdapter(capacityAdapter));
+    setFormVision(VISION_OFF);
     setNameError("");
   };
 
@@ -245,7 +226,8 @@ export default function CombosPage() {
     setFormName(combo.name || "");
     setFormStrategy(comboStrategies[combo.name]?.fallbackStrategy || "fallback");
     setFormModels([...(combo.models || [])]);
-    setFormVision(visionValueFromAdapter(capacityAdapter));
+    // C-08: per-combo Vision Adapter binding (null = Off).
+    setFormVision(combo.visionAdapter || VISION_OFF);
     setNameError("");
     scrollToForm();
   };
@@ -275,12 +257,14 @@ export default function CombosPage() {
     const oldName = editingCombo?.name || null;
     setSaving(true);
     try {
-      // 1) Combo record — /api/combos accepts {name, models, kind} only.
+      // 1) Combo record — visionAdapter is per-combo (C-08): the select's
+      // value travels with the combo payload; Off saves null.
+      const visionAdapter = formVision === VISION_OFF ? null : formVision;
       if (editingId) {
         const res = await fetch(`/api/combos/${editingId}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name, models: formModels }),
+          body: JSON.stringify({ name, models: formModels, visionAdapter }),
         });
         if (!res.ok) {
           const err = await res.json().catch(() => ({}));
@@ -291,7 +275,7 @@ export default function CombosPage() {
         const res = await fetch("/api/combos", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name, models: formModels }),
+          body: JSON.stringify({ name, models: formModels, visionAdapter }),
         });
         if (!res.ok) {
           const err = await res.json().catch(() => ({}));
@@ -311,20 +295,6 @@ export default function CombosPage() {
         updatedStrategies[name] = nextStrategy;
       }
       await persistComboStrategies(updatedStrategies);
-
-      // 3) Vision Adapter — global binding (C-08-C): the select drives the
-      // global vision pool's first model, or disables the pool on Off.
-      const currentVision = visionValueFromAdapter(capacityAdapter);
-      if (formVision !== currentVision) {
-        const visionEntry = { ...(capacityAdapter.vision || EMPTY_CAP_ENTRY) };
-        if (formVision === VISION_OFF) {
-          visionEntry.enabled = false;
-        } else {
-          visionEntry.enabled = true;
-          visionEntry.models = [formVision];
-        }
-        await handleSetCapacityAdapter({ ...capacityAdapter, vision: visionEntry });
-      }
 
       const fresh = await fetchData();
       const saved = (fresh || []).find((c) => c.name === name);
@@ -416,8 +386,23 @@ export default function CombosPage() {
                         )}
                       </td>
                       <td className="px-3.5 py-2.5 border-b border-border align-middle">{STRATEGY_TEXT[strategy] || "Fallback"}</td>
-                      {/* C-07: no per-combo health/last-outcome field exists — render — (Phase-4). */}
-                      <td className="px-3.5 py-2.5 border-b border-border align-middle">—</td>
+                      {/* C-07: last observed request outcome for this combo
+                          (combo.lastOutcome from the combos table). */}
+                      <td className="px-3.5 py-2.5 border-b border-border align-middle">
+                        {combo.lastOutcome ? (
+                          combo.lastOutcome.status === "ok" ? (
+                            <span className="font-mono text-[11.5px] font-semibold">
+                              ok{combo.lastOutcome.model ? ` · ${combo.lastOutcome.model}` : ""}{combo.lastOutcome.at ? ` · ${new Date(combo.lastOutcome.at).toLocaleTimeString("en-GB")}` : ""}
+                            </span>
+                          ) : (
+                            <span className="font-mono text-[11.5px] font-semibold underline underline-offset-[3px]">
+                              {combo.lastOutcome.error || combo.lastOutcome.status || "error"}
+                            </span>
+                          )
+                        ) : (
+                          "—"
+                        )}
+                      </td>
                       <td className="px-3.5 py-2.5 border-b border-border align-middle">
                         <Button variant="ghost" size="sm" onClick={() => loadComboIntoForm(combo)}>Edit</Button>
                       </td>

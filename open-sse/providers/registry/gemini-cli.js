@@ -8,6 +8,7 @@ export default {
   uiAlias: "gc",
   display: {
     name: "Gemini CLI",
+    descriptor: "Google AI",
     icon: "terminal",
     color: "#4285F4",
     website: "https://github.com/google-gemini/gemini-cli",

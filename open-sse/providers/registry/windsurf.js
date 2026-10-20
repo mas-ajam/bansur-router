@@ -8,6 +8,7 @@ export default {
   uiAlias: "ws",
   display: {
     name: "Windsurf",
+    descriptor: "Windsurf",
     icon: "surfing",
     color: "#14B8A6",
     website: "https://windsurf.com",

@@ -8,6 +8,7 @@ export default {
   uiAlias: "vx",
   display: {
     name: "Vertex AI",
+    descriptor: "Google Cloud trial credit",
     icon: "cloud",
     color: "#4285F4",
     textIcon: "VX",

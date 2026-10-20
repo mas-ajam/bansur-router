@@ -7,6 +7,7 @@ export default {
   uiAlias: "cc",
   display: {
     name: "Claude Code",
+    descriptor: "Anthropic subscription",
     icon: "smart_toy",
     color: "#D97757",
     website: "https://claude.ai",

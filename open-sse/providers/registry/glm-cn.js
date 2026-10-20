@@ -4,6 +4,7 @@ export default {
   alias: "glm-cn",
   display: {
     name: "GLM (China)",
+    descriptor: "Zhipu AI",
     icon: "code",
     color: "#DC2626",
     textIcon: "GC",

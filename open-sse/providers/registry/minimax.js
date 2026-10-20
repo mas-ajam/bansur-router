@@ -6,6 +6,7 @@ export default {
   alias: "minimax",
   display: {
     name: "Minimax Coding",
+    descriptor: "MiniMax",
     icon: "memory",
     color: "#7C3AED",
     textIcon: "MM",

@@ -5,6 +5,7 @@ export default {
   uiAlias: "gh",
   display: {
     name: "GitHub Copilot",
+    descriptor: "GitHub",
     icon: "code",
     color: "#333333",
     website: "https://github.com/features/copilot",

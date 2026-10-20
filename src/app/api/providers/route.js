@@ -10,6 +10,8 @@ import { APIKEY_PROVIDERS } from "@/shared/constants/config";
 import { AI_PROVIDERS, FREE_TIER_PROVIDERS, WEB_COOKIE_PROVIDERS, isOpenAICompatibleProvider, isAnthropicCompatibleProvider, isCustomEmbeddingProvider } from "@/shared/constants/providers";
 import { normalizeProviderId, normalizeProviderSpecificData } from "@/lib/providerNormalization";
 import { toProviderConnectionResponse } from "@/lib/providerConnectionResponse";
+import { getAllQuotaSnapshots } from "@/lib/telemetry.js";
+import { getProviderLastTests } from "@/lib/localDb";
 
 export const dynamic = "force-dynamic";
 
@@ -61,6 +63,14 @@ export async function GET() {
       }
     } catch { }
 
+    // P-07: last observed quota snapshots (plan + remaining %), keyed by
+    // connection id — additive, null when no snapshot was ever recorded.
+    let quotaSnapshots = {};
+    try { quotaSnapshots = await getAllQuotaSnapshots(); } catch { /* additive only */ }
+    // D-06: persisted per-provider last-test map for the detail page.
+    let providerLastTests = {};
+    try { providerLastTests = await getProviderLastTests(); } catch { /* additive only */ }
+
     // Hide sensitive fields, enrich name for compatible providers
     const safeConnections = connections.map(c => {
       const isCompatible = isOpenAICompatibleProvider(c.provider) || isAnthropicCompatibleProvider(c.provider);
@@ -70,10 +80,11 @@ export async function GET() {
       return {
         ...toProviderConnectionResponse(c),
         name,
+        quotaSnapshot: quotaSnapshots[c.id] || null,
       };
     });
 
-    return NextResponse.json({ connections: safeConnections });
+    return NextResponse.json({ connections: safeConnections, providerLastTests });
   } catch (error) {
     console.log("Error fetching providers:", error);
     return NextResponse.json({ error: "Failed to fetch providers" }, { status: 500 });

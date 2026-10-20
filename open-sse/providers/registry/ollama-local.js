@@ -5,6 +5,7 @@ export default {
   alias: "ollama-local",
   display: {
     name: "Ollama Local",
+    descriptor: "Custom base URL · Ollama, LM Studio, vLLM",
     icon: "cloud",
     color: "#ffffffff",
     textIcon: "OL",

@@ -10,6 +10,7 @@ export default {
   uiAlias: "ds",
   display: {
     name: "DeepSeek",
+    descriptor: "DeepSeek",
     icon: "bolt",
     color: "#4D6BFE",
     textIcon: "DS",

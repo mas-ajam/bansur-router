@@ -7,6 +7,7 @@ export default {
   alias: "gemini",
   display: {
     name: "Gemini",
+    descriptor: "Google AI",
     icon: "diamond",
     color: "#4285F4",
     textIcon: "GE",

@@ -43,6 +43,7 @@ export async function PUT(request, { params }) {
     
     // Capture previous name to invalidate rotation state on rename
     const prev = await getComboById(id);
+    // visionAdapter passes through in the body (null clears the binding).
     const combo = await updateCombo(id, body);
     
     if (!combo) {

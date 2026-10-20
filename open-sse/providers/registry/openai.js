@@ -4,6 +4,7 @@ export default {
   alias: "openai",
   display: {
     name: "OpenAI",
+    descriptor: "API key · pay per token",
     icon: "auto_awesome",
     color: "#10A37F",
     textIcon: "OA",
