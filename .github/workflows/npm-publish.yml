@@ -18,6 +18,9 @@ name: Publish to npm
 # succeed within 48 hours, so only add it when a publish is about to run.
 
 on:
+  push:
+    tags:
+      - "v*"
   workflow_dispatch:
     inputs:
       release_tag:
@@ -62,13 +65,13 @@ jobs:
       - name: Check out release tag
         uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.release_tag }}
+          ref: ${{ inputs.release_tag || github.ref_name }}
           fetch-depth: 1
 
       - name: Validate tag and package versions
         id: release
         env:
-          RELEASE_TAG: ${{ inputs.release_tag }}
+          RELEASE_TAG: ${{ inputs.release_tag || github.ref_name }}
           REPOSITORY: ${{ github.repository }}
           DIST_TAG: ${{ inputs.dist_tag }}
         run: |

@@ -1,0 +1,74 @@
+name: Create GitHub Release
+
+# Automatically create the GitHub Release for a new version tag, using the
+# matching CHANGELOG.md section as the release notes. Skips quietly when a
+# release for the tag already exists (e.g. created manually).
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: "Existing vX.Y.Z tag to create a release for"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Create release
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out release tag
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.release_tag || github.ref_name }}
+          fetch-depth: 1
+
+      - name: Extract release notes from CHANGELOG
+        id: notes
+        env:
+          RELEASE_TAG: ${{ inputs.release_tag || github.ref_name }}
+        run: |
+          node <<'NODE'
+          const { readFileSync, writeFileSync, appendFileSync } = require("fs");
+          const tag = (process.env.RELEASE_TAG || "").trim();
+          if (!/^v\d+\.\d+\.\d+(-[\w.]+)?$/.test(tag)) {
+            console.error(`::error::tag must look like v1.2.3 (got: ${tag})`);
+            process.exit(1);
+          }
+          const version = tag.slice(1);
+          const changelog = readFileSync("CHANGELOG.md", "utf8");
+          const lines = changelog.split("\n");
+          const start = lines.findIndex((l) => l.startsWith(`## ${version} `) || l.trim() === `## ${version}`);
+          let notes;
+          if (start === -1) {
+            notes = `Bansur Router ${tag}. See CHANGELOG.md for details.`;
+            console.log(`::warning::no CHANGELOG section found for ${version}; using generic notes`);
+          } else {
+            let end = lines.findIndex((l, i) => i > start && l.startsWith("## "));
+            if (end === -1) end = lines.length;
+            notes = lines.slice(start + 1, end).join("\n").trim();
+          }
+          writeFileSync("release-notes.md", notes + "\n");
+          appendFileSync(process.env.GITHUB_OUTPUT, `tag=${tag}\n`);
+          console.log(`Notes for ${tag}:\n${notes}`);
+          NODE
+
+      - name: Create the release (skip if it already exists)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.notes.outputs.tag }}
+        run: |
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release $TAG already exists — nothing to do."
+            exit 0
+          fi
+          gh release create "$TAG" --title "Bansur Router $TAG" --notes-file release-notes.md
+          echo "Created GitHub Release $TAG"

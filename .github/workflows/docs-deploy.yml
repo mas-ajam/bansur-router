@@ -1,0 +1,67 @@
+name: Deploy Docs to Cloudflare Pages
+
+# Build the gitbook docs site and deploy it to Cloudflare Pages
+# (project: bansur-router, production: https://bansur-router.pages.dev).
+# Requires repo secrets CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID.
+# Skips gracefully when they are not configured yet.
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+concurrency:
+  group: docs-deploy
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: Build and deploy docs
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Check Cloudflare secrets are configured
+        id: gate
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          if [ -n "$CLOUDFLARE_API_TOKEN" ] && [ -n "$CLOUDFLARE_ACCOUNT_ID" ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::CLOUDFLARE_API_TOKEN / CLOUDFLARE_ACCOUNT_ID secrets not set — skipping Pages deploy."
+          fi
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install docs dependencies
+        run: npm install --prefix gitbook
+
+      - name: Build docs static export
+        run: npm run build --prefix gitbook
+
+      - name: Deploy to Cloudflare Pages
+        if: steps.gate.outputs.enabled == 'true'
+        working-directory: gitbook
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          npx --yes wrangler pages deploy out \
+            --project-name=bansur-router \
+            --branch=main \
+            --commit-dirty=true
+          echo "Docs deployed to https://bansur-router.pages.dev"
