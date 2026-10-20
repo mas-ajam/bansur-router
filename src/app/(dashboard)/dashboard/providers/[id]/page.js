@@ -1917,9 +1917,93 @@ export default function ProviderDetailPage() {
 
       {isFreeNoAuth && <NoAuthProxyCard providerId={providerId} />}
 
-      {/* D-07 carry-over: compatible providers manage their model list in
-          this section (add/alias/delete) — no other home exists for it. */}
-      {isCompatible && <Card>{renderModelsSection()}</Card>}
+      {/* Available Models — preserved in full per the owner's order for
+          EVERY provider kind: header (title + Thinking picker + Active
+          All / Disable All for catalog providers) over renderModelsSection,
+          whose body branches: CompatibleModelsSection for compatible
+          providers, catalog ModelRow cards + Add Model + disabled-model
+          chips for the rest. */}
+      <Card>
+        <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-3">
+            <h2 className="text-[13.5px] font-semibold">Available Models</h2>
+            {providerThinkingLevels && (
+              <div className="relative">
+                <select
+                  value={thinkingMode}
+                  onChange={(e) => handleThinkingModeChange(e.target.value)}
+                  title="Appends (level) suffix to copied model names"
+                  aria-label="Thinking level"
+                  className="appearance-none rounded-md border border-border-strong bg-surface py-1.5 pl-[11px] pr-7 text-xs text-text-main transition-[border-color,box-shadow] duration-150 focus:border-brand-500 focus:shadow-[var(--shadow-focus)] focus:outline-none"
+                >
+                  {providerThinkingLevels.map((opt) => (
+                    <option key={opt} value={opt}>{`Thinking: ${opt.charAt(0).toUpperCase() + opt.slice(1)}`}</option>
+                  ))}
+                </select>
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-[10px] text-text-muted">
+                  <svg width="10" height="6" viewBox="0 0 10 6" fill="none" aria-hidden="true">
+                    <path d="M1 1l4 4 4-4" stroke="currentColor" strokeWidth="1.5" fill="none" />
+                  </svg>
+                </div>
+              </div>
+            )}
+          </div>
+          {!isCompatible && (() => {
+            const allIds = [
+              ...models,
+              ...kiloFreeModels.filter((fm) => !models.some((m) => m.id === fm.id)),
+            ].filter((m) => { const k = getModelKind(m); return !k || k === "llm"; }).map((m) => m.id);
+            const activeIds = allIds.filter((id) => !disabledModelIds.includes(id));
+            return (
+              <div className="flex gap-2">
+                {disabledModelIds.length > 0 && (
+                  <Button size="sm" variant="secondary" icon="restart_alt" onClick={handleEnableAll}>
+                    Active All
+                  </Button>
+                )}
+                {activeIds.length > 0 && (
+                  <Button size="sm" variant="secondary" icon="block" onClick={() => handleDisableAll(activeIds)}>
+                    Disable All
+                  </Button>
+                )}
+              </div>
+            );
+          })()}
+        </div>
+        {!!modelsTestError && (
+          <div className="mb-3">
+            <p className="text-xs text-text-main break-words">{modelsTestError}</p>
+            {/RegionError|hosted in China|regionNotAllowed/i.test(modelsTestError) && (() => {
+              const str = typeof modelsTestError === "string" ? modelsTestError : JSON.stringify(modelsTestError);
+              const linkMatch = str.match(/https:\/\/opencode\.ai\/workspace\/[^\s"')]+/);
+              const wrkMatch = str.match(/wrk_[0-9A-Za-z]+/);
+              const targetUrl = linkMatch
+                ? (linkMatch[0].endsWith("/go") ? linkMatch[0] : `${linkMatch[0]}/go`)
+                : wrkMatch
+                  ? `https://opencode.ai/workspace/${wrkMatch[0]}/go`
+                  : "https://opencode.ai";
+
+              return (
+                <div className="mt-1.5">
+                  <a
+                    href={targetUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-1 rounded-md border border-border-strong bg-surface px-2 py-0.5 text-xs font-medium text-text-main transition-colors hover:bg-surface-2"
+                  >
+                    <span>Allow China-hosted models</span>
+                    <span className="material-symbols-outlined text-[13px]">open_in_new</span>
+                  </a>
+                </div>
+              );
+            })()}
+          </div>
+        )}
+        {providerId === "zed" && !!liveModelsError && (
+          <p className="text-xs text-text-main mb-3 break-words">{liveModelsError}</p>
+        )}
+        {renderModelsSection()}
+      </Card>
 
       {bulkActionModal}
 
