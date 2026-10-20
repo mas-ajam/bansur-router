@@ -12,8 +12,8 @@ export default function Toggle({
   className,
 }) {
   const sizes = {
-    sm: { track: "w-8 h-4", thumb: "size-3", translate: "translate-x-4" },
-    md: { track: "w-11 h-6", thumb: "size-5", translate: "translate-x-5" },
+    sm: { track: "w-9 h-5", thumb: "size-4", translate: "translate-x-[18px]" },
+    md: { track: "w-9 h-5", thumb: "size-4", translate: "translate-x-[18px]" },
     lg: { track: "w-14 h-7", thumb: "size-6", translate: "translate-x-7" },
   };
 

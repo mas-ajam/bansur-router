@@ -227,7 +227,7 @@ export default function Header({ onMenuClick, showMenuButton = true }) {
   };
 
   return (
-    <header className="shrink-0 flex items-center justify-between gap-3 px-4 lg:px-8 pt-3 pb-2 border-b border-border-subtle bg-surface/60 backdrop-blur-xl lg:bg-transparent lg:backdrop-blur-none z-20">
+    <header className="shrink-0 h-[58px] flex items-center justify-between gap-3.5 px-3.5 lg:px-[26px] border-b border-border bg-surface/85 backdrop-blur-md z-20">
       {/* Mobile menu button */}
       <div className="flex items-center gap-3 lg:hidden shrink-0">
         {showMenuButton && (
@@ -274,7 +274,7 @@ export default function Header({ onMenuClick, showMenuButton = true }) {
                         fallbackText={crumb.label.slice(0, 2).toUpperCase()}
                       />
                     )}
-                    <h1 className="text-base lg:text-2xl font-semibold text-text-main tracking-tight truncate">
+                    <h1 className="text-base font-semibold text-text-main truncate">
                       {translate(crumb.label)}
                     </h1>
                   </div>
@@ -283,28 +283,15 @@ export default function Header({ onMenuClick, showMenuButton = true }) {
             ))}
           </div>
         ) : title ? (
-          <div>
-            <div className="flex items-center gap-2">
-              {icon && (
-                <span className="material-symbols-outlined text-primary text-xl lg:text-2xl">
-                  {icon}
-                </span>
-              )}
-              <h1 className="text-base lg:text-2xl font-semibold tracking-tight truncate">
-                {translate(title)}
-              </h1>
-            </div>
-            {description && (
-              <p className="hidden lg:block text-sm text-text-muted truncate">
-                {translate(description)}
-              </p>
-            )}
-          </div>
+          <h1 className="text-base font-semibold text-text-main truncate">
+            {translate(title)}
+          </h1>
         ) : null}
       </div>
 
       {/* Right actions */}
       <div className="flex items-center gap-1 shrink-0">
+        <EndpointChip />
         {displayName && (loginMethod === "OIDC" || loginMethod === "SAML") && (
           <div
             className="hidden sm:flex items-center max-w-[220px] px-3 py-1.5 rounded-full border border-border bg-surface/70 text-xs text-text-muted truncate"
@@ -332,6 +319,40 @@ export default function Header({ onMenuClick, showMenuButton = true }) {
       </div>
       <DonateModal isOpen={donateOpen} onClose={() => setDonateOpen(false)} />
     </header>
+  );
+}
+
+function EndpointChip() {
+  const [origin, setOrigin] = useState("");
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") setOrigin(window.location.origin);
+  }, []);
+
+  if (!origin) return null;
+  const url = `${origin}/v1`;
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1600);
+    } catch { /* clipboard blocked */ }
+  };
+
+  return (
+    <div className="hidden xl:flex items-center gap-2 rounded-full border border-border bg-surface py-[5px] pr-1.5 pl-3 mr-1">
+      <span className="size-2 rounded-full bg-text-main shrink-0" aria-hidden="true" />
+      <span className="font-mono text-xs text-text-muted whitespace-nowrap">{url}</span>
+      <button
+        type="button"
+        onClick={handleCopy}
+        className="rounded-full bg-brand-500 text-on-brand text-[11px] font-semibold px-2.5 py-[3px] hover:bg-brand-600 transition-colors"
+      >
+        {copied ? "Copied" : "Copy"}
+      </button>
+    </div>
   );
 }
 

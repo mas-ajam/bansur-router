@@ -1375,20 +1375,19 @@ export default function ProviderDetailPage() {
   };
 
   return (
-    <div className="flex min-w-0 flex-col gap-6 px-1 sm:gap-8 sm:px-0">
+    <div className="flex min-w-0 flex-col gap-3.5">
       {/* Header */}
       <div className="min-w-0">
         <Link
           href="/dashboard/providers"
-          className="inline-flex items-center gap-1 text-sm text-text-muted hover:text-primary transition-colors mb-4"
+          className="inline-flex items-center gap-1.5 h-[30px] px-2.5 -ml-2.5 rounded-md text-[12.5px] font-medium text-text-muted hover:bg-surface-2 hover:text-text-main transition-colors mb-2"
         >
-          <span className="material-symbols-outlined text-lg">arrow_back</span>
+          <span className="material-symbols-outlined text-[16px]">arrow_back</span>
           Back to Providers
         </Link>
-        <div className="flex min-w-0 items-center gap-3 sm:gap-4">
+        <div className="flex min-w-0 items-center gap-3">
           <div
-            className="flex size-12 shrink-0 items-center justify-center rounded-lg"
-            style={{ backgroundColor: `${providerInfo.color}15` }}
+            className="flex size-[44px] shrink-0 items-center justify-center rounded-md border border-border bg-surface-2 overflow-hidden"
           >
             {headerImgError || !getHeaderIconPath() ? (
               <span className="text-sm font-bold" style={{ color: providerInfo.color }}>
@@ -1400,7 +1399,7 @@ export default function ProviderDetailPage() {
                 alt={providerInfo.name}
                 width={48}
                 height={48}
-                className="max-h-12 max-w-12 rounded-lg object-contain"
+                className="max-h-[28px] max-w-[28px] rounded object-contain"
                 sizes="48px"
                 onError={() => {
                   markProviderIconMissing(providerInfo.id);
@@ -1413,7 +1412,7 @@ export default function ProviderDetailPage() {
           </div>
           <div className="min-w-0">
             <div className="flex items-center gap-3 flex-wrap">
-              <h1 className="truncate text-2xl font-semibold tracking-tight sm:text-3xl">{providerInfo.name}</h1>
+              <h1 className="truncate text-xl font-semibold tracking-[-0.01em]">{providerInfo.name}</h1>
               {(providerInfo.notice?.apiKeyUrl || providerInfo.notice?.signupUrl || providerInfo.website) && (
                 <a
                   href={providerInfo.notice?.apiKeyUrl || providerInfo.notice?.signupUrl || providerInfo.website}
@@ -1426,7 +1425,7 @@ export default function ProviderDetailPage() {
                 </a>
               )}
             </div>
-            <p className="text-text-muted">
+            <p className="text-[13.5px] text-text-muted">
               {connections.length} connection{connections.length === 1 ? "" : "s"}
             </p>
           </div>
@@ -1461,7 +1460,7 @@ export default function ProviderDetailPage() {
         <Card>
           <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div className="min-w-0">
-              <h2 className="text-lg font-semibold">{isAnthropicCompatible ? "Anthropic Compatible Details" : "OpenAI Compatible Details"}</h2>
+              <h2 className="text-[13.5px] font-semibold">{isAnthropicCompatible ? "Anthropic Compatible Details" : "OpenAI Compatible Details"}</h2>
               <p className="break-all text-sm text-text-muted">
                 {isAnthropicCompatible ? "Messages API" : (providerNode.apiType === "responses" ? "Responses API" : "Chat Completions")} · {(providerNode.baseUrl || "").replace(/\/$/, "")}/
                 {isAnthropicCompatible ? "messages" : (providerNode.apiType === "responses" ? "responses" : "chat/completions")}
@@ -1524,7 +1523,7 @@ export default function ProviderDetailPage() {
       ) : (
         <Card>
           <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <h2 className="text-lg font-semibold">Connections</h2>
+            <h2 className="text-[13.5px] font-semibold">Connections</h2>
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
               {connections.length > 0 && proxyPools.length > 0 && (
                 <Button
@@ -1761,7 +1760,7 @@ export default function ProviderDetailPage() {
       <Card>
         <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
-            <h2 className="text-lg font-semibold">
+            <h2 className="text-[13.5px] font-semibold">
               {"Available Models"}
             </h2>
             {providerThinkingLevels && (

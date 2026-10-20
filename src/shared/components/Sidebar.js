@@ -111,24 +111,14 @@ export default function Sidebar({ onClose }) {
 
   return (
     <>
-      <aside className="flex w-72 flex-col border-r border-sidebar-border bg-sidebar-bg text-sidebar-text min-h-full">
-        {/* Traffic lights — neutral grays */}
-        <div className="flex items-center gap-2 px-6 pt-5 pb-2">
-          <div className="w-3 h-3 rounded-full bg-[#c9ced3]" />
-          <div className="w-3 h-3 rounded-full bg-[#8b949c]" />
-          <div className="w-3 h-3 rounded-full bg-[#5d666e]" />
-        </div>
-
-        {/* Logo */}
-        <div className="px-6 py-4 flex flex-col gap-2">
-          <Link href="/dashboard" className="flex items-center gap-3">
-            <LogoMark size={36} className="text-sidebar-text shrink-0" />
-            <div className="flex flex-col">
-              <span className="text-[15px] leading-tight text-white">
-                <span className="font-extrabold tracking-widest">BANSUR</span>{" "}
-                <span className="font-light tracking-widest">ROUTER</span>
-              </span>
-              <span className="text-xs text-sidebar-muted">v{APP_CONFIG.version}</span>
+      <aside className="flex w-[236px] shrink-0 flex-col border-r border-sidebar-border bg-sidebar-bg text-sidebar-text min-h-full">
+        {/* Brand */}
+        <div className="px-[18px] pt-[18px] pb-3.5 border-b border-sidebar-border flex flex-col gap-3">
+          <Link href="/dashboard" className="flex items-center gap-[11px]">
+            <LogoMark size={38} className="text-white shrink-0" />
+            <div className="flex flex-col leading-[1.15]">
+              <span className="text-[13.5px] font-bold tracking-[0.22em] text-white">BANSUR</span>
+              <span className="text-[11px] tracking-[0.06em] text-sidebar-muted">ROUTER</span>
             </div>
           </Link>
           {updateInfo && (
@@ -158,22 +148,22 @@ export default function Sidebar({ onClose }) {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 px-4 py-2 space-y-0.5 overflow-y-auto custom-scrollbar">
+        <nav className="flex-1 px-2.5 py-3 overflow-y-auto custom-scrollbar">
           {navItems.map((item) => (
             <Link
               key={item.href}
               href={item.href}
               onClick={onClose}
               className={cn(
-                "flex items-center gap-3 px-3 py-1 rounded-lg transition-all group",
+                "flex items-center gap-2.5 px-2.5 py-[7px] rounded-md mb-px transition-all group",
                 isActive(item.href)
-                  ? "bg-sidebar-active text-white"
-                  : "text-sidebar-muted hover:bg-white/5 hover:text-white"
+                  ? "bg-white text-[#101418]"
+                  : "text-sidebar-text hover:bg-white/5 hover:text-white"
               )}
             >
               <span
                 className={cn(
-                  "material-symbols-outlined text-[18px]",
+                  "material-symbols-outlined text-[17px]",
                   isActive(item.href) ? "fill-1" : "group-hover:text-white transition-colors"
                 )}
               >
@@ -184,8 +174,8 @@ export default function Sidebar({ onClose }) {
           ))}
 
           {/* System section */}
-          <div className="pt-3 mt-2 space-y-0.5">
-            <p className="px-4 text-xs font-semibold text-sidebar-muted/70 uppercase tracking-wider mb-2">
+          <div className="mt-1">
+            <p className="px-2.5 pt-3.5 pb-1.5 text-[10.5px] font-semibold uppercase tracking-[0.14em] text-[#5d666e]">
               System
             </p>
 
@@ -193,13 +183,13 @@ export default function Sidebar({ onClose }) {
             <button
               onClick={() => setMediaOpen((v) => !v)}
               className={cn(
-                "w-full flex items-center gap-3 px-3 py-1 rounded-lg transition-all group",
+                "w-full flex items-center gap-2.5 px-2.5 py-[7px] rounded-md mb-px transition-all group",
                 pathname.startsWith("/dashboard/media-providers")
-                  ? "bg-sidebar-active text-white"
-                  : "text-sidebar-muted hover:bg-white/5 hover:text-white"
+                  ? "bg-white text-[#101418]"
+                  : "text-sidebar-text hover:bg-white/5 hover:text-white"
               )}
             >
-              <span className="material-symbols-outlined text-[18px]">perm_media</span>
+              <span className="material-symbols-outlined text-[17px]">perm_media</span>
               <span className="text-[13px] font-medium flex-1 text-left">Media Providers</span>
               <span className="material-symbols-outlined text-[14px] transition-transform" style={{ transform: mediaOpen ? "rotate(180deg)" : "rotate(0deg)" }}>
                 expand_more
@@ -213,14 +203,13 @@ export default function Sidebar({ onClose }) {
                     href={`/dashboard/media-providers/${kind.id}`}
                     onClick={onClose}
                     className={cn(
-                      "flex items-center gap-3 px-4 py-1 rounded-lg transition-all group",
+                      "flex items-center py-[7px] pr-2.5 pl-[38px] rounded-md mb-px transition-all text-[12.5px] font-medium",
                       pathname.startsWith(`/dashboard/media-providers/${kind.id}`)
-                        ? "bg-sidebar-active text-white"
-                        : "text-sidebar-muted hover:bg-white/5 hover:text-white"
+                        ? "bg-white text-[#101418]"
+                        : "text-sidebar-text hover:bg-white/5 hover:text-white"
                     )}
                   >
-                    <span className="material-symbols-outlined text-[16px]">{kind.icon}</span>
-                    <span className="text-sm">{kind.label}</span>
+                    <span>{kind.label}</span>
                   </Link>
                 ))}
                 <Link
@@ -228,14 +217,13 @@ export default function Sidebar({ onClose }) {
                   href={COMBINED_WEB_ITEM.href}
                   onClick={onClose}
                   className={cn(
-                    "flex items-center gap-3 px-4 py-1 rounded-lg transition-all group",
+                    "flex items-center py-[7px] pr-2.5 pl-[38px] rounded-md mb-px transition-all text-[12.5px] font-medium",
                     pathname.startsWith(COMBINED_WEB_ITEM.href)
-                      ? "bg-sidebar-active text-white"
-                      : "text-sidebar-muted hover:bg-white/5 hover:text-white"
+                      ? "bg-white text-[#101418]"
+                      : "text-sidebar-text hover:bg-white/5 hover:text-white"
                   )}
                 >
-                  <span className="material-symbols-outlined text-[16px]">{COMBINED_WEB_ITEM.icon}</span>
-                  <span className="text-sm">{COMBINED_WEB_ITEM.label}</span>
+                  <span>{COMBINED_WEB_ITEM.label}</span>
                 </Link>
               </div>
             )}
@@ -246,15 +234,15 @@ export default function Sidebar({ onClose }) {
                 href={item.href}
                 onClick={onClose}
                 className={cn(
-                  "flex items-center gap-3 px-3 py-1 rounded-lg transition-all group",
+                  "flex items-center gap-2.5 px-2.5 py-[7px] rounded-md mb-px transition-all group",
                   isActive(item.href)
-                    ? "bg-sidebar-active text-white"
-                    : "text-sidebar-muted hover:bg-white/5 hover:text-white"
+                    ? "bg-white text-[#101418]"
+                    : "text-sidebar-text hover:bg-white/5 hover:text-white"
                 )}
               >
                 <span
                   className={cn(
-                    "material-symbols-outlined text-[18px]",
+                    "material-symbols-outlined text-[17px]",
                     isActive(item.href) ? "fill-1" : "group-hover:text-white transition-colors"
                   )}
                 >
@@ -273,15 +261,15 @@ export default function Sidebar({ onClose }) {
                   href={item.href}
                   onClick={onClose}
                   className={cn(
-                    "flex items-center gap-3 px-3 py-1 rounded-lg transition-all group",
+                    "flex items-center gap-2.5 px-2.5 py-[7px] rounded-md mb-px transition-all group",
                     isActive(item.href)
-                      ? "bg-sidebar-active text-white"
-                      : "text-sidebar-muted hover:bg-white/5 hover:text-white"
+                      ? "bg-white text-[#101418]"
+                      : "text-sidebar-text hover:bg-white/5 hover:text-white"
                   )}
                 >
                   <span
                     className={cn(
-                      "material-symbols-outlined text-[18px]",
+                      "material-symbols-outlined text-[17px]",
                       isActive(item.href) ? "fill-1" : "group-hover:text-white transition-colors"
                     )}
                   >
@@ -299,15 +287,15 @@ export default function Sidebar({ onClose }) {
               rel="noreferrer"
               onClick={onClose}
               className={cn(
-                "flex items-center gap-3 px-3 py-1 rounded-lg transition-all group w-full",
-                "text-sidebar-muted hover:bg-white/5 hover:text-white"
+                "flex items-center gap-2.5 px-2.5 py-[7px] rounded-md mb-px transition-all group w-full",
+                "text-sidebar-text hover:bg-white/5 hover:text-white"
               )}
             >
-              <span className="material-symbols-outlined text-[18px] group-hover:text-white transition-colors">
+              <span className="material-symbols-outlined text-[17px] group-hover:text-white transition-colors">
                 computer
               </span>
               <span className="text-[13px] font-medium">9Remote</span>
-              <span className="ml-auto text-[10px] font-semibold px-1.5 py-0.5 rounded-[3px] bg-white/10 text-sidebar-text">
+              <span className="ml-auto font-mono text-[10.5px] px-1.5 py-px rounded-full border border-[#39414a] text-sidebar-muted">
                 HOT
               </span>
             </a>
@@ -319,11 +307,11 @@ export default function Sidebar({ onClose }) {
               rel="noreferrer"
               onClick={onClose}
               className={cn(
-                "flex items-center gap-3 px-3 py-1 rounded-lg transition-all group w-full",
-                "text-sidebar-muted hover:bg-white/5 hover:text-white"
+                "flex items-center gap-2.5 px-2.5 py-[7px] rounded-md mb-px transition-all group w-full",
+                "text-sidebar-text hover:bg-white/5 hover:text-white"
               )}
             >
-              <span className="material-symbols-outlined text-[18px] group-hover:text-white transition-colors">
+              <span className="material-symbols-outlined text-[17px] group-hover:text-white transition-colors">
                 translate
               </span>
               <span className="text-[13px] font-medium">9English</span>
@@ -334,15 +322,15 @@ export default function Sidebar({ onClose }) {
               href="/dashboard/profile"
               onClick={onClose}
               className={cn(
-                "flex items-center gap-3 px-3 py-1 rounded-lg transition-all group",
+                "flex items-center gap-2.5 px-2.5 py-[7px] rounded-md mb-px transition-all group",
                 isActive("/dashboard/profile")
-                  ? "bg-sidebar-active text-white"
-                  : "text-sidebar-muted hover:bg-white/5 hover:text-white"
+                  ? "bg-white text-[#101418]"
+                  : "text-sidebar-text hover:bg-white/5 hover:text-white"
               )}
             >
               <span
                 className={cn(
-                  "material-symbols-outlined text-[18px]",
+                  "material-symbols-outlined text-[17px]",
                   isActive("/dashboard/profile") ? "fill-1" : "group-hover:text-white transition-colors"
                 )}
               >
@@ -352,6 +340,12 @@ export default function Sidebar({ onClose }) {
             </Link>
           </div>
         </nav>
+
+        {/* Footer */}
+        <div className="border-t border-sidebar-border px-[18px] py-3 flex items-center justify-between text-[11.5px] text-sidebar-muted">
+          <span>Bansur Router</span>
+          <span className="font-mono text-[#9aa3ab]">v{APP_CONFIG.version}</span>
+        </div>
 
       </aside>
 

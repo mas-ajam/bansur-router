@@ -719,7 +719,7 @@ export default function APIPageClient({ machineId }) {
 
   if (loading) {
     return (
-      <div className="flex flex-col gap-8">
+      <div className="flex flex-col gap-3.5">
         <CardSkeleton />
         <CardSkeleton />
       </div>
@@ -729,11 +729,17 @@ export default function APIPageClient({ machineId }) {
   const currentEndpoint = baseUrl;
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-3.5">
+      {/* Page head */}
+      <div className="mb-1.5">
+        <h2 className="text-xl font-semibold tracking-[-0.01em] text-text-main">Endpoint &amp; Key</h2>
+        <p className="mt-1 text-[13.5px] text-text-muted max-w-[640px]">One OpenAI-compatible endpoint for every tool. Keys are issued here, in the dashboard — nowhere else.</p>
+      </div>
+
+      <div className="grid gap-3.5 lg:grid-cols-2 items-start">
       {/* Endpoint Card */}
       <Card>
-        <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-          <span className="material-symbols-outlined text-primary">api</span>
+        <h2 className="text-[13.5px] font-semibold mb-4">
           API Endpoint
         </h2>
 
@@ -978,8 +984,7 @@ export default function APIPageClient({ machineId }) {
       {/* API Keys */}
       <Card id="require-api-key">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold flex items-center gap-2">
-            <span className="material-symbols-outlined text-primary">vpn_key</span>
+          <h2 className="text-[13.5px] font-semibold">
             API Keys
           </h2>
           <Button icon="add" onClick={() => setShowAddModal(true)}>
@@ -1100,6 +1105,34 @@ export default function APIPageClient({ machineId }) {
             ))}
           </div>
         )}
+      </Card>
+      </div>
+
+      {/* Try it */}
+      <Card padding="none">
+        <div className="flex items-center gap-2.5 px-[18px] py-3.5 border-b border-border">
+          <h2 className="text-[13.5px] font-semibold flex-1">Try it — POST /v1/chat/completions</h2>
+          <Button
+            size="sm"
+            variant="secondary"
+            icon={copied === "tryit_curl" ? "check" : "content_copy"}
+            onClick={() => copy(`curl ${currentEndpoint}/chat/completions -H "Authorization: Bearer YOUR_DASHBOARD_KEY" -H "Content-Type: application/json" -d '{"model":"kr/claude-sonnet-4.5","messages":[{"role":"user","content":"Refactor this function"}]}'`, "tryit_curl")}
+          >
+            {copied === "tryit_curl" ? "Copied" : "Copy curl"}
+          </Button>
+        </div>
+        <div className="p-[18px]">
+          <pre className="rounded-brand bg-brand-900 text-[#e8ebed] dark:bg-black/40 px-4 py-3.5 font-mono text-[12.5px] leading-[1.65] overflow-x-auto whitespace-pre">{`curl ${currentEndpoint}/chat/completions \\
+  -H "Authorization: Bearer YOUR_DASHBOARD_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "model": "kr/claude-sonnet-4.5",
+    "messages": [{ "role": "user", "content": "Refactor this function" }]
+  }'`}</pre>
+          <p className="mt-3.5 text-xs text-text-muted">
+            Also available: <span className="font-mono">GET /v1/models</span> · <span className="font-mono">POST /v1/messages</span> (Claude format) · <span className="font-mono">POST /v1beta/...</span> (Gemini format)
+          </p>
+        </div>
       </Card>
 
       {/* Add Key Modal */}

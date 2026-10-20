@@ -75,23 +75,23 @@ export default function NewProviderPage() {
   return (
     <div className="max-w-2xl mx-auto">
       {/* Header */}
-      <div className="mb-8">
+      <div className="mb-5">
         <Link
           href="/dashboard/providers"
-          className="inline-flex items-center gap-1 text-sm text-text-muted hover:text-primary transition-colors mb-4"
+          className="inline-flex items-center gap-1.5 h-[30px] px-2.5 -ml-2.5 rounded-md text-[12.5px] font-medium text-text-muted hover:bg-surface-2 hover:text-text-main transition-colors mb-2"
         >
-          <span className="material-symbols-outlined text-lg">arrow_back</span>
+          <span className="material-symbols-outlined text-[16px]">arrow_back</span>
           Back to Providers
         </Link>
-        <h1 className="text-3xl font-semibold tracking-tight">Add New Provider</h1>
-        <p className="text-text-muted mt-2">
+        <h1 className="text-xl font-semibold tracking-[-0.01em] text-text-main">Add New Provider</h1>
+        <p className="text-[13.5px] text-text-muted mt-1">
           Configure a new AI provider to use with your applications.
         </p>
       </div>
 
       {/* Form */}
       <Card>
-        <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-5">
           {/* Provider Selection */}
           <Select
             label="Provider"
@@ -136,7 +136,7 @@ export default function NewProviderPage() {
                   key={method.value}
                   type="button"
                   onClick={() => handleChange("authMethod", method.value)}
-                  className={`flex-1 flex items-center justify-center gap-2 p-4 rounded-lg border transition-all ${
+                  className={`flex-1 flex items-center justify-center gap-2 p-3.5 rounded-md border transition-all ${
                     formData.authMethod === method.value
                       ? "border-primary bg-primary/5 text-primary"
                       : "border-border hover:border-primary/50"

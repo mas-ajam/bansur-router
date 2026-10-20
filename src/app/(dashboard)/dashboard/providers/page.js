@@ -385,12 +385,17 @@ export default function ProvidersPage() {
     anthropicCompatibleProviders.length > 0;
 
   return (
-    <div className="flex min-w-0 flex-col gap-6 px-1 sm:px-0">
+    <div className="flex min-w-0 flex-col">
+      {/* Page head */}
+      <div className="mb-5">
+        <h2 className="text-xl font-semibold tracking-[-0.01em] text-text-main">Providers</h2>
+        <p className="mt-1 text-[13.5px] text-text-muted max-w-[640px]">Connect subscription accounts, free tiers, and API keys. Bansur Router rotates across accounts and falls back down the tiers automatically.</p>
+      </div>
       <div className="flex items-center justify-end">
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="h-8 rounded-lg border border-black/10 bg-black/[0.02] px-2 text-xs text-text-primary outline-none transition-colors hover:bg-black/5 dark:border-white/10 dark:bg-white/[0.03] dark:hover:bg-white/10"
+          className="h-8 rounded-md border border-border bg-surface px-2 text-xs text-text-main outline-none transition-colors hover:bg-surface-2"
           aria-label="Filter providers by connection status"
         >
           {STATUS_FILTER_OPTIONS.map((option) => (
@@ -413,9 +418,9 @@ export default function ProvidersPage() {
       )}
 
       {/* Custom Providers (OpenAI/Anthropic Compatible) — dynamic */}
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-2.5 mt-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <h2 className="text-lg sm:text-xl font-semibold flex items-center gap-2 leading-tight">
+          <h2 className="text-[13px] font-semibold uppercase tracking-[0.08em] text-text-subtle">
             Custom Providers (OpenAI/Anthropic Compatible){" "}
           </h2>
           <div className="grid grid-cols-1 gap-2 sm:flex sm:w-auto">
@@ -445,7 +450,7 @@ export default function ProvidersPage() {
             <span>No custom providers — use buttons above to add OpenAI/Anthropic compatible endpoints</span>
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-3">
             {[...compatibleProviders, ...anthropicCompatibleProviders].map(
               (info) => (
                 <ApiKeyProviderCard
@@ -466,9 +471,9 @@ export default function ProvidersPage() {
 
       {/* OAuth Providers */}
       {oauthEntries.length > 0 && (
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-2.5 mt-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <h2 className="text-lg sm:text-xl font-semibold flex items-center gap-2 leading-tight">
+          <h2 className="text-[13px] font-semibold uppercase tracking-[0.08em] text-text-subtle">
             OAuth Providers
           </h2>
           <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
@@ -493,7 +498,7 @@ export default function ProvidersPage() {
             </button>
           </div>
         </div>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-3">
           {oauthEntries.map(([key, info]) => {
             const authTypes = dualAuthTypes(info, key);
             return (
@@ -513,9 +518,9 @@ export default function ProvidersPage() {
 
       {/* Free Tier Providers */}
       {(freeEntries.length > 0 || freeTierEntries.length > 0) && (
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-2.5 mt-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <h2 className="text-lg sm:text-xl font-semibold flex items-center gap-2 leading-tight">
+          <h2 className="text-[13px] font-semibold uppercase tracking-[0.08em] text-text-subtle">
             Free Tier Providers
           </h2>
           <button
@@ -537,7 +542,7 @@ export default function ProvidersPage() {
             {testingMode === "free" ? "Testing..." : "Test All"}
           </button>
         </div>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-3">
           {freeEntries.map(([key, info]) => {
             // Dual-auth (e.g. kiro): count/toggle oauth + apikey/api_key so the
             // card total matches the provider detail page.
@@ -574,9 +579,9 @@ export default function ProvidersPage() {
 
       {/* API Key Providers — fixed list */}
       {apikeyEntries.length > 0 && (
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-2.5 mt-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <h2 className="text-lg sm:text-xl font-semibold flex items-center gap-2 leading-tight">
+          <h2 className="text-[13px] font-semibold uppercase tracking-[0.08em] text-text-subtle">
             API Key Providers{" "}
           </h2>
           <button
@@ -598,7 +603,7 @@ export default function ProvidersPage() {
             {testingMode === "apikey" ? "Testing..." : "Test All"}
           </button>
         </div>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-3">
           {visibleApikeyEntries.map(([key, info]) => (
             <ApiKeyProviderCard
               key={key}
@@ -623,7 +628,7 @@ export default function ProvidersPage() {
       )}
 
       {/* Web Cookie Providers — use browser subscription cookie instead of API key */}
-      {/* <div className="flex flex-col gap-4">
+      {/* <div className="flex flex-col gap-2.5 mt-6">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-semibold flex items-center gap-2">
             Web Cookie Providers{" "}
@@ -710,57 +715,64 @@ function ProviderCard({ providerId, provider, stats, authType, onToggle }) {
     compatible: "Compatible",
   };
 
+  const dotClass = error
+    ? "bg-white border-[2.5px] border-text-main"
+    : connected > 0
+      ? "bg-text-main"
+      : "bg-transparent border-[1.5px] border-[#a7afb6]";
+
   return (
     <Link href={`/dashboard/providers/${providerId}`} className="group min-w-0">
       <Card
-        padding="xs"
+        padding="none"
         className={`h-full hover:bg-black/[0.01] dark:hover:bg-white/[0.01] transition-colors cursor-pointer ${allDisabled ? "opacity-50" : ""}`}
       >
-        <div className="flex min-w-0 items-center justify-between gap-3">
-          <div className="flex min-w-0 items-center gap-3">
-            <div
-              className="size-8 shrink-0 rounded-lg flex items-center justify-center"
-              style={{
-                backgroundColor: `${provider.color?.length > 7 ? provider.color : provider.color + "15"}`,
-              }}
-            >
+        <div className="flex h-full min-w-0 flex-col gap-3 p-4">
+          <div className="flex items-start gap-3">
+            <div className="size-[38px] shrink-0 rounded-md border border-border bg-surface-2 flex items-center justify-center overflow-hidden">
               <ProviderIcon
                 src={`/providers/${provider.id}.png`}
                 alt={provider.name}
-                size={30}
-                className="object-contain rounded-lg max-w-[32px] max-h-[32px]"
+                size={26}
+                className="object-contain max-w-[26px] max-h-[26px]"
                 fallbackText={
                   provider.textIcon || provider.id.slice(0, 2).toUpperCase()
                 }
                 fallbackColor={provider.color}
               />
             </div>
-            <div className="min-w-0">
-              <h3 className="truncate font-semibold">{provider.name}</h3>
-              <div className="flex min-w-0 items-center gap-1.5 text-xs flex-wrap">
-                {allDisabled ? (
-                  <Badge variant="default" size="sm">
-                    <span className="flex items-center gap-1">
-                      <span className="material-symbols-outlined text-[12px]">
-                        pause_circle
-                      </span>
-                      Disabled
-                    </span>
-                  </Badge>
-                ) : isNoAuth ? (
-                  <Badge variant="success" size="sm" dot>Ready</Badge>
-                ) : (
-                  <>
-                    {getStatusDisplay(connected, error, errorCode)}
-                    {errorTime && (
-                      <span className="text-text-muted">{errorTime}</span>
-                    )}
-                  </>
-                )}
-              </div>
+            <div className="flex-1 min-w-0">
+              <h3 className="truncate text-sm font-semibold leading-[1.25]">{provider.name}</h3>
+              <p className="truncate text-xs text-text-muted">{dotLabels[authType] || authType}</p>
             </div>
+            <span className={`size-2 shrink-0 rounded-full mt-1 ${dotClass}`} />
           </div>
-          <div className="flex shrink-0 items-center gap-2">
+          <div className="flex min-w-0 items-center gap-1.5 text-xs flex-wrap">
+            {allDisabled ? (
+              <Badge variant="default" size="sm">
+                <span className="flex items-center gap-1">
+                  <span className="material-symbols-outlined text-[12px]">
+                    pause_circle
+                  </span>
+                  Disabled
+                </span>
+              </Badge>
+            ) : isNoAuth ? (
+              <Badge variant="success" size="sm" dot>Ready</Badge>
+            ) : (
+              <>
+                {getStatusDisplay(connected, error, errorCode)}
+                {errorTime && (
+                  <span className="text-text-muted">{errorTime}</span>
+                )}
+              </>
+            )}
+          </div>
+          <div className="mt-auto flex items-center gap-2 pt-1">
+            <span className="inline-flex h-[30px] items-center rounded-md bg-brand-500 px-2.5 text-[12.5px] font-medium text-on-brand">
+              Manage
+            </span>
+            <div className="flex-1" />
             {stats.total > 0 && (
               <div
                 className="opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100"
@@ -838,67 +850,74 @@ function ApiKeyProviderCard({
     return getProviderIconSrc(provider.id);
   };
 
+  const dotClass = error
+    ? "bg-white border-[2.5px] border-text-main"
+    : connected > 0
+      ? "bg-text-main"
+      : "bg-transparent border-[1.5px] border-[#a7afb6]";
+
   return (
     <Link href={`/dashboard/providers/${providerId}`} className="group min-w-0">
       <Card
-        padding="xs"
+        padding="none"
         className={`h-full hover:bg-black/[0.01] dark:hover:bg-white/[0.01] transition-colors cursor-pointer ${allDisabled ? "opacity-50" : ""}`}
       >
-        <div className="flex min-w-0 items-center justify-between gap-3">
-          <div className="flex min-w-0 items-center gap-3">
-            <div
-              className="size-8 shrink-0 rounded-lg flex items-center justify-center"
-              style={{
-                backgroundColor: `${provider.color?.length > 7 ? provider.color : provider.color + "15"}`,
-              }}
-            >
+        <div className="flex h-full min-w-0 flex-col gap-3 p-4">
+          <div className="flex items-start gap-3">
+            <div className="size-[38px] shrink-0 rounded-md border border-border bg-surface-2 flex items-center justify-center overflow-hidden">
               <ProviderIcon
                 src={getIconPath()}
                 alt={provider.name}
-                size={30}
-                className="object-contain rounded-lg max-w-[30px] max-h-[30px]"
+                size={26}
+                className="object-contain max-w-[26px] max-h-[26px]"
                 fallbackText={
                   provider.textIcon || provider.id.slice(0, 2).toUpperCase()
                 }
                 fallbackColor={provider.color}
               />
             </div>
-            <div className="min-w-0">
-              <h3 className="truncate font-semibold">{provider.name}</h3>
-              <div className="flex min-w-0 items-center gap-1.5 text-xs flex-wrap">
-                {allDisabled ? (
-                  <Badge variant="default" size="sm">
-                    <span className="flex items-center gap-1">
-                      <span className="material-symbols-outlined text-[12px]">
-                        pause_circle
-                      </span>
-                      Disabled
-                    </span>
-                  </Badge>
-                ) : (
-                  <>
-                    {getStatusDisplay(connected, error, errorCode)}
-                    {isCompatible && (
-                      <Badge variant="default" size="sm">
-                        {provider.apiType === "responses"
-                          ? "Responses"
-                          : "Chat"}
-                      </Badge>
-                    )}
-                    {isAnthropicCompatible && (
-                      <Badge variant="default" size="sm">
-                        Messages
-                      </Badge>
-                    )}
-                    {errorTime && (
-                      <span className="text-text-muted">{errorTime}</span>
-                    )}
-                  </>
-                )}
-              </div>
+            <div className="flex-1 min-w-0">
+              <h3 className="truncate text-sm font-semibold leading-[1.25]">{provider.name}</h3>
+              <p className="truncate text-xs text-text-muted">{dotLabels[authType] || authType}</p>
             </div>
+            <span className={`size-2 shrink-0 rounded-full mt-1 ${dotClass}`} />
           </div>
-          <div className="flex shrink-0 items-center gap-2">
+          <div className="flex min-w-0 items-center gap-1.5 text-xs flex-wrap">
+            {allDisabled ? (
+              <Badge variant="default" size="sm">
+                <span className="flex items-center gap-1">
+                  <span className="material-symbols-outlined text-[12px]">
+                    pause_circle
+                  </span>
+                  Disabled
+                </span>
+              </Badge>
+            ) : (
+              <>
+                {getStatusDisplay(connected, error, errorCode)}
+                {isCompatible && (
+                  <Badge variant="default" size="sm">
+                    {provider.apiType === "responses"
+                      ? "Responses"
+                      : "Chat"}
+                  </Badge>
+                )}
+                {isAnthropicCompatible && (
+                  <Badge variant="default" size="sm">
+                    Messages
+                  </Badge>
+                )}
+                {errorTime && (
+                  <span className="text-text-muted">{errorTime}</span>
+                )}
+              </>
+            )}
+          </div>
+          <div className="mt-auto flex items-center gap-2 pt-1">
+            <span className="inline-flex h-[30px] items-center rounded-md bg-brand-500 px-2.5 text-[12.5px] font-medium text-on-brand">
+              Manage
+            </span>
+            <div className="flex-1" />
             {stats.total > 0 && (
               <div
                 className="opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100"
