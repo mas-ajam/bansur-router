@@ -2,6 +2,10 @@
 
 All notable changes to Bansur Router will be documented in this file.
 
+## 1.0.7 (2026-10-20)
+
+- **Dashboard layouts aligned to the new design, screen by screen.** Following 1.0.6's design system, every main screen's layout now follows the same composition: a 236px dark sidebar with the endpoint chip in a 58px top bar, content capped at 1240px, the prototype's page-header pattern (title, muted subtitle, actions), and its card grids, stat cards (muted label, mono numerals), and table metrics (uppercase 11px headers, 14px cell padding) across Endpoint & Key, Providers, Usage, Quota Tracker, Token Saver, Console Log, CLI Tools, Proxy Pools, Skills, Media Providers, Profile, and Settings. The login screen is the prototype's single dark card. Where the app's live features differ from a static mock (live quota widgets on provider connections, the streaming console terminal, the translator's pipeline debugger), the layout was adapted around the real functionality instead of faking the mock — no data or behavior changes anywhere.
+
 ## 1.0.6 (2026-10-20)
 
 - **Dashboard rebuilt from scratch.** The web dashboard gets the full monochrome mesh design system introduced with the 1.0.5 identity: ink `#101418` palette (the previous orange theme is gone from the interface), IBM Plex Sans/Mono typography, a dark sidebar rail with the mesh logo and BANSUR ROUTER wordmark in both light and dark modes, monochrome status indicators, and a redesigned dark login screen. All screens — providers, combos, usage, quota, token saver, console log, translator, and the rest — were restyled to the new system. Styling only: no behavior, data, or API changes.
