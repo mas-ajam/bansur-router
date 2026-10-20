@@ -20,7 +20,7 @@
   --color-brand-300: #b7babe;
   --color-brand-400: #8f939a;
   --color-brand-500: #101418;
-  --color-brand-600: #1f2329;
+  --color-brand-600: #1b2026;
   --color-brand-700: #2c3138;
   --color-brand-800: #3a4048;
   --color-brand-900: #0a0c0e;
@@ -36,11 +36,11 @@
   --color-bg: #f5f6f7;
   --color-bg-alt: #eef0f1;
   --color-surface: #ffffff;
-  --color-surface-2: #f1f2f3;
+  --color-surface-2: #fafbfb;
   --color-surface-3: #e4e6e8;
   /* Inset-surface tint (code wells, chips) — historically named "sidebar";
      kept as a surface token because many screens use bg-sidebar that way. */
-  --color-sidebar: rgba(241, 242, 243, 0.85);
+  --color-sidebar: rgba(250, 251, 251, 0.85);
 
   /* Sidebar dark rail (used in both modes) */
   --color-sidebar-bg: #101418;
@@ -48,10 +48,16 @@
   --color-sidebar-muted: #7d858e;
   --color-sidebar-border: #232930;
   --color-sidebar-active: rgba(255, 255, 255, 0.08);
+  --color-sidebar-hover: #1b2026;
 
   /* Borders */
   --color-border: #e3e6e9;
   --color-border-subtle: #eceef0;
+  /* Interactive-element border (artifact --line-2): buttons, fields, chips, seg, tags, icon tiles */
+  --color-border-strong: #d3d8dc;
+
+  /* Switch off-state track (artifact .switch) */
+  --color-switch-off: #cdd3d8;
 
   /* Text */
   --color-text: #14181c;
@@ -77,7 +83,7 @@
     inset 0 1px 0 0 rgba(255,255,255,0.8),
     0 1px 2px rgba(16,20,24,0.05),
     0 12px 36px -8px rgba(16,20,24,0.12);
-  --shadow-focus: 0 0 0 3px rgba(16, 20, 24, 0.22);
+  --shadow-focus: 0 0 0 3px rgba(16, 20, 24, 0.08);
 
   color-scheme: light;
 }
@@ -114,9 +120,12 @@
   --color-sidebar-muted: #7d858e;
   --color-sidebar-border: #1e2126;
   --color-sidebar-active: rgba(255, 255, 255, 0.07);
+  --color-sidebar-hover: #1b2026;
 
   --color-border: #26292f;
   --color-border-subtle: #1e2126;
+  --color-border-strong: #33373e;
+  --color-switch-off: #33373e;
 
   --color-text: #f2f3f4;
   --color-text-main: #f2f3f4;
@@ -187,8 +196,11 @@ select {
   --color-sidebar-muted: var(--color-sidebar-muted);
   --color-sidebar-border: var(--color-sidebar-border);
   --color-sidebar-active: var(--color-sidebar-active);
+  --color-sidebar-hover: var(--color-sidebar-hover);
   --color-border: var(--color-border);
   --color-border-subtle: var(--color-border-subtle);
+  --color-border-strong: var(--color-border-strong);
+  --color-switch-off: var(--color-switch-off);
   --color-text: var(--color-text);
   --color-text-main: var(--color-text-main);
   --color-text-muted: var(--color-text-muted);
@@ -234,14 +246,16 @@ body {
   background-color: var(--color-bg);
   color: var(--color-text-main);
   font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Selection - ink tint */
+/* Selection - ink block (artifact spec) */
 ::selection {
-  background-color: rgba(16, 20, 24, 0.12);
-  color: var(--color-text-main);
+  background-color: #101418;
+  color: #fff;
 }
 .dark ::selection {
   background-color: rgba(242, 243, 244, 0.25);
@@ -256,6 +270,15 @@ input, textarea {
 /* Scrollbar (custom-scrollbar utility kept for compat) */
 .custom-scrollbar::-webkit-scrollbar {
   width: 6px;
+}
+
+/* Hidden scrollbar (artifact sidebar nav: width 0) */
+.scrollbar-none {
+  scrollbar-width: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  width: 0;
+  height: 0;
 }
 .custom-scrollbar::-webkit-scrollbar-track {
   background: transparent;

@@ -18,9 +18,9 @@ export default function Input({
   ...props
 }) {
   return (
-    <div className={cn("flex flex-col gap-1.5", className)}>
+    <div className={cn("flex flex-col", className)}>
       {label && (
-        <label className="text-sm font-medium text-text-main">
+        <label className="text-[12.5px] font-semibold text-text-main mb-1.5">
           {label}
           {required && <span className="text-text-main font-bold ml-1">*</span>}
         </label>
@@ -38,27 +38,25 @@ export default function Input({
           onChange={onChange}
           disabled={disabled}
           className={cn(
-            "w-full py-2.5 px-3 text-sm text-text-main bg-surface-2 rounded-brand",
-            "border border-transparent placeholder-text-muted/70",
-            "focus:outline-none focus:ring-2 focus:ring-brand-500/25 focus:border-brand-500/50",
-            "transition-all duration-150 ease-out disabled:opacity-50 disabled:cursor-not-allowed",
-            // iOS zoom fix
-            "text-[16px] sm:text-sm",
+            "w-full px-[11px] py-2 text-sm text-text-main bg-surface rounded-md",
+            "border border-border-strong placeholder-text-muted/70",
+            "focus:outline-none focus:border-brand-500 focus:shadow-[var(--shadow-focus)]",
+            "transition-[border-color,box-shadow] duration-150 ease-out disabled:opacity-50 disabled:cursor-not-allowed",
             icon && "pl-10",
-            error && "ring-1 ring-text-main focus:ring-2 focus:ring-text-main/25 border-text-main",
+            error && "border-text-main",
             inputClassName
           )}
           {...props}
         />
       </div>
       {error && (
-        <p className="text-xs text-text-main font-medium flex items-center gap-1">
+        <p className="text-xs text-text-main font-medium flex items-center gap-1 mt-1.5">
           <span className="material-symbols-outlined text-[14px]">error</span>
           {error}
         </p>
       )}
       {hint && !error && (
-        <p className="text-xs text-text-muted">{hint}</p>
+        <p className="text-xs text-text-muted mt-1.5">{hint}</p>
       )}
     </div>
   );

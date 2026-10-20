@@ -2,20 +2,22 @@
 
 import { cn } from "@/shared/utils/cn";
 
+/* Artifact .btn: default = panel bg + line-2 border; primary/danger = solid ink;
+   ghost = transparent border, ink text. No shadow, no scale transform. */
 const variants = {
-  primary: "bg-brand-500 hover:bg-brand-600 text-on-brand shadow-sm disabled:bg-surface-3 disabled:text-text-muted",
-  secondary: "bg-surface-2 hover:bg-surface-3 text-text-main border border-border disabled:opacity-50",
-  outline: "border border-border text-text-main hover:bg-surface-2 hover:border-text-muted",
-  ghost: "text-text-muted hover:bg-surface-2 hover:text-text-main",
-  danger: "bg-transparent border border-text-main text-text-main hover:bg-surface-2 disabled:bg-surface-3 disabled:text-text-muted disabled:border-transparent",
-  success: "bg-brand-500 hover:bg-brand-600 text-on-brand shadow-sm disabled:bg-surface-3 disabled:text-text-muted",
+  primary: "bg-brand-500 border-brand-500 hover:bg-brand-600 hover:border-brand-600 text-on-brand",
+  secondary: "bg-surface border-border-strong text-text-main hover:bg-surface-2 hover:border-[#b9c0c6]",
+  outline: "bg-transparent border-border-strong text-text-main hover:bg-surface-2 hover:border-[#b9c0c6]",
+  ghost: "bg-transparent border-transparent text-text-main hover:bg-[#eef0f1]",
+  danger: "bg-brand-500 border-brand-500 hover:bg-brand-600 hover:border-brand-600 text-on-brand",
+  success: "bg-brand-500 border-brand-500 hover:bg-brand-600 hover:border-brand-600 text-on-brand",
 };
 
 const sizes = {
-  xs: "h-6 px-2.5 text-[11px] rounded-[6px] gap-1.5",
-  sm: "h-[30px] px-2.5 text-[12.5px] rounded-md",
-  md: "h-8 px-[13px] text-[13px] rounded-md",
-  lg: "h-10 px-5 text-sm rounded-md",
+  xs: "h-6 px-2.5 text-[11px] rounded-md gap-1.5",
+  sm: "px-2.5 py-1 text-[12.5px] rounded-md",
+  md: "px-[13px] py-[7px] text-[13px] rounded-md",
+  lg: "px-5 py-2.5 text-sm rounded-md",
 };
 
 export default function Button({
@@ -33,8 +35,8 @@ export default function Button({
   return (
     <button
       className={cn(
-        "inline-flex items-center justify-center gap-[7px] font-medium transition-all duration-150 ease-out cursor-pointer",
-        "active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100",
+        "inline-flex items-center justify-center gap-[7px] font-medium whitespace-nowrap border transition-[background-color,border-color] duration-150 ease-out cursor-pointer",
+        "disabled:opacity-45 disabled:cursor-not-allowed",
         variants[variant],
         sizes[size],
         fullWidth && "w-full",

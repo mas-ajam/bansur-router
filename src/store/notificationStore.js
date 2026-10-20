@@ -17,7 +17,7 @@ export const useNotificationStore = create((set, get) => ({
       type: notification.type || "info",
       message: notification.message,
       title: notification.title || null,
-      duration: notification.duration ?? 5000,
+      duration: notification.duration ?? 2200,
       dismissible: notification.dismissible ?? true,
       createdAt: Date.now(),
     };

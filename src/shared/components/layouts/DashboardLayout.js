@@ -6,36 +6,10 @@ import { useNotificationStore } from "@/store/notificationStore";
 import Sidebar from "../Sidebar";
 import Header from "../Header";
 
-function getToastStyle(type) {
-  if (type === "success") {
-    return {
-      wrapper: "border-border bg-surface-2 text-text-main dark:text-text-main",
-      icon: "check_circle",
-    };
-  }
-  if (type === "error") {
-    return {
-      wrapper: "border-text-main bg-surface-2 text-text-main dark:text-text-main",
-      icon: "error",
-    };
-  }
-  if (type === "warning") {
-    return {
-      wrapper: "border-border bg-surface-2 text-text-muted dark:text-text-muted",
-      icon: "warning",
-    };
-  }
-  return {
-    wrapper: "border-border bg-surface-2 text-text-muted dark:text-text-muted",
-    icon: "info",
-  };
-}
-
 export default function DashboardLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const pathname = usePathname();
   const notifications = useNotificationStore((state) => state.notifications);
-  const removeNotification = useNotificationStore((state) => state.removeNotification);
 
   // Preload heavy usage charts in background when browser is idle
   useEffect(() => {
@@ -57,34 +31,17 @@ export default function DashboardLayout({ children }) {
 
   return (
     <div className="flex h-screen w-full overflow-hidden bg-bg">
-      <div className="fixed top-4 right-4 z-[80] flex w-[min(92vw,380px)] flex-col gap-2">
-        {notifications.map((n) => {
-          const style = getToastStyle(n.type);
-          return (
-            <div
-              key={n.id}
-              className={`rounded-lg border px-3 py-2 shadow-lg backdrop-blur-sm ${style.wrapper}`}
-            >
-              <div className="flex items-start gap-2">
-                <span className="material-symbols-outlined text-[18px] leading-5">{style.icon}</span>
-                <div className="min-w-0 flex-1">
-                  {n.title ? <p className="text-xs font-semibold mb-0.5">{n.title}</p> : null}
-                  <p className="text-xs whitespace-pre-wrap break-words">{n.message}</p>
-                </div>
-                {n.dismissible ? (
-                  <button
-                    type="button"
-                    onClick={() => removeNotification(n.id)}
-                    className="text-current/70 hover:text-current"
-                    aria-label="Dismiss notification"
-                  >
-                    <span className="material-symbols-outlined text-[16px]">close</span>
-                  </button>
-                ) : null}
-              </div>
-            </div>
-          );
-        })}
+      {/* Toasts — artifact .toast: bottom-center ink pill, no icon, no close */}
+      <div className="fixed bottom-[22px] left-1/2 z-[100] flex w-full max-w-[min(92vw,560px)] -translate-x-1/2 flex-col items-center gap-2 px-4 pointer-events-none">
+        {notifications.map((n) => (
+          <div
+            key={n.id}
+            className="rounded-full bg-brand-500 px-4 py-[9px] text-center text-[13px] font-medium text-on-brand shadow-[0_8px_24px_rgba(0,0,0,0.25)]"
+          >
+            {n.title ? <span className="font-semibold">{n.title} — </span> : null}
+            <span className="whitespace-pre-wrap break-words">{n.message}</span>
+          </div>
+        ))}
       </div>
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
