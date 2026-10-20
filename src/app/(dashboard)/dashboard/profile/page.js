@@ -4,7 +4,6 @@ import { useState, useEffect, useRef } from "react";
 import { Card, Button, Toggle, Input } from "@/shared/components";
 import Modal, { ConfirmModal } from "@/shared/components/Modal";
 import LanguageSwitcher from "@/shared/components/LanguageSwitcher";
-import { useTheme } from "@/shared/hooks/useTheme";
 import { cn } from "@/shared/utils/cn";
 import { APP_CONFIG } from "@/shared/constants/config";
 import { LOCALE_COOKIE, normalizeLocale } from "@/i18n/config";
@@ -20,7 +19,6 @@ function getLocaleFromCookie() {
 }
 
 export default function ProfilePage() {
-  const { theme, setTheme, isDark } = useTheme();
   const [locale, setLocale] = useState(() => getLocaleFromCookie());
   const [langOpen, setLangOpen] = useState(false);
   const [shutdownOpen, setShutdownOpen] = useState(false);
@@ -782,26 +780,6 @@ export default function ProfilePage() {
                 <h2 className="text-[13.5px] font-semibold">Local Mode</h2>
                 <p className="text-sm text-text-muted">Running on your machine</p>
               </div>
-            </div>
-            <div className="inline-flex rounded-md border border-border bg-surface overflow-hidden w-full sm:w-auto">
-              {["light", "dark", "system"].map((option) => (
-                <button
-                  key={option}
-                  type="button"
-                  onClick={() => setTheme(option)}
-                  className={cn(
-                    "flex items-center justify-center gap-1.5 px-[13px] py-1.5 text-[12.5px] font-medium transition-colors flex-1 sm:flex-initial border-r border-border last:border-r-0",
-                    theme === option
-                      ? "bg-brand-500 text-on-brand"
-                      : "text-text-muted hover:bg-surface-2 hover:text-text-main"
-                  )}
-                >
-                  <span className="material-symbols-outlined text-[18px]">
-                    {option === "light" ? "light_mode" : option === "dark" ? "dark_mode" : "contrast"}
-                  </span>
-                  <span className="capitalize text-xs sm:text-sm">{option}</span>
-                </button>
-              ))}
             </div>
           </div>
           <div className="flex flex-col gap-3 pt-4 border-t border-border">

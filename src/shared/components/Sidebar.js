@@ -5,436 +5,356 @@ import PropTypes from "prop-types";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/shared/utils/cn";
-import { APP_CONFIG, UPDATER_CONFIG } from "@/shared/constants/config";
-import { MEDIA_PROVIDER_KINDS } from "@/shared/constants/providers";
-import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
-import useSettingsStore from "@/store/settingsStore";
-import Button from "./Button";
+import { APP_CONFIG } from "@/shared/constants/config";
 import LogoMark from "./LogoMark";
-import { ConfirmModal } from "./Modal";
+import SpecIcon from "./SpecIcon";
 
-// const VISIBLE_MEDIA_KINDS = ["embedding", "image", "imageToText", "tts", "stt", "webSearch", "webFetch", "video", "music"];
-const VISIBLE_MEDIA_KINDS = ["embedding", "image", "video", "tts", "stt", "systemone"];
-// Combined entry: webSearch + webFetch share one page at /dashboard/media-providers/web
-const COMBINED_WEB_ITEM = { id: "web", label: "Web Fetch & Search", icon: "travel_explore", href: "/dashboard/media-providers/web" };
-
-const navItems = [
-  { href: "/dashboard/endpoint", label: "Endpoint & Key", icon: "api" },
-  { href: "/dashboard/providers", label: "Providers", icon: "dns" },
-  // { href: "/dashboard/basic-chat", label: "Basic Chat", icon: "chat" }, // Hidden
-  { href: "/dashboard/combos", label: "Combo & Vision Adapter", icon: "layers" },
-  { href: "/dashboard/usage", label: "Usage", icon: "bar_chart" },
-  { href: "/dashboard/quota", label: "Quota Tracker", icon: "data_usage" },
-  { href: "/dashboard/token-saver", label: "Token Saver", icon: "savings" },
-  // { href: "/dashboard/pxpipe", label: "PXPIPE", icon: "image" },
-  { href: "/dashboard/cli-tools", label: "CLI Tools", icon: "terminal" },
-];
-
-const debugItems = [
-  { href: "/dashboard/console-log", label: "Console Log", icon: "terminal" },
-  { href: "/dashboard/translator", label: "Translator", icon: "translate" },
-];
-
-const systemItems = [
-  { href: "/dashboard/proxy-pools", label: "Proxy Pools", icon: "lan" },
-  { href: "/dashboard/skills", label: "Skills", icon: "extension" },
+/* Nav structure, order, badges and icons follow the Bansur Router Dashboard
+   artifact exactly (5 groups: Gateway / Observe / Optimize / Tools / System).
+   Icons are the artifact's custom 24-viewBox stroke-1.8 SVGs at 17px. */
+const NAV_GROUPS = [
+  {
+    label: "Gateway",
+    items: [
+      {
+        key: "dashboard",
+        href: "/dashboard",
+        label: "Dashboard",
+        icon: (
+          <>
+            <rect x="3" y="3" width="8" height="10" rx="1.5" />
+            <rect x="13" y="3" width="8" height="6" rx="1.5" />
+            <rect x="13" y="11" width="8" height="10" rx="1.5" />
+            <rect x="3" y="15" width="8" height="6" rx="1.5" />
+          </>
+        ),
+      },
+      {
+        key: "providers",
+        href: "/dashboard/providers",
+        label: "Providers",
+        badge: "providers",
+        icon: (
+          <>
+            <rect x="3" y="4" width="18" height="6" rx="1.5" />
+            <rect x="3" y="14" width="18" height="6" rx="1.5" />
+            <circle cx="7.5" cy="7" r="1" fill="currentColor" />
+            <circle cx="7.5" cy="17" r="1" fill="currentColor" />
+          </>
+        ),
+      },
+      {
+        key: "combos",
+        href: "/dashboard/combos",
+        label: "Combo & Vision Adapter",
+        icon: <path d="M12 3v4m0 0 7 4m-7-4L5 11m14 0v6a2 2 0 0 1-2 2h-3m-9-8v6a2 2 0 0 0 2 2h3" />,
+      },
+      {
+        key: "endpoint",
+        href: "/dashboard/endpoint",
+        label: "Endpoint & Key",
+        icon: <path d="M8 9l-4 3 4 3m8-6 4 3-4 3M13 5l-2 14" />,
+      },
+    ],
+  },
+  {
+    label: "Observe",
+    items: [
+      {
+        key: "usage",
+        href: "/dashboard/usage",
+        label: "Usage",
+        icon: <path d="M4 20V10m5.5 10V4M15 20v-8m5 8V7" />,
+      },
+      {
+        key: "quota",
+        href: "/dashboard/quota",
+        label: "Quota Tracker",
+        icon: (
+          <>
+            <path d="M12 3a9 9 0 1 0 9 9h-9z" />
+            <path d="M15 2.5A9 9 0 0 1 21.5 9H15z" />
+          </>
+        ),
+      },
+      {
+        key: "console-log",
+        href: "/dashboard/console-log",
+        label: "Console Log",
+        badge: "live",
+        icon: <path d="m5 7 5 5-5 5m7 0h7" />,
+      },
+    ],
+  },
+  {
+    label: "Optimize",
+    items: [
+      {
+        key: "token-saver",
+        href: "/dashboard/token-saver",
+        label: "Token Saver",
+        icon: <path d="M12 3v18m5-15.5c-.8-1-2.6-1.5-5-1.5-3 0-5 1.3-5 3.2 0 4.4 10 2.4 10 6.6 0 1.9-2 3.2-5 3.2-2.4 0-4.2-.6-5-1.6" />,
+      },
+      {
+        key: "pxpipe",
+        href: "/dashboard/pxpipe",
+        label: "PXPIPE",
+        icon: (
+          <>
+            <rect x="3" y="5" width="18" height="14" rx="2" />
+            <path d="M3 10h18M8 15h5" />
+          </>
+        ),
+      },
+      {
+        key: "translator",
+        href: "/dashboard/translator",
+        label: "Translator",
+        icon: <path d="M4 6h9M8.5 4v2c0 3.5-2 6.5-4.5 8.5M6 9.5c1 2.5 3.2 4.7 6 6M13 20l4.5-10L22 20m-7.8-3h6.6" />,
+      },
+    ],
+  },
+  {
+    label: "Tools",
+    items: [
+      {
+        key: "cli-tools",
+        href: "/dashboard/cli-tools",
+        label: "CLI Tools",
+        icon: (
+          <>
+            <rect x="3" y="4" width="18" height="16" rx="2" />
+            <path d="m7 9 3 3-3 3m5 0h5" />
+          </>
+        ),
+      },
+      {
+        key: "basic-chat",
+        href: "/dashboard/basic-chat",
+        label: "Basic Chat",
+        icon: <path d="M21 12a8 8 0 0 1-8 8H4l2.3-2.9A8 8 0 1 1 21 12z" />,
+      },
+      {
+        key: "skills",
+        href: "/dashboard/skills",
+        label: "Skills",
+        icon: (
+          <>
+            <path d="M9 3v4L4 9l2 3-2 3 5 2v4h6v-4l5-2-2-3 2-3-5-2V3z" />
+            <circle cx="12" cy="12" r="2.4" />
+          </>
+        ),
+      },
+      {
+        key: "media",
+        href: "/dashboard/media-providers/embedding",
+        label: "Media Providers",
+        icon: (
+          <>
+            <rect x="3" y="5" width="18" height="14" rx="2" />
+            <circle cx="9" cy="10" r="1.6" />
+            <path d="m4 18 5-4 4 3 3-2 4 3" />
+          </>
+        ),
+      },
+      {
+        key: "web",
+        href: "/dashboard/media-providers/web",
+        label: "Web Fetch & Search",
+        sub: true,
+      },
+    ],
+  },
+  {
+    label: "System",
+    items: [
+      {
+        key: "proxy-pools",
+        href: "/dashboard/proxy-pools",
+        label: "Proxy Pools",
+        icon: (
+          <>
+            <circle cx="6" cy="6" r="2.5" />
+            <circle cx="18" cy="6" r="2.5" />
+            <circle cx="12" cy="18" r="2.5" />
+            <path d="M8 7.5 10.5 16M16 7.5 13.5 16M8.5 6h7" />
+          </>
+        ),
+      },
+      {
+        key: "mitm",
+        href: "/dashboard/mitm",
+        label: "MITM",
+        icon: (
+          <>
+            <path d="M12 3l7 3v5c0 4.5-3 8.4-7 10-4-1.6-7-5.5-7-10V6z" />
+            <path d="m9 12 2 2 4-4.5" />
+          </>
+        ),
+      },
+      {
+        key: "profile",
+        href: "/dashboard/profile",
+        label: "Profile",
+        icon: (
+          <>
+            <circle cx="12" cy="8" r="4" />
+            <path d="M4.5 20.5c1.4-3.4 4.2-5 7.5-5s6.1 1.6 7.5 5" />
+          </>
+        ),
+      },
+      {
+        key: "settings",
+        href: "/dashboard/profile",
+        label: "Settings",
+        icon: (
+          <>
+            <circle cx="12" cy="12" r="3.2" />
+            <path d="M12 2.8v3M12 18.2v3M2.8 12h3M18.2 12h3M5.5 5.5l2.1 2.1M16.4 16.4l2.1 2.1M18.5 5.5l-2.1 2.1M7.6 16.4l-2.1 2.1" />
+          </>
+        ),
+      },
+    ],
+  },
 ];
 
 export default function Sidebar({ onClose }) {
   const pathname = usePathname();
-  const [mediaOpen, setMediaOpen] = useState(false);
-  const [isDisconnected, setIsDisconnected] = useState(false);
-  const [updateInfo, setUpdateInfo] = useState(null);
-  const [showUpdateModal, setShowUpdateModal] = useState(false);
-  const [isUpdating, setIsUpdating] = useState(false);
-  const [shutdownCountdown, setShutdownCountdown] = useState(0);
-  const [enableTranslator, setEnableTranslator] = useState(false);
-  const { copied, copy } = useCopyToClipboard(2000);
+  const [connectedCount, setConnectedCount] = useState(null);
 
-  const INSTALL_CMD = UPDATER_CONFIG.installCmdLatest;
-
+  // Providers badge ("{n} connected") — real count from /api/providers
   useEffect(() => {
-    useSettingsStore.getState().fetchSettings().then((data) => {
-      if (data?.enableTranslator) setEnableTranslator(true);
-    });
+    let cancelled = false;
+    fetch("/api/providers", { cache: "no-store" })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (cancelled || !data) return;
+        const list = data.connections || [];
+        setConnectedCount(list.filter((c) => c.isActive !== false).length);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
-  // Lazy check for new npm version in background after initial render
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      fetch("/api/version")
-        .then(res => res.json())
-        .then(data => { if (data.hasUpdate) setUpdateInfo(data); })
-        .catch(() => {});
-    }, 2500);
-    return () => clearTimeout(timer);
-  }, []);
-
-  const isActive = (href) => {
-    if (href === "/dashboard/endpoint") {
-      return pathname === "/dashboard" || pathname.startsWith("/dashboard/endpoint");
+  const isItemActive = (item) => {
+    switch (item.key) {
+      case "dashboard":
+        return pathname === "/dashboard";
+      case "endpoint":
+        return pathname.startsWith("/dashboard/endpoint");
+      case "media":
+        return (
+          pathname.startsWith("/dashboard/media-providers") &&
+          !pathname.startsWith("/dashboard/media-providers/web")
+        );
+      case "web":
+        return pathname.startsWith("/dashboard/media-providers/web");
+      case "profile":
+        // Profile and Settings are one merged screen until the Phase 3
+        // split (audit PF-01); the merged screen carries the Settings
+        // active state, matching the topbar title.
+        return false;
+      case "settings":
+        return pathname.startsWith("/dashboard/profile");
+      default:
+        return pathname.startsWith(item.href);
     }
-    return pathname.startsWith(href);
   };
 
-  // Open manual update panel (no countdown yet — user must click Copy to trigger shutdown)
-  const handleUpdate = () => {
-    setShowUpdateModal(false);
-    setIsUpdating(true);
+  const badgeText = (item) => {
+    if (item.badge === "providers") {
+      return connectedCount === null ? null : `${connectedCount} connected`;
+    }
+    if (item.badge === "live") return "live";
+    return null;
   };
-
-  // Triggered by Copy button inside ManualUpdatePanel: copy + countdown + shutdown
-  const handleCopyAndShutdown = async () => {
-    try { await navigator.clipboard.writeText(INSTALL_CMD); } catch { /* clipboard blocked */ }
-    copy(INSTALL_CMD);
-    let remaining = UPDATER_CONFIG.shutdownCountdownSec;
-    setShutdownCountdown(remaining);
-    const timer = setInterval(() => {
-      remaining -= 1;
-      setShutdownCountdown(remaining);
-      if (remaining <= 0) {
-        clearInterval(timer);
-        fetch("/api/version/shutdown", { method: "POST" }).catch(() => {});
-        setIsDisconnected(true);
-      }
-    }, 1000);
-  };
-
-  const handleCancelUpdate = () => {
-    setIsUpdating(false);
-    setShutdownCountdown(0);
-  };
-
-  // Note: legacy updater poll removed. New flow: copy install cmd + shutdown server,
-  // user runs the command manually in another terminal.
-
 
   return (
-    <>
-      <aside className="flex w-[236px] shrink-0 flex-col border-r border-sidebar-border bg-sidebar-bg text-sidebar-text min-h-full">
-        {/* Brand */}
-        <div className="px-[18px] pt-[18px] pb-3.5 border-b border-sidebar-border flex flex-col gap-3">
-          <Link href="/dashboard" className="flex items-center gap-[11px]">
-            <LogoMark size={38} className="text-white shrink-0" />
-            <div className="flex flex-col leading-[1.15]">
-              <span className="text-[13.5px] font-bold tracking-[0.22em] text-white">BANSUR</span>
-              <span className="text-[11px] tracking-[0.06em] text-sidebar-muted">ROUTER</span>
-            </div>
-          </Link>
-          {updateInfo && (
-            <div className="flex flex-col gap-1.5 rounded p-1 -m-1">
-              <span className="text-xs font-semibold text-white">
-                ↑ New version available: v{updateInfo.latestVersion}
-              </span>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setShowUpdateModal(true)}
-                  className="px-2 py-1 rounded bg-white hover:bg-[#e7e7e9] text-[#101418] text-[11px] font-semibold transition-colors cursor-pointer"
-                >
-                  Update now
-                </button>
-                <button
-                  onClick={() => copy(INSTALL_CMD)}
-                  title="Copy install command"
-                  className="flex-1 text-left hover:opacity-80 transition-opacity cursor-pointer min-w-0"
-                >
-                  <code className="block text-[10px] text-sidebar-muted font-mono truncate">
-                    {copied ? "✓ copied!" : INSTALL_CMD}
-                  </code>
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
+    <aside className="flex w-[236px] shrink-0 flex-col bg-sidebar-bg text-sidebar-text min-h-full">
+      {/* Brand */}
+      <div className="px-[18px] pt-[18px] pb-3.5 border-b border-sidebar-border">
+        <Link href="/dashboard" className="flex items-center gap-[11px]">
+          <LogoMark size={38} className="text-white shrink-0" />
+          <div className="flex flex-col leading-[1.15]">
+            <span className="text-[13.5px] font-bold tracking-[0.22em] text-white">BANSUR</span>
+            <span className="text-[11px] tracking-[0.06em] text-sidebar-muted">ROUTER</span>
+          </div>
+        </Link>
+      </div>
 
-        {/* Navigation */}
-        <nav className="flex-1 px-2.5 py-3 overflow-y-auto custom-scrollbar">
-          {navItems.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              onClick={onClose}
-              className={cn(
-                "flex items-center gap-2.5 px-2.5 py-[7px] rounded-md mb-px transition-all group",
-                isActive(item.href)
-                  ? "bg-white text-[#101418]"
-                  : "text-sidebar-text hover:bg-white/5 hover:text-white"
-              )}
-            >
-              <span
-                className={cn(
-                  "material-symbols-outlined text-[17px]",
-                  isActive(item.href) ? "fill-1" : "group-hover:text-white transition-colors"
-                )}
-              >
-                {item.icon}
-              </span>
-              <span className="text-[13px] font-medium">{item.label}</span>
-            </Link>
-          ))}
-
-          {/* System section */}
-          <div className="mt-1">
+      {/* Navigation */}
+      <nav className="flex-1 px-2.5 py-3 overflow-y-auto scrollbar-none">
+        {NAV_GROUPS.map((group) => (
+          <div key={group.label}>
             <p className="px-2.5 pt-3.5 pb-1.5 text-[10.5px] font-semibold uppercase tracking-[0.14em] text-[#5d666e]">
-              System
+              {group.label}
             </p>
-
-            {/* Media Providers accordion */}
-            <button
-              onClick={() => setMediaOpen((v) => !v)}
-              className={cn(
-                "w-full flex items-center gap-2.5 px-2.5 py-[7px] rounded-md mb-px transition-all group",
-                pathname.startsWith("/dashboard/media-providers")
-                  ? "bg-white text-[#101418]"
-                  : "text-sidebar-text hover:bg-white/5 hover:text-white"
-              )}
-            >
-              <span className="material-symbols-outlined text-[17px]">perm_media</span>
-              <span className="text-[13px] font-medium flex-1 text-left">Media Providers</span>
-              <span className="material-symbols-outlined text-[14px] transition-transform" style={{ transform: mediaOpen ? "rotate(180deg)" : "rotate(0deg)" }}>
-                expand_more
-              </span>
-            </button>
-            {mediaOpen && (
-              <div className="pl-4">
-                {MEDIA_PROVIDER_KINDS.filter((k) => VISIBLE_MEDIA_KINDS.includes(k.id)).map((kind) => (
+            {group.items.map((item) => {
+              const active = isItemActive(item);
+              const badge = badgeText(item);
+              if (item.sub) {
+                return (
                   <Link
-                    key={kind.id}
-                    href={`/dashboard/media-providers/${kind.id}`}
+                    key={item.key}
+                    href={item.href}
                     onClick={onClose}
                     className={cn(
-                      "flex items-center py-[7px] pr-2.5 pl-[38px] rounded-md mb-px transition-all text-[12.5px] font-medium",
-                      pathname.startsWith(`/dashboard/media-providers/${kind.id}`)
+                      "flex items-center py-[7px] pr-2.5 pl-[38px] rounded-md mb-px text-[12.5px] font-medium transition-colors",
+                      active
                         ? "bg-white text-[#101418]"
-                        : "text-sidebar-text hover:bg-white/5 hover:text-white"
+                        : "text-sidebar-muted hover:bg-sidebar-hover hover:text-white"
                     )}
                   >
-                    <span>{kind.label}</span>
+                    <span>{item.label}</span>
                   </Link>
-                ))}
+                );
+              }
+              return (
                 <Link
-                  key={COMBINED_WEB_ITEM.id}
-                  href={COMBINED_WEB_ITEM.href}
-                  onClick={onClose}
-                  className={cn(
-                    "flex items-center py-[7px] pr-2.5 pl-[38px] rounded-md mb-px transition-all text-[12.5px] font-medium",
-                    pathname.startsWith(COMBINED_WEB_ITEM.href)
-                      ? "bg-white text-[#101418]"
-                      : "text-sidebar-text hover:bg-white/5 hover:text-white"
-                  )}
-                >
-                  <span>{COMBINED_WEB_ITEM.label}</span>
-                </Link>
-              </div>
-            )}
-
-            {systemItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={onClose}
-                className={cn(
-                  "flex items-center gap-2.5 px-2.5 py-[7px] rounded-md mb-px transition-all group",
-                  isActive(item.href)
-                    ? "bg-white text-[#101418]"
-                    : "text-sidebar-text hover:bg-white/5 hover:text-white"
-                )}
-              >
-                <span
-                  className={cn(
-                    "material-symbols-outlined text-[17px]",
-                    isActive(item.href) ? "fill-1" : "group-hover:text-white transition-colors"
-                  )}
-                >
-                  {item.icon}
-                </span>
-                <span className="text-[13px] font-medium">{item.label}</span>
-              </Link>
-            ))}
-
-            {/* Debug items (inside System section, before Settings) */}
-            {debugItems.map((item) => {
-              const show = item.href !== "/dashboard/translator" || enableTranslator;
-              return show ? (
-                <Link
-                  key={item.href}
+                  key={item.key}
                   href={item.href}
                   onClick={onClose}
                   className={cn(
-                    "flex items-center gap-2.5 px-2.5 py-[7px] rounded-md mb-px transition-all group",
-                    isActive(item.href)
+                    "flex items-center gap-2.5 px-2.5 py-[7px] rounded-md mb-px text-[13px] font-medium transition-colors",
+                    active
                       ? "bg-white text-[#101418]"
-                      : "text-sidebar-text hover:bg-white/5 hover:text-white"
+                      : "text-sidebar-text hover:bg-sidebar-hover hover:text-white"
                   )}
                 >
-                  <span
-                    className={cn(
-                      "material-symbols-outlined text-[17px]",
-                      isActive(item.href) ? "fill-1" : "group-hover:text-white transition-colors"
-                    )}
-                  >
+                  <SpecIcon className={cn("shrink-0", active ? "opacity-100" : "opacity-75")}>
                     {item.icon}
-                  </span>
-                  <span className="text-[13px] font-medium">{item.label}</span>
+                  </SpecIcon>
+                  <span>{item.label}</span>
+                  {badge && (
+                    <span
+                      className={cn(
+                        "ml-auto font-mono text-[10.5px] px-1.5 rounded-full border",
+                        active
+                          ? "border-[#c9ced3] text-text-muted"
+                          : "border-[#39414a] text-sidebar-muted"
+                      )}
+                    >
+                      {badge}
+                    </span>
+                  )}
                 </Link>
-              ) : null;
+              );
             })}
-
-            {/* Remote */}
-            <a
-              href="https://9remote.cc"
-              target="_blank"
-              rel="noreferrer"
-              onClick={onClose}
-              className={cn(
-                "flex items-center gap-2.5 px-2.5 py-[7px] rounded-md mb-px transition-all group w-full",
-                "text-sidebar-text hover:bg-white/5 hover:text-white"
-              )}
-            >
-              <span className="material-symbols-outlined text-[17px] group-hover:text-white transition-colors">
-                computer
-              </span>
-              <span className="text-[13px] font-medium">Bansur Remote</span>
-              <span className="ml-auto font-mono text-[10.5px] font-semibold px-1.5 py-px rounded-full bg-white text-[#101418]">
-                HOT
-              </span>
-            </a>
-
-            {/* Settings */}
-            <Link
-              href="/dashboard/profile"
-              onClick={onClose}
-              className={cn(
-                "flex items-center gap-2.5 px-2.5 py-[7px] rounded-md mb-px transition-all group",
-                isActive("/dashboard/profile")
-                  ? "bg-white text-[#101418]"
-                  : "text-sidebar-text hover:bg-white/5 hover:text-white"
-              )}
-            >
-              <span
-                className={cn(
-                  "material-symbols-outlined text-[17px]",
-                  isActive("/dashboard/profile") ? "fill-1" : "group-hover:text-white transition-colors"
-                )}
-              >
-                settings
-              </span>
-              <span className="text-[13px] font-medium">Settings</span>
-            </Link>
           </div>
-        </nav>
+        ))}
+      </nav>
 
-        {/* Footer */}
-        <div className="border-t border-sidebar-border px-[18px] py-3 flex items-center justify-between text-[11.5px] text-sidebar-muted">
-          <span>Bansur Router</span>
-          <span className="font-mono text-[#9aa3ab]">v{APP_CONFIG.version}</span>
-        </div>
-
-      </aside>
-
-
-      {/* Update Confirmation Modal */}
-      <ConfirmModal
-        isOpen={showUpdateModal}
-        onClose={() => setShowUpdateModal(false)}
-        onConfirm={handleUpdate}
-        title="Update Bansur Router"
-        message={`Show install command for v${updateInfo?.latestVersion || ""}? You can copy it and shutdown to install manually.`}
-        confirmText="Show Command"
-        cancelText="Cancel"
-        variant="primary"
-      />
-
-      {/* Disconnected / Updating Overlay */}
-      {(isDisconnected || isUpdating) && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-6">
-          {isUpdating ? (
-            <ManualUpdatePanel
-              latestVersion={updateInfo?.latestVersion}
-              installCmd={INSTALL_CMD}
-              copied={copied}
-              onCopyAndShutdown={handleCopyAndShutdown}
-              onCancel={handleCancelUpdate}
-              countdown={shutdownCountdown}
-              isDisconnected={isDisconnected}
-            />
-          ) : (
-            <div className="text-center p-8">
-              <div className="flex items-center justify-center size-16 rounded-full bg-white/10 text-white mx-auto mb-4">
-                <span className="material-symbols-outlined text-[32px]">power_off</span>
-              </div>
-              <h2 className="text-xl font-semibold text-white mb-2">Server Disconnected</h2>
-              <p className="text-white/60 mb-6">The proxy server has been stopped.</p>
-              <Button variant="secondary" onClick={() => globalThis.location.reload()}>
-                Reload Page
-              </Button>
-            </div>
-          )}
-        </div>
-      )}
-    </>
+      {/* Footer */}
+      <div className="border-t border-sidebar-border px-[18px] py-3 flex items-center justify-between text-[11.5px] text-sidebar-muted">
+        <span>Bansur Router</span>
+        <span className="font-mono text-[#9aa3ab]">v{APP_CONFIG.version}</span>
+      </div>
+    </aside>
   );
 }
 
 Sidebar.propTypes = {
   onClose: PropTypes.func,
-};
-
-function ManualUpdatePanel({ latestVersion, installCmd, copied, onCopyAndShutdown, onCancel, countdown, isDisconnected }) {
-  const isCountingDown = countdown > 0;
-  return (
-    <div className="w-full max-w-lg rounded-xl bg-neutral-900/95 border border-white/10 p-6 text-white">
-      <div className="flex items-center gap-3 mb-4">
-        <div className="flex items-center justify-center size-11 rounded-full bg-white/10 text-white">
-          <span className="material-symbols-outlined text-[24px]">content_copy</span>
-        </div>
-        <div>
-          <h2 className="text-lg font-semibold">Update Bansur Router{latestVersion ? ` to v${latestVersion}` : ""}</h2>
-          <p className="text-xs text-white/60">
-            {isDisconnected
-              ? "Server stopped. Paste the command into a terminal to install."
-              : isCountingDown
-                ? `Command copied. Server will stop in ${countdown}s...`
-                : "Click the button below to copy the install command and shutdown."}
-          </p>
-        </div>
-      </div>
-
-      <p className="text-sm text-white/80 mb-2">Install command:</p>
-      <div className="w-full px-3 py-2 rounded bg-white/5 mb-4">
-        <code className="text-xs font-mono text-white break-all">{installCmd}</code>
-      </div>
-
-      <ol className="text-xs text-white/70 space-y-1 list-decimal list-inside mb-4">
-        <li>Click <strong>Copy & Shutdown</strong> below.</li>
-        <li>Paste the command into your terminal and press Enter.</li>
-        <li>Run <code className="px-1 rounded bg-white/10 text-white">bansur-router</code> again after install.</li>
-      </ol>
-
-      {isDisconnected ? (
-        <Button variant="secondary" fullWidth onClick={() => globalThis.location.reload()}>
-          Reload Page
-        </Button>
-      ) : (
-        <div className="flex gap-2">
-          <Button variant="secondary" onClick={onCancel} disabled={isCountingDown}>
-            Cancel
-          </Button>
-          <Button variant="primary" fullWidth onClick={onCopyAndShutdown} disabled={isCountingDown}>
-            {copied ? "✓ Copied — shutting down..." : isCountingDown ? `Shutting down in ${countdown}s` : "Copy & Shutdown"}
-          </Button>
-        </div>
-      )}
-    </div>
-  );
-}
-
-ManualUpdatePanel.propTypes = {
-  latestVersion: PropTypes.string,
-  installCmd: PropTypes.string.isRequired,
-  copied: PropTypes.bool,
-  onCopyAndShutdown: PropTypes.func.isRequired,
-  onCancel: PropTypes.func.isRequired,
-  countdown: PropTypes.number,
-  isDisconnected: PropTypes.bool,
 };

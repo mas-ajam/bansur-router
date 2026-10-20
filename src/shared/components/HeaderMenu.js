@@ -2,55 +2,29 @@
 
 import { useState, useEffect, useRef } from "react";
 import PropTypes from "prop-types";
-import { useTheme } from "@/shared/hooks/useTheme";
-import ChangelogModal from "./ChangelogModal";
-import { ConfirmModal } from "./Modal";
+import Link from "next/link";
 
-function MenuItem({ icon, label, onClick, trailing, danger }) {
-  return (
-    <button
-      onClick={onClick}
-      className={`flex items-center gap-3 w-full px-4 py-2.5 text-sm transition-colors ${
-        danger
-          ? "text-text-main hover:bg-surface-2"
-          : "text-text-main hover:bg-black/5 dark:hover:bg-white/5"
-      }`}
-    >
-      <span className={`material-symbols-outlined text-[20px] ${danger ? "" : "text-text-muted"}`}>
-        {icon}
-      </span>
-      <span className="flex-1 text-left">{label}</span>
-      {trailing && <span className="text-base">{trailing}</span>}
-    </button>
-  );
+/* Artifact avatar menu (audit T-03): 34px ink circle with initials; menu is
+   200px wide with a who-block (name / mono host) and Profile / Settings /
+   Sign out items. Replaces the former grid menu (app-only surface). */
+function getInitials(name) {
+  if (!name) return "LO";
+  const parts = name.trim().split(/\s+/);
+  if (parts.length >= 2) return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+  return name.substring(0, 2).toUpperCase();
 }
 
-MenuItem.propTypes = {
-  icon: PropTypes.string.isRequired,
-  label: PropTypes.string.isRequired,
-  onClick: PropTypes.func.isRequired,
-  trailing: PropTypes.node,
-  danger: PropTypes.bool,
-};
+const itemClass =
+  "flex w-full items-center gap-2 rounded-[5px] px-2.5 py-2 text-left text-[13px] text-text-main hover:bg-surface-2 transition-colors";
 
-export default function HeaderMenu({ onLogout }) {
+export default function HeaderMenu({ onLogout, displayName = "" }) {
   const [isOpen, setIsOpen] = useState(false);
-  const [changelogOpen, setChangelogOpen] = useState(false);
-  const [shutdownOpen, setShutdownOpen] = useState(false);
-  const [isShuttingDown, setIsShuttingDown] = useState(false);
-  const { toggleTheme, isDark } = useTheme();
+  const [host, setHost] = useState("");
   const menuRef = useRef(null);
 
-  const handleShutdown = async () => {
-    setIsShuttingDown(true);
-    try {
-      await fetch("/api/version/shutdown", { method: "POST" });
-    } catch (e) {
-      // Expected to fail as server shuts down; ignore error
-    }
-    setIsShuttingDown(false);
-    setShutdownOpen(false);
-  };
+  useEffect(() => {
+    if (typeof window !== "undefined") setHost(window.location.host);
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -65,62 +39,43 @@ export default function HeaderMenu({ onLogout }) {
   }, [isOpen]);
 
   const close = () => setIsOpen(false);
+  const name = displayName || "Local operator";
 
   return (
-    <>
-      <div className="relative" ref={menuRef}>
-        <button
-          onClick={() => setIsOpen((v) => !v)}
-          className="flex items-center justify-center p-2 rounded-lg text-text-muted hover:text-text-main hover:bg-black/5 dark:hover:bg-white/5 transition-all"
-          title="Menu"
-        >
-          <span className="material-symbols-outlined">grid_view</span>
-        </button>
+    <div className="relative" ref={menuRef}>
+      <button
+        onClick={() => setIsOpen((v) => !v)}
+        aria-label="Account menu"
+        className="flex size-[34px] items-center justify-center rounded-full bg-brand-500 text-on-brand text-[12.5px] font-semibold"
+      >
+        {getInitials(name)}
+      </button>
 
-        {isOpen && (
-          <div className="absolute right-0 top-full mt-2 w-60 bg-surface border border-black/10 dark:border-white/10 rounded-xl shadow-2xl z-50 animate-in fade-in zoom-in-95 duration-150 overflow-hidden py-1">
-            <MenuItem
-              icon="history"
-              label="Change Log"
-              onClick={() => { close(); setChangelogOpen(true); }}
-            />
-            <MenuItem
-              icon={isDark ? "light_mode" : "dark_mode"}
-              label="Theme"
-              onClick={() => { toggleTheme(); close(); }}
-            />
-            <MenuItem
-              icon="power_settings_new"
-              label="Shutdown"
-              danger
-              onClick={() => { close(); setShutdownOpen(true); }}
-            />
-            <MenuItem
-              icon="logout"
-              label="Logout"
-              danger
-              onClick={() => { close(); onLogout(); }}
-            />
+      {isOpen && (
+        <div className="absolute right-0 top-[44px] w-[200px] rounded-brand border border-border bg-surface p-1.5 shadow-[var(--shadow-soft)] z-50">
+          <div className="px-2.5 py-2 border-b border-border mb-1.5">
+            <p className="text-[13px] font-bold leading-tight text-text-main">{name}</p>
+            <p className="font-mono text-[11.5px] text-text-muted">{host}</p>
           </div>
-        )}
-      </div>
-
-      <ChangelogModal isOpen={changelogOpen} onClose={() => setChangelogOpen(false)} />
-      <ConfirmModal
-        isOpen={shutdownOpen}
-        onClose={() => setShutdownOpen(false)}
-        onConfirm={handleShutdown}
-        title="Close Proxy"
-        message="Are you sure you want to close the proxy server?"
-        confirmText="Close"
-        cancelText="Cancel"
-        variant="danger"
-        loading={isShuttingDown}
-      />
-    </>
+          <Link href="/dashboard/profile" onClick={close} className={itemClass}>
+            Profile
+          </Link>
+          <Link href="/dashboard/profile" onClick={close} className={itemClass}>
+            Settings
+          </Link>
+          <button
+            onClick={() => { close(); onLogout(); }}
+            className={itemClass}
+          >
+            Sign out
+          </button>
+        </div>
+      )}
+    </div>
   );
 }
 
 HeaderMenu.propTypes = {
   onLogout: PropTypes.func.isRequired,
+  displayName: PropTypes.string,
 };

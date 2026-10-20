@@ -32,12 +32,6 @@ export const UPDATER_CONFIG = {
   appPort: 667,
 };
 
-// Theme configuration
-export const THEME_CONFIG = {
-  storageKey: "theme",
-  defaultTheme: "system", // "light" | "dark" | "system"
-};
-
 // Subscription
 export const SUBSCRIPTION_CONFIG = {
   price: 1.0,

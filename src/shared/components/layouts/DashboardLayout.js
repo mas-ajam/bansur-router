@@ -3,13 +3,21 @@
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { useNotificationStore } from "@/store/notificationStore";
+import { APP_CONFIG } from "@/shared/constants/config";
 import Sidebar from "../Sidebar";
 import Header from "../Header";
+import LogoMark from "../LogoMark";
 
 export default function DashboardLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [port, setPort] = useState("");
   const pathname = usePathname();
   const notifications = useNotificationStore((state) => state.notifications);
+  const isBasicChat = pathname === "/dashboard/basic-chat";
+
+  useEffect(() => {
+    if (typeof window !== "undefined") setPort(window.location.port || "667");
+  }, []);
 
   // Preload heavy usage charts in background when browser is idle
   useEffect(() => {
@@ -43,22 +51,22 @@ export default function DashboardLayout({ children }) {
           </div>
         ))}
       </div>
-      {/* Mobile sidebar overlay */}
+      {/* Mobile sidebar overlay — artifact scrim rgba(11,14,17,.55) */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black/20 lg:hidden"
+          className="fixed inset-0 z-40 bg-[#0b0e11]/55 min-[821px]:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
       {/* Sidebar - Desktop */}
-      <div className="hidden lg:flex">
+      <div className="hidden min-[821px]:flex">
         <Sidebar />
       </div>
 
       {/* Sidebar - Mobile */}
       <div
-        className={`fixed inset-y-0 left-0 z-50 transform lg:hidden transition-transform duration-300 ease-in-out ${
+        className={`fixed inset-y-0 left-0 z-50 transform min-[821px]:hidden transition-transform duration-300 ease-in-out ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
@@ -68,8 +76,17 @@ export default function DashboardLayout({ children }) {
       {/* Main content */}
       <main className="flex flex-col flex-1 h-full min-w-0 relative transition-colors duration-300 isolate">
         <Header key={pathname} onMenuClick={() => setSidebarOpen(true)} />
-        <div className={`flex-1 overflow-y-auto custom-scrollbar ${pathname === "/dashboard/basic-chat" ? "" : "px-3.5 py-[18px] lg:p-[26px]"} ${pathname === "/dashboard/basic-chat" ? "flex flex-col overflow-hidden" : ""}`}>
-          <div className={`${pathname === "/dashboard/basic-chat" ? "flex-1 w-full h-full flex flex-col" : "max-w-[1240px] mx-auto"}`}>{children}</div>
+        <div className={`flex-1 overflow-y-auto custom-scrollbar ${isBasicChat ? "flex flex-col overflow-hidden" : "px-3.5 py-[18px] min-[821px]:p-[26px]"}`}>
+          <div className={`${isBasicChat ? "flex-1 w-full h-full flex flex-col" : "max-w-[1240px] mx-auto"}`}>{children}</div>
+          {/* Shell foot (audit T-07) */}
+          {!isBasicChat && (
+            <footer className="max-w-[1240px] mx-auto flex items-center gap-2 pt-[18px] pb-1 text-xs text-text-subtle">
+              <LogoMark size={15} className="text-text-subtle shrink-0" />
+              <span>
+                Bansur Router v{APP_CONFIG.version} · running locally on port {port || "667"}
+              </span>
+            </footer>
+          )}
         </div>
       </main>
     </div>
