@@ -1,7 +1,8 @@
-import { getMachineId } from "@/shared/utils/machine";
-import EndpointPageClient from "./endpoint/EndpointPageClient";
+import OverviewPageClient from "./OverviewPageClient";
 
-export default async function DashboardPage() {
-  const machineId = await getMachineId();
-  return <EndpointPageClient machineId={machineId} />;
+// Phase 3 (audit O-01 / S-01): /dashboard is the Overview screen.
+// Endpoint & Key keeps living at /dashboard/endpoint (its own page.js
+// supplies the machineId EndpointPageClient expects).
+export default function DashboardPage() {
+  return <OverviewPageClient />;
 }

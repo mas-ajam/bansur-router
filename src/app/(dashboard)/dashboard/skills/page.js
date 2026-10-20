@@ -1,124 +1,100 @@
 "use client";
 
-import { Card, Badge } from "@/shared/components";
-import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
-import {
-  SKILLS,
-  SKILLS_REPO_URL,
-  getSkillRawUrl,
-  getSkillBlobUrl,
-} from "@/shared/constants/skills";
+import { useState, useEffect } from "react";
+import { Card, Button, Toggle } from "@/shared/components";
+import { useNotificationStore } from "@/store/notificationStore";
+import { SKILLS } from "@/shared/constants/skills";
 
-function CopyButton({ value, label = "Copy link" }) {
-  const { copied, copy } = useCopyToClipboard(2000);
-  return (
-    <button
-      onClick={() => copy(value)}
-      className="px-2.5 py-1 rounded-md border border-border bg-surface text-[12px] font-medium text-text-main hover:bg-surface-2 transition-colors cursor-pointer shrink-0 inline-flex items-center gap-1.5"
-      title={value}
-    >
-      <span className="material-symbols-outlined text-[13px]">
-        {copied ? "check" : "content_copy"}
-      </span>
-      {copied ? "Copied!" : label}
-    </button>
-  );
+/* Skills (audit SK-01, SK-02; SK-03/SK-04 flagged).
+   SKILLS constants carry {id, name, description, icon, endpoint} — no
+   category, no version, no enabled state (SK-03-C). Card meta therefore
+   falls back to the skill's endpoint path in mono, and the toggle is a
+   localStorage-backed client preference (default all on), not backend
+   skill-pack state. The removed "Paste this to your AI:" and "More on
+   GitHub" cards (§II.24 / SK-04) are why endpoints appear as card meta. */
+
+const STORAGE_KEY = "bansur-router:skills-enabled";
+
+function skillGlyph(skill) {
+  const words = (skill.name || skill.id || "?").split(/[\s-]+/).filter(Boolean);
+  if (words.length >= 2) return (words[0][0] + words[1][0]).toUpperCase();
+  return (words[0] || "?").slice(0, 2).toUpperCase();
 }
 
-function SkillRow({ skill }) {
-  const url = getSkillRawUrl(skill.id);
-  return (
-    <div
-      className={`flex flex-col gap-2.5 p-4 rounded-brand border shadow-[var(--shadow-soft)] transition-colors ${
-        skill.isEntry
-          ? "border-border-strong bg-surface-2/60"
-          : "border-border bg-surface hover:bg-surface-2/50"
-      }`}
-    >
-      <div className="flex items-start gap-3">
-        <div
-          className={`size-[38px] rounded-md border flex items-center justify-center shrink-0 ${
-            skill.isEntry
-              ? "bg-brand-500 text-on-brand border-brand-500"
-              : "bg-surface-2 text-text-main border-border"
-          }`}
-        >
-          <span className="material-symbols-outlined text-[19px]">{skill.icon}</span>
-        </div>
-
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2 flex-wrap">
-            <h3 className="font-semibold text-sm text-text-main">{skill.name}</h3>
-            {skill.isEntry && (
-              <Badge variant="primary" size="sm">START HERE</Badge>
-            )}
-            {skill.endpoint && (
-              <Badge variant="default" size="sm">
-                <code className="text-[10px]">{skill.endpoint}</code>
-              </Badge>
-            )}
-          </div>
-          <p className="text-xs leading-relaxed text-text-muted mt-0.5">{skill.description}</p>
-        </div>
-      </div>
-
-      <div className="flex items-center gap-2">
-        <a
-          href={getSkillBlobUrl(skill.id)}
-          target="_blank"
-          rel="noreferrer"
-          className="min-w-0 flex-1 truncate font-mono text-[11px] text-text-muted hover:text-text-main inline-flex items-center gap-1"
-        >
-          <span className="truncate">{url}</span>
-          <span className="material-symbols-outlined text-[12px] shrink-0">open_in_new</span>
-        </a>
-        <CopyButton value={url} />
-      </div>
-    </div>
-  );
+function loadEnabledMap() {
+  try {
+    const raw = window.localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
 }
 
 export default function SkillsPage() {
+  const notify = useNotificationStore();
+  const [enabledMap, setEnabledMap] = useState({});
+
+  useEffect(() => {
+    setEnabledMap(loadEnabledMap());
+  }, []);
+
+  const toggleSkill = (id, next) => {
+    setEnabledMap((prev) => {
+      const map = { ...prev, [id]: next };
+      try {
+        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(map));
+      } catch { /* ignore */ }
+      return map;
+    });
+  };
+
   return (
-    <div className="flex flex-col gap-3.5">
+    <div>
       {/* Page head */}
-      <div>
-        <h2 className="text-xl font-semibold tracking-[-0.01em] text-text-main">Skills</h2>
-        <p className="mt-1 text-[13.5px] text-text-muted max-w-[640px]">Reusable instruction packs your agent loads on demand — image generation, web search, documents and more, all routed through the gateway.</p>
+      <div className="mb-5">
+        <h2 className="text-xl font-semibold tracking-[-0.01em]">Skills</h2>
+        <p className="mt-1 text-[13.5px] text-text-muted max-w-[640px]">Reusable instruction packs the router can inject into requests for tools that support them.</p>
       </div>
 
-      <Card padding="md">
-        <div className="text-xs text-text-muted mb-2">Paste this to your AI:</div>
-        <div className="px-3 py-2 rounded-md border border-border bg-surface-2 font-mono text-[12px] text-text-main">
-          Read this skill and use it: {getSkillRawUrl("bansur-router")}
-        </div>
-      </Card>
+      <div className="grid gap-3.5 grid-cols-1 min-[561px]:grid-cols-2 min-[1081px]:grid-cols-3">
+        {SKILLS.map((skill) => {
+          const enabled = enabledMap[skill.id] !== false;
+          return (
+            <Card key={skill.id} padding="none" className="p-4 flex flex-col gap-3 h-full">
+              <div className="flex items-start gap-3">
+                <div className="w-[38px] h-[38px] shrink-0 border border-border-strong rounded-md bg-surface-2 flex items-center justify-center font-mono text-[13px] font-semibold">
+                  {skillGlyph(skill)}
+                </div>
+                <div className="grow min-w-0">
+                  <div className="font-semibold text-sm leading-[1.25]">{skill.name}</div>
+                  {skill.endpoint ? (
+                    <div className="text-xs text-text-muted font-mono">{skill.endpoint}</div>
+                  ) : (
+                    <div className="text-xs text-text-muted">Entry point</div>
+                  )}
+                </div>
+                <Toggle checked={enabled} onChange={(v) => toggleSkill(skill.id, v)} />
+              </div>
+              <div className="text-xs text-text-muted">{skill.description}</div>
+            </Card>
+          );
+        })}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3.5">
-        {SKILLS.map((skill) => (
-          <SkillRow key={skill.id} skill={skill} />
-        ))}
-      </div>
-
-      <Card padding="md">
-        <div className="flex items-center justify-between gap-3 flex-wrap">
-          <div>
-            <h2 className="text-[13.5px] font-semibold text-text-main">More on GitHub</h2>
-            <p className="text-xs text-text-muted mt-0.5">
-              Browse source, README, and examples.
-            </p>
+        {/* Add skill — no import mechanism exists in this build (SK-04-C) */}
+        <Card padding="none" className="p-4 flex flex-col gap-3 h-full border-dashed items-start justify-center">
+          <div className="font-semibold text-sm leading-[1.25]">+ Add skill</div>
+          <div className="text-xs text-text-muted">
+            Drop a skill folder into <span className="font-mono">~/.bansur-router/skills</span> or import from a Git URL.
           </div>
-          <a
-            href={`${SKILLS_REPO_URL}/tree/master/skills`}
-            target="_blank"
-            rel="noreferrer"
-            className="text-[13px] font-medium text-text-main hover:underline inline-flex items-center gap-1"
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={() => notify.error("Skill import is not available in this build")}
           >
-            <span className="material-symbols-outlined text-[16px]">open_in_new</span>
-            View on GitHub
-          </a>
-        </div>
-      </Card>
+            Import
+          </Button>
+        </Card>
+      </div>
     </div>
   );
 }

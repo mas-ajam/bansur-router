@@ -60,7 +60,7 @@ export default function HeaderMenu({ onLogout, displayName = "" }) {
           <Link href="/dashboard/profile" onClick={close} className={itemClass}>
             Profile
           </Link>
-          <Link href="/dashboard/profile" onClick={close} className={itemClass}>
+          <Link href="/dashboard/settings" onClick={close} className={itemClass}>
             Settings
           </Link>
           <button

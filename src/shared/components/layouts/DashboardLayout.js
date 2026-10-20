@@ -13,7 +13,6 @@ export default function DashboardLayout({ children }) {
   const [port, setPort] = useState("");
   const pathname = usePathname();
   const notifications = useNotificationStore((state) => state.notifications);
-  const isBasicChat = pathname === "/dashboard/basic-chat";
 
   useEffect(() => {
     if (typeof window !== "undefined") setPort(window.location.port || "667");
@@ -76,17 +75,15 @@ export default function DashboardLayout({ children }) {
       {/* Main content */}
       <main className="flex flex-col flex-1 h-full min-w-0 relative transition-colors duration-300 isolate">
         <Header key={pathname} onMenuClick={() => setSidebarOpen(true)} />
-        <div className={`flex-1 overflow-y-auto custom-scrollbar ${isBasicChat ? "flex flex-col overflow-hidden" : "px-3.5 py-[18px] min-[821px]:p-[26px]"}`}>
-          <div className={`${isBasicChat ? "flex-1 w-full h-full flex flex-col" : "max-w-[1240px] mx-auto"}`}>{children}</div>
+        <div className="flex-1 overflow-y-auto custom-scrollbar px-3.5 py-[18px] min-[821px]:p-[26px]">
+          <div className="max-w-[1240px] mx-auto">{children}</div>
           {/* Shell foot (audit T-07) */}
-          {!isBasicChat && (
-            <footer className="max-w-[1240px] mx-auto flex items-center gap-2 pt-[18px] pb-1 text-xs text-text-subtle">
-              <LogoMark size={15} className="text-text-subtle shrink-0" />
-              <span>
-                Bansur Router v{APP_CONFIG.version} · running locally on port {port || "667"}
-              </span>
-            </footer>
-          )}
+          <footer className="max-w-[1240px] mx-auto flex items-center gap-2 pt-[18px] pb-1 text-xs text-text-subtle">
+            <LogoMark size={15} className="text-text-subtle shrink-0" />
+            <span>
+              Bansur Router v{APP_CONFIG.version} · running locally on port {port || "667"}
+            </span>
+          </footer>
         </div>
       </main>
     </div>

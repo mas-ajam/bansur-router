@@ -1,13 +1,11 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Card, Button, Toggle, Input } from "@/shared/components";
-import Modal, { ConfirmModal } from "@/shared/components/Modal";
-import LanguageSwitcher from "@/shared/components/LanguageSwitcher";
+import { Card, Button, Toggle, Input, Select, Badge } from "@/shared/components";
+import { useNotificationStore } from "@/store/notificationStore";
 import { cn } from "@/shared/utils/cn";
-import { APP_CONFIG } from "@/shared/constants/config";
 import { LOCALE_COOKIE, normalizeLocale } from "@/i18n/config";
-import { LOCALE_FLAGS } from "@/shared/constants/locales";
+import { reloadTranslations } from "@/i18n/runtime";
 
 function getLocaleFromCookie() {
   if (typeof document === "undefined") return "en";
@@ -20,18 +18,11 @@ function getLocaleFromCookie() {
 
 export default function ProfilePage() {
   const [locale, setLocale] = useState(() => getLocaleFromCookie());
-  const [langOpen, setLangOpen] = useState(false);
-  const [shutdownOpen, setShutdownOpen] = useState(false);
-  const [isShuttingDown, setIsShuttingDown] = useState(false);
   const [settings, setSettings] = useState({ fallbackStrategy: "fill-first" });
   const [loading, setLoading] = useState(true);
   const [passwords, setPasswords] = useState({ current: "", new: "", confirm: "" });
   const [passStatus, setPassStatus] = useState({ type: "", message: "" });
   const [passLoading, setPassLoading] = useState(false);
-  const [dbLoading, setDbLoading] = useState(false);
-  const [dbStatus, setDbStatus] = useState({ type: "", message: "" });
-  const [dbAuth, setDbAuth] = useState({ open: false, mode: "", password: "" });
-  const pendingImportRef = useRef(null);
   const [oidcForm, setOidcForm] = useState({
     authMode: "password",
     oidcIssuerUrl: "",
@@ -69,27 +60,20 @@ export default function ProfilePage() {
   const idpMetadataFileRef = useRef(null);
   const certFileRef = useRef(null);
 
-  const importFileRef = useRef(null);
-  const [proxyForm, setProxyForm] = useState({
-    outboundProxyEnabled: false,
-    outboundProxyUrl: "",
-    outboundNoProxy: "",
-  });
-  const [proxyStatus, setProxyStatus] = useState({ type: "", message: "" });
-  const [proxyLoading, setProxyLoading] = useState(false);
-  const [proxyTestLoading, setProxyTestLoading] = useState(false);
-
-  const [isRemoteHost, setIsRemoteHost] = useState(false);
-  useEffect(() => {
-    if (typeof window !== "undefined")
-      setIsRemoteHost(!["localhost", "127.0.0.1", "::1"].includes(window.location.hostname));
-  }, []);
 
   useEffect(() => {
     fetch("/api/settings")
       .then((res) => res.json())
       .then((data) => {
         setSettings(data);
+        setDisplayName(data?.displayName || "");
+        setInstanceName(data?.instanceName || "");
+        if (!data?.displayName) {
+          fetch("/api/auth/status")
+            .then((r) => (r.ok ? r.json() : null))
+            .then((s) => { if (s?.displayName) setDisplayName((prev) => prev || s.displayName); })
+            .catch(() => {});
+        }
         setOidcForm({
           authMode: data?.authMode || "password",
           oidcIssuerUrl: data?.oidcIssuerUrl || "",
@@ -115,11 +99,6 @@ export default function ProfilePage() {
         ) {
           setOidcExpanded(true);
         }
-        setProxyForm({
-          outboundProxyEnabled: data?.outboundProxyEnabled === true,
-          outboundProxyUrl: data?.outboundProxyUrl || "",
-          outboundNoProxy: data?.outboundNoProxy || "",
-        });
         setLoading(false);
       })
       .catch((err) => {
@@ -128,102 +107,8 @@ export default function ProfilePage() {
       });
   }, []);
 
-  const updateOutboundProxy = async (e) => {
-    e.preventDefault();
-    if (settings.outboundProxyEnabled !== true) return;
-    setProxyLoading(true);
-    setProxyStatus({ type: "", message: "" });
 
-    try {
-      const res = await fetch("/api/settings", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          outboundProxyUrl: proxyForm.outboundProxyUrl,
-          outboundNoProxy: proxyForm.outboundNoProxy,
-        }),
-      });
 
-      const data = await res.json();
-      if (res.ok) {
-        setSettings((prev) => ({ ...prev, ...data }));
-        setProxyStatus({ type: "success", message: "Proxy settings applied" });
-      } else {
-        setProxyStatus({ type: "error", message: data.error || "Failed to update proxy settings" });
-      }
-    } catch (err) {
-      setProxyStatus({ type: "error", message: "An error occurred" });
-    } finally {
-      setProxyLoading(false);
-    }
-  };
-
-  const testOutboundProxy = async () => {
-    if (settings.outboundProxyEnabled !== true) return;
-
-    const proxyUrl = (proxyForm.outboundProxyUrl || "").trim();
-    if (!proxyUrl) {
-      setProxyStatus({ type: "error", message: "Please enter a Proxy URL to test" });
-      return;
-    }
-
-    setProxyTestLoading(true);
-    setProxyStatus({ type: "", message: "" });
-
-    try {
-      const res = await fetch("/api/settings/proxy-test", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ proxyUrl }),
-      });
-
-      const data = await res.json();
-      if (res.ok && data?.ok) {
-        setProxyStatus({
-          type: "success",
-          message: `Proxy test OK (${data.status}) in ${data.elapsedMs}ms`,
-        });
-      } else {
-        setProxyStatus({
-          type: "error",
-          message: data?.error || "Proxy test failed",
-        });
-      }
-    } catch (err) {
-      setProxyStatus({ type: "error", message: "An error occurred" });
-    } finally {
-      setProxyTestLoading(false);
-    }
-  };
-
-  const updateOutboundProxyEnabled = async (outboundProxyEnabled) => {
-    setProxyLoading(true);
-    setProxyStatus({ type: "", message: "" });
-
-    try {
-      const res = await fetch("/api/settings", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ outboundProxyEnabled }),
-      });
-
-      const data = await res.json();
-      if (res.ok) {
-        setSettings((prev) => ({ ...prev, ...data }));
-        setProxyForm((prev) => ({ ...prev, outboundProxyEnabled: data?.outboundProxyEnabled === true }));
-        setProxyStatus({
-          type: "success",
-          message: outboundProxyEnabled ? "Proxy enabled" : "Proxy disabled",
-        });
-      } else {
-        setProxyStatus({ type: "error", message: data.error || "Failed to update proxy settings" });
-      }
-    } catch (err) {
-      setProxyStatus({ type: "error", message: "An error occurred" });
-    } finally {
-      setProxyLoading(false);
-    }
-  };
 
   const handlePasswordChange = async (e) => {
     e.preventDefault();
@@ -260,86 +145,10 @@ export default function ProfilePage() {
     }
   };
 
-  const updateFallbackStrategy = async (strategy) => {
-    try {
-      const res = await fetch("/api/settings", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ fallbackStrategy: strategy }),
-      });
-      if (res.ok) {
-        setSettings(prev => ({ ...prev, fallbackStrategy: strategy }));
-      }
-    } catch (err) {
-      console.error("Failed to update settings:", err);
-    }
-  };
 
-  const updateComboStrategy = async (strategy) => {
-    try {
-      const res = await fetch("/api/settings", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ comboStrategy: strategy }),
-      });
-      if (res.ok) {
-        setSettings(prev => ({ ...prev, comboStrategy: strategy }));
-      }
-    } catch (err) {
-      console.error("Failed to update combo strategy:", err);
-    }
-  };
 
-  const updateStickyLimit = async (limit) => {
-    const numLimit = parseInt(limit);
-    if (isNaN(numLimit) || numLimit < 1) return;
 
-    try {
-      const res = await fetch("/api/settings", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ stickyRoundRobinLimit: numLimit }),
-      });
-      if (res.ok) {
-        setSettings(prev => ({ ...prev, stickyRoundRobinLimit: numLimit }));
-      }
-    } catch (err) {
-      console.error("Failed to update sticky limit:", err);
-    }
-  };
 
-  const updateComboStickyLimit = async (limit) => {
-    const numLimit = parseInt(limit);
-    if (isNaN(numLimit) || numLimit < 1) return;
-
-    try {
-      const res = await fetch("/api/settings", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ comboStickyRoundRobinLimit: numLimit }),
-      });
-      if (res.ok) {
-        setSettings(prev => ({ ...prev, comboStickyRoundRobinLimit: numLimit }));
-      }
-    } catch (err) {
-      console.error("Failed to update combo sticky limit:", err);
-    }
-  };
-
-  const updateRequireLogin = async (requireLogin) => {
-    try {
-      const res = await fetch("/api/settings", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ requireLogin }),
-      });
-      if (res.ok) {
-        setSettings(prev => ({ ...prev, requireLogin }));
-      }
-    } catch (err) {
-      console.error("Failed to update require login:", err);
-    }
-  };
 
   const updateOidcForm = (field, value) => {
     setOidcForm((prev) => ({ ...prev, [field]: value }));
@@ -632,323 +441,247 @@ export default function ProfilePage() {
     }
   };
 
-  const updateObservabilityEnabled = async (enabled) => {
+  // --- Operator profile (Phase 3 split) ---
+  const notify = useNotificationStore();
+  const [displayName, setDisplayName] = useState("");
+  const [instanceName, setInstanceName] = useState("");
+  const [profileSaving, setProfileSaving] = useState(false);
+
+  const LANGUAGE_OPTIONS = [
+    { value: "en", label: "English" },
+    { value: "id", label: "Bahasa Indonesia" },
+    { value: "ja", label: "Japanese" },
+    { value: "zh-CN", label: "Chinese (Simplified)" },
+  ];
+  const languageValue = LANGUAGE_OPTIONS.some((o) => o.value === locale) ? locale : "en";
+
+  // Same mechanism the old LanguageSwitcher used: POST /api/locale + reload translations.
+  const handleLanguageChange = async (nextLocale) => {
+    setLocale(nextLocale);
+    try {
+      await fetch("/api/locale", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ locale: nextLocale }),
+      });
+      await reloadTranslations();
+    } catch (err) {
+      console.error("Failed to set locale:", err);
+    }
+  };
+
+  const handleSaveProfile = async () => {
+    setProfileSaving(true);
     try {
       const res = await fetch("/api/settings", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ enableObservability: enabled }),
+        body: JSON.stringify({ displayName: displayName.trim(), instanceName: instanceName.trim() }),
       });
+      const data = await res.json().catch(() => ({}));
       if (res.ok) {
-        setSettings(prev => ({ ...prev, enableObservability: enabled }));
+        setSettings((prev) => ({ ...prev, ...data }));
+        notify.success("Profile saved");
+      } else {
+        notify.error(data.error || "Failed to save profile");
       }
-    } catch (err) {
-      console.error("Failed to update enableObservability:", err);
+    } catch {
+      notify.error("Failed to save profile");
+    } finally {
+      setProfileSaving(false);
     }
   };
 
-  const reloadSettings = async () => {
+  const updateCloudEnabled = async (cloudEnabled) => {
     try {
-      const res = await fetch("/api/settings");
-      if (!res.ok) return;
-      const data = await res.json();
-      setSettings(data);
-    } catch (err) {
-      console.error("Failed to reload settings:", err);
-    }
-  };
-
-  const handleExportDatabase = async (password) => {
-    setDbLoading(true);
-    setDbStatus({ type: "", message: "" });
-    try {
-      const res = await fetch("/api/settings/database", {
-        headers: { "x-9r-password": password },
+      const res = await fetch("/api/settings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cloudEnabled }),
       });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || "Failed to export database");
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) {
+        setSettings((prev) => ({ ...prev, ...data, cloudEnabled }));
+      } else {
+        notify.error(data.error || "Failed to update cloud sync");
       }
+    } catch {
+      notify.error("Failed to update cloud sync");
+    }
+  };
 
-      const payload = await res.json();
-      const content = JSON.stringify(payload, null, 2);
-      const blob = new Blob([content], { type: "application/json" });
+  const handleExportConfig = async () => {
+    try {
+      const [settingsRes, combosRes] = await Promise.all([
+        fetch("/api/settings", { cache: "no-store" }),
+        fetch("/api/combos", { cache: "no-store" }),
+      ]);
+      const settingsJson = settingsRes.ok ? await settingsRes.json() : {};
+      const combosJson = combosRes.ok ? await combosRes.json() : {};
+      const payload = {
+        settings: settingsJson,
+        combos: combosJson.combos ?? combosJson,
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
       const url = URL.createObjectURL(blob);
       const anchor = document.createElement("a");
-      const stamp = new Date().toISOString().replace(/[.:]/g, "-");
       anchor.href = url;
-      anchor.download = `bansur-router-backup-${stamp}.json`;
+      anchor.download = "bansur-router-config.json";
       document.body.appendChild(anchor);
       anchor.click();
       document.body.removeChild(anchor);
       URL.revokeObjectURL(url);
-
-      setDbStatus({ type: "success", message: "Database backup downloaded" });
-    } catch (err) {
-      setDbStatus({ type: "error", message: err.message || "Failed to export database" });
-    } finally {
-      setDbLoading(false);
+      notify.success("Configuration exported");
+    } catch {
+      notify.error("Failed to export configuration");
     }
   };
 
-  const handleImportDatabase = (event) => {
-    const file = event.target.files?.[0];
-    if (importFileRef.current) importFileRef.current.value = "";
-    if (!file) return;
-    pendingImportRef.current = file;
-    setDbStatus({ type: "", message: "" });
-    setDbAuth({ open: true, mode: "import", password: "" });
-  };
+  const cloudEnabled = settings.cloudEnabled === true;
+  const authModeLabel =
+    settings.authMode === "both"
+      ? "Password + SSO"
+      : settings.authMode === "sso" || settings.authMode === "oidc" || settings.authMode === "saml"
+        ? settings.ssoType === "saml"
+          ? "SAML"
+          : "OIDC"
+        : "Password";
+  const oidcConfigured = settings.oidcConfigured === true;
+  const samlConfigured = !!(settings.samlEntryPoint && settings.samlCert);
 
-  const runImportDatabase = async (password) => {
-    const file = pendingImportRef.current;
-    if (!file) return;
-    setDbLoading(true);
-    try {
-      const raw = await file.text();
-      const payload = JSON.parse(raw);
-
-      const res = await fetch("/api/settings/database", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...payload, password }),
-      });
-
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        throw new Error(data.error || "Failed to import database");
-      }
-
-      await reloadSettings();
-      setDbStatus({ type: "success", message: "Database imported successfully" });
-    } catch (err) {
-      setDbStatus({ type: "error", message: err.message || "Invalid backup file" });
-    } finally {
-      pendingImportRef.current = null;
-      setDbLoading(false);
-    }
-  };
-
-  // Confirm password modal, then run export or import.
-  const handleDbAuthConfirm = async () => {
-    const { mode, password } = dbAuth;
-    setDbAuth({ open: false, mode: "", password: "" });
-    if (mode === "export") await handleExportDatabase(password);
-    else if (mode === "import") await runImportDatabase(password);
-  };
-
-  const observabilityEnabled = settings.enableObservability === true;
-
-  const handleShutdown = async () => {
-    setIsShuttingDown(true);
-    try {
-      await fetch("/api/version/shutdown", { method: "POST" });
-    } catch (e) {
-      // Expected to fail as server shuts down; ignore error
-    }
-    setIsShuttingDown(false);
-    setShutdownOpen(false);
-  };
-
-  const handleLogout = async () => {
-    try {
-      const res = await fetch("/api/auth/logout", { method: "POST" });
-      if (res.ok) {
-        window.location.assign("/login");
-      }
-    } catch (err) {
-      console.error("Failed to logout:", err);
-    }
-  };
 
   return (
-    <div className="flex flex-col gap-3.5">
+    <div>
       {/* Page head */}
-      <div>
-        <h2 className="text-xl font-semibold tracking-[-0.01em] text-text-main">Profile</h2>
-        <p className="mt-1 text-[13.5px] text-text-muted max-w-[640px]">Your local profile on this machine, plus optional sync so a second device picks up the same setup.</p>
+      <div className="mb-5">
+        <h2 className="text-xl font-semibold tracking-[-0.01em]">Profile</h2>
+        <p className="mt-1 text-[13.5px] text-text-muted max-w-[640px]">Operator profile for this router instance, sign-in security, and cloud sync.</p>
       </div>
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-3.5 items-start">
-        {/* Local Mode Info */}
-        <Card className="xl:col-span-2">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
-            <div className="flex items-center gap-3 sm:gap-4">
-              <div className="size-[38px] rounded-md border border-border bg-surface-2 text-text-main flex items-center justify-center shrink-0">
-                <span className="material-symbols-outlined text-xl sm:text-2xl">computer</span>
-              </div>
-              <div>
-                <h2 className="text-[13.5px] font-semibold">Local Mode</h2>
-                <p className="text-sm text-text-muted">Running on your machine</p>
-              </div>
+
+      <div className="grid gap-3.5 grid-cols-1 min-[821px]:grid-cols-2 items-start">
+        {/* Operator + password */}
+        <Card>
+          <h3 className="text-[13.5px] font-semibold mb-3.5">Operator</h3>
+          <div className="grid grid-cols-1 min-[821px]:grid-cols-2 gap-3.5">
+            <div>
+              <label className="block text-[12.5px] font-semibold mb-1.5">Display name</label>
+              <Input value={displayName} onChange={(e) => setDisplayName(e.target.value)} disabled={loading} />
+            </div>
+            <div>
+              <label className="block text-[12.5px] font-semibold mb-1.5">Instance name</label>
+              <Input value={instanceName} onChange={(e) => setInstanceName(e.target.value)} disabled={loading} />
             </div>
           </div>
-          <div className="flex flex-col gap-3 pt-4 border-t border-border">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between px-3.5 py-2.5 rounded-md bg-surface-2 border border-border gap-2">
-              <div>
-                <p className="font-semibold text-[13.5px]">Database Location</p>
-                <p className="text-[12.5px] text-text-muted font-mono break-all">~/.bansur-router/db/data.sqlite</p>
-              </div>
-            </div>
-            <div className="flex flex-col sm:flex-row gap-2">
-              <Button
-                variant="secondary"
-                icon="download"
-                onClick={() => setDbAuth({ open: true, mode: "export", password: "" })}
-                loading={dbLoading}
-                className="w-full sm:w-auto"
-              >
-                Download Backup
-              </Button>
-              <Button
-                variant="outline"
-                icon="upload"
-                onClick={() => importFileRef.current?.click()}
-                disabled={dbLoading}
-                className="w-full sm:w-auto"
-              >
-                Import Backup
-              </Button>
-              <input
-                ref={importFileRef}
-                type="file"
-                accept="application/json,.json"
-                className="hidden"
-                onChange={handleImportDatabase}
+          <div className="mt-3.5">
+            <label className="block text-[12.5px] font-semibold mb-1.5">Display language</label>
+            <Select
+              options={LANGUAGE_OPTIONS}
+              value={languageValue}
+              onChange={(e) => handleLanguageChange(e.target.value)}
+            />
+          </div>
+          <div className="mt-3.5">
+            <label className="block text-[12.5px] font-semibold mb-1.5">Database location</label>
+            <Input value="~/.bansur-router/db/data.sqlite" readOnly inputClassName="font-mono text-[12.5px]" />
+          </div>
+          <div className="mt-3.5">
+            <Button variant="primary" onClick={handleSaveProfile} loading={profileSaving} disabled={loading}>
+              Save profile
+            </Button>
+          </div>
+
+          <div className="h-px bg-border my-[18px]" />
+
+          <h3 className="text-[13.5px] font-semibold mb-3.5">Change dashboard password</h3>
+          <form onSubmit={handlePasswordChange}>
+            <div className="flex flex-col gap-2.5">
+              <Input
+                type="password"
+                placeholder="Current password"
+                value={passwords.current}
+                onChange={(e) => setPasswords({ ...passwords, current: e.target.value })}
+                required={!!settings.hasPassword}
+              />
+              <Input
+                type="password"
+                placeholder="New password"
+                value={passwords.new}
+                onChange={(e) => setPasswords({ ...passwords, new: e.target.value })}
+                required
+              />
+              <Input
+                type="password"
+                placeholder="Confirm new password"
+                value={passwords.confirm}
+                onChange={(e) => setPasswords({ ...passwords, confirm: e.target.value })}
+                required
               />
             </div>
-            {dbStatus.message && (
-              <p className={`text-sm ${dbStatus.type === "error" ? "text-text-main" : "text-text-main dark:text-text-main"}`}>
-                {dbStatus.message}
-              </p>
+            {passStatus.message && (
+              <p className="text-xs text-text-muted mt-2.5">{passStatus.message}</p>
             )}
-          </div>
+            <div className="flex items-center gap-3.5 mt-3.5 flex-wrap">
+              <Button type="submit" variant="secondary" loading={passLoading}>
+                Update password
+              </Button>
+              <span className="text-xs text-text-muted">Running on your machine — the password never leaves it.</span>
+            </div>
+          </form>
         </Card>
 
-        {/* Language */}
-        <Card>
-          <div className="flex items-center gap-3 mb-4">
-            <div className="size-[38px] rounded-md border border-border bg-surface-2 text-text-main flex items-center justify-center shrink-0">
-              <span className="material-symbols-outlined text-[20px]">language</span>
-            </div>
-            <h3 className="text-[13.5px] font-semibold">Language</h3>
-          </div>
-          <button
-            onClick={() => setLangOpen(true)}
-            className="flex items-center justify-between w-full px-3.5 py-2.5 rounded-md bg-surface-2 border border-border hover:border-border-strong transition-colors"
-            data-i18n-skip="true"
-          >
-            <span className="text-sm text-text-muted">Display language</span>
-            <span className="text-2xl">{LOCALE_FLAGS[locale] || "🌐"}</span>
-          </button>
-        </Card>
-
-        {/* Security */}
-        <Card>
-          <div className="flex items-center gap-3 mb-4">
-            <div className="size-[38px] rounded-md border border-border bg-surface-2 text-text-main flex items-center justify-center shrink-0">
-              <span className="material-symbols-outlined text-[20px]">shield</span>
-            </div>
-            <h3 className="text-[13.5px] font-semibold">Security</h3>
-          </div>
-          <div className="flex flex-col gap-4">
-            <div className="flex items-start sm:items-center justify-between gap-4">
-              <div className="flex-1 min-w-0">
-                <p className="font-semibold text-[13.5px]">Require login</p>
-                <p className="text-[12.5px] text-text-muted">
-                  When ON, dashboard requires password. When OFF, access without login.
-                </p>
+        {/* Right column */}
+        <div className="flex flex-col gap-3.5">
+          {/* Cloud sync */}
+          <Card>
+            <div className="flex items-center gap-3.5">
+              <div className="grow">
+                <h3 className="text-[13.5px] font-semibold">Cloud sync</h3>
+                <p className="text-xs text-text-muted">Optional sync of settings &amp; provider metadata</p>
               </div>
-              <Toggle
-                checked={settings.requireLogin === true}
-                onChange={() => updateRequireLogin(!settings.requireLogin)}
-                disabled={loading}
-              />
+              <Badge variant="default">{cloudEnabled ? "On" : "Off"}</Badge>
+              <Toggle checked={cloudEnabled} onChange={updateCloudEnabled} disabled={loading} />
             </div>
-            {settings.requireLogin === true && (
-              <form onSubmit={handlePasswordChange} className="flex flex-col gap-4 pt-4 border-t border-border/50">
-                {settings.hasPassword && (
-                  <div className="flex flex-col gap-2">
-                    <label className="text-xs sm:text-sm font-medium">Current Password</label>
-                    <Input
-                      type="password"
-                      placeholder="Enter current password"
-                      value={passwords.current}
-                      onChange={(e) => setPasswords({ ...passwords, current: e.target.value })}
-                      required
-                    />
-                  </div>
-                )}
-                {/* {!settings.hasPassword && (
-                  <div className="p-3 rounded-lg bg-surface-2 border border-border">
-                    <p className="text-sm text-text-muted dark:text-text-muted">
-                      Setting password for the first time. Leave current password empty or use default: <code className="bg-surface-2 px-1 rounded">123456</code>
-                    </p>
-                  </div>
-                )} */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="flex flex-col gap-2">
-                    <label className="text-xs sm:text-sm font-medium">New Password</label>
-                    <Input
-                      type="password"
-                      placeholder="Enter new password"
-                      value={passwords.new}
-                      onChange={(e) => setPasswords({ ...passwords, new: e.target.value })}
-                      required
-                    />
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    <label className="text-xs sm:text-sm font-medium">Confirm New Password</label>
-                    <Input
-                      type="password"
-                      placeholder="Confirm new password"
-                      value={passwords.confirm}
-                      onChange={(e) => setPasswords({ ...passwords, confirm: e.target.value })}
-                      required
-                    />
-                  </div>
-                </div>
-
-                {passStatus.message && (
-                  <p className={`text-xs sm:text-sm ${passStatus.type === "error" ? "text-text-main" : "text-text-main"}`}>
-                    {passStatus.message}
-                  </p>
-                )}
-
-                <div className="pt-2">
-                  <Button type="submit" variant="primary" loading={passLoading} className="w-full sm:w-auto">
-                    {settings.hasPassword ? "Update Password" : "Set Password"}
-                  </Button>
-                </div>
-              </form>
-            )}
-          </div>
-        </Card>
-
-        {/* Single Sign-On (SSO) */}
-        <Card>
-          <button
-            type="button"
-            onClick={() => setOidcExpanded((v) => !v)}
-            className="w-full flex items-center gap-3 text-left"
-          >
-            <div className="size-[38px] rounded-md border border-border bg-surface-2 text-text-main flex items-center justify-center shrink-0">
-              <span className="material-symbols-outlined text-[20px]">lock_open</span>
+            <div className="mt-2">
+              <div className="flex justify-between gap-3.5 py-2 border-b border-dashed border-border text-[13px]">
+                <span className="text-text-muted">Status</span>
+                <span className="font-mono text-[12.5px] text-right">{cloudEnabled ? "Enabled" : "Local mode · nothing synced"}</span>
+              </div>
+              <div className="flex justify-between gap-3.5 py-2 border-b border-dashed border-border text-[13px]">
+                <span className="text-text-muted">Last sync</span>
+                <span className="font-mono text-[12.5px] text-right">Never</span>
+              </div>
+              <div className="flex justify-between gap-3.5 py-2 border-b border-dashed border-border text-[13px] last:border-b-0">
+                <span className="text-text-muted">What syncs</span>
+                <span className="font-mono text-[12.5px] text-right">Settings, combos · never keys</span>
+              </div>
             </div>
-            <div className="flex-1 min-w-0">
-              <h3 className="text-[13.5px] font-semibold">Single Sign-On (SSO)</h3>
-              <p className="text-xs text-text-muted">
-                {settings.authMode === "sso" || settings.authMode === "oidc" || settings.authMode === "saml"
-                  ? `${settings.ssoType === "saml" ? "SAML 2.0" : "OIDC"} SSO active`
-                  : settings.authMode === "both"
-                    ? `Password + ${settings.ssoType === "saml" ? "SAML 2.0" : "OIDC"} active`
-                    : "Optional SSO via Okta, Entra ID, Keycloak, or OIDC"}
-              </p>
+          </Card>
+
+          {/* Single sign-on summary */}
+          <Card>
+            <h3 className="text-[13.5px] font-semibold mb-3.5">Single sign-on</h3>
+            <div className="flex justify-between gap-3.5 py-2 border-b border-dashed border-border text-[13px]">
+              <span className="text-text-muted">Auth mode</span>
+              <span className="font-mono text-[12.5px] text-right">{authModeLabel}</span>
             </div>
-            <span className="material-symbols-outlined text-text-muted shrink-0">
-              {oidcExpanded ? "expand_less" : "expand_more"}
-            </span>
-          </button>
+            <div className="flex justify-between gap-3.5 py-2 border-b border-dashed border-border text-[13px]">
+              <span className="text-text-muted">OIDC</span>
+              <span className="font-mono text-[12.5px] text-right">{oidcConfigured ? "Configured" : "Not configured"}</span>
+            </div>
+            <div className="flex justify-between gap-3.5 py-2 border-b border-dashed border-border text-[13px] last:border-b-0">
+              <span className="text-text-muted">SAML</span>
+              <span className="font-mono text-[12.5px] text-right">{samlConfigured ? "Configured" : "Not configured"}</span>
+            </div>
+            <div className="mt-3.5">
+              <Button variant="secondary" onClick={() => setOidcExpanded((v) => !v)}>
+                Configure SSO
+              </Button>
+            </div>
+          </Card>
+
+          {/* SSO configuration forms (existing full forms, toggled by Configure SSO) */}
           {oidcExpanded && (
+            <Card>
             <div className="flex flex-col gap-4 mt-4">
               <p className="text-[12.5px] text-text-muted">
                 Configure enterprise Single Sign-On (SSO) for dashboard access using SAML 2.0 or OIDC.
@@ -1415,271 +1148,33 @@ export default function ProfilePage() {
                 </p>
               )}
             </div>
+            </Card>
           )}
-        </Card>
 
-        {/* Routing Preferences */}
-        <Card>
-          <div className="flex items-center gap-3 mb-4">
-            <div className="size-[38px] rounded-md border border-border bg-surface-2 text-text-main flex items-center justify-center shrink-0">
-              <span className="material-symbols-outlined text-[20px]">route</span>
-            </div>
-            <h3 className="text-[13.5px] font-semibold">Routing Strategy</h3>
-          </div>
-          <div className="flex flex-col gap-4">
-            <div className="flex items-start sm:items-center justify-between gap-4">
-              <div className="flex-1 min-w-0">
-                <p className="font-semibold text-[13.5px]">Round Robin</p>
-                <p className="text-[12.5px] text-text-muted">
-                  Cycle through accounts to distribute load
-                </p>
+          {/* Danger zone */}
+          <Card className="border-brand-500">
+            <h3 className="text-[13.5px] font-semibold mb-3.5">Danger zone</h3>
+            <div className="flex items-center gap-3.5 py-[13px] pt-0 border-b border-border">
+              <div className="grow">
+                <b className="block text-[13.5px] font-semibold">Reset router data</b>
+                <span className="text-[12.5px] text-text-muted">Deletes accounts, keys, combos, and logs stored on this machine.</span>
               </div>
-              <Toggle
-                checked={settings.fallbackStrategy === "round-robin"}
-                onChange={() => updateFallbackStrategy(settings.fallbackStrategy === "round-robin" ? "fill-first" : "round-robin")}
-                disabled={loading}
-              />
+              <Button variant="danger" disabled>
+                Reset…
+              </Button>
             </div>
-
-            {/* Sticky Round Robin Limit */}
-            {settings.fallbackStrategy === "round-robin" && (
-              <div className="flex items-start sm:items-center justify-between gap-4 pt-2 border-t border-border/50">
-                <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-[13.5px]">Sticky Limit</p>
-                  <p className="text-[12.5px] text-text-muted">
-                    Calls per account before switching
-                  </p>
-                </div>
-                <Input
-                  type="number"
-                  min="1"
-                  max="10"
-                  value={settings.stickyRoundRobinLimit || 3}
-                  onChange={(e) => updateStickyLimit(e.target.value)}
-                  disabled={loading}
-                  className="w-16 sm:w-20 text-center shrink-0"
-                />
+            <div className="flex items-center gap-3.5 py-[13px] border-b border-border last:border-b-0 pb-0">
+              <div className="grow">
+                <b className="block text-[13.5px] font-semibold">Export configuration</b>
+                <span className="text-[12.5px] text-text-muted">Download settings and combos (keys excluded) as JSON.</span>
               </div>
-            )}
-
-            {/* Combo Round Robin */}
-            <div className="flex items-start sm:items-center justify-between gap-4 pt-4 border-t border-border/50">
-              <div className="flex-1 min-w-0">
-                <p className="font-semibold text-[13.5px]">Combo Round Robin</p>
-                <p className="text-[12.5px] text-text-muted">
-                  Cycle through providers in combos instead of always starting with first
-                </p>
-              </div>
-              <Toggle
-                checked={settings.comboStrategy === "round-robin"}
-                onChange={() => updateComboStrategy(settings.comboStrategy === "round-robin" ? "fallback" : "round-robin")}
-                disabled={loading}
-              />
+              <Button variant="secondary" onClick={handleExportConfig}>
+                Export
+              </Button>
             </div>
-
-            {/* Combo Sticky Round Robin Limit */}
-            {settings.comboStrategy === "round-robin" && (
-              <div className="flex items-center justify-between pt-2 border-t border-border/50">
-                <div>
-                  <p className="font-medium">Combo Sticky Limit</p>
-                  <p className="text-sm text-text-muted">
-                    Calls per combo model before switching
-                  </p>
-                </div>
-                <Input
-                  type="number"
-                  min="1"
-                  max="100"
-                  value={settings.comboStickyRoundRobinLimit || 1}
-                  onChange={(e) => updateComboStickyLimit(e.target.value)}
-                  disabled={loading}
-                  className="w-20 text-center"
-                />
-              </div>
-            )}
-
-            <p className="text-xs text-text-muted italic pt-2 border-t border-border/50">
-              {settings.fallbackStrategy === "round-robin"
-                ? `Currently distributing requests across all available accounts with ${settings.stickyRoundRobinLimit || 3} calls per account.`
-                : "Currently using accounts in priority order (Fill First)."}
-              {settings.comboStrategy === "round-robin"
-                ? ` Combos rotate after ${settings.comboStickyRoundRobinLimit || 1} call${(settings.comboStickyRoundRobinLimit || 1) === 1 ? "" : "s"} per model.`
-                : " Combos always start with their first model."}
-            </p>
-          </div>
-        </Card>
-
-        {/* Network */}
-        <Card>
-          <div className="flex items-center gap-3 mb-4">
-            <div className="size-[38px] rounded-md border border-border bg-surface-2 text-text-main flex items-center justify-center shrink-0">
-              <span className="material-symbols-outlined text-[20px]">wifi</span>
-            </div>
-            <h3 className="text-[13.5px] font-semibold">Network</h3>
-          </div>
-
-          <div className="flex flex-col gap-4">
-            <div className="flex items-start sm:items-center justify-between gap-4">
-              <div className="flex-1 min-w-0">
-                <p className="font-semibold text-[13.5px]">Outbound Proxy</p>
-                <p className="text-[12.5px] text-text-muted">Enable proxy for OAuth + provider outbound requests.</p>
-              </div>
-              <Toggle
-                checked={settings.outboundProxyEnabled === true}
-                onChange={() => updateOutboundProxyEnabled(!(settings.outboundProxyEnabled === true))}
-                disabled={loading || proxyLoading}
-              />
-            </div>
-
-            {settings.outboundProxyEnabled === true && (
-              <form onSubmit={updateOutboundProxy} className="flex flex-col gap-4 pt-2 border-t border-border/50">
-                <div className="flex flex-col gap-2">
-                  <label className="font-semibold text-[13.5px]">Proxy URL</label>
-                  <Input
-                    placeholder="http://127.0.0.1:7897"
-                    value={proxyForm.outboundProxyUrl}
-                    onChange={(e) => setProxyForm((prev) => ({ ...prev, outboundProxyUrl: e.target.value }))}
-                    disabled={loading || proxyLoading}
-                  />
-                  <p className="text-[12.5px] text-text-muted">Leave empty to inherit existing env proxy (if any).</p>
-                </div>
-
-                <div className="flex flex-col gap-2 pt-2 border-t border-border/50">
-                  <label className="font-semibold text-[13.5px]">No Proxy</label>
-                  <Input
-                    placeholder="localhost,127.0.0.1"
-                    value={proxyForm.outboundNoProxy}
-                    onChange={(e) => setProxyForm((prev) => ({ ...prev, outboundNoProxy: e.target.value }))}
-                    disabled={loading || proxyLoading}
-                  />
-                  <p className="text-[12.5px] text-text-muted">Comma-separated hostnames/domains to bypass the proxy.</p>
-                </div>
-
-                <div className="pt-2 border-t border-border/50 flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    loading={proxyTestLoading}
-                    disabled={loading || proxyLoading}
-                    onClick={testOutboundProxy}
-                    className="w-full sm:w-auto"
-                  >
-                    Test proxy URL
-                  </Button>
-                  <Button type="submit" variant="primary" loading={proxyLoading} className="w-full sm:w-auto">
-                    Apply
-                  </Button>
-                </div>
-              </form>
-            )}
-
-            {proxyStatus.message && (
-              <p className={`text-xs sm:text-sm ${proxyStatus.type === "error" ? "text-text-main" : "text-text-main"} pt-2 border-t border-border/50`}>
-                {proxyStatus.message}
-              </p>
-            )}
-          </div>
-        </Card>
-
-        {/* Observability Settings */}
-        <Card>
-          <div className="flex items-center gap-3 mb-4">
-            <div className="size-[38px] rounded-md border border-border bg-surface-2 text-text-main flex items-center justify-center shrink-0">
-              <span className="material-symbols-outlined text-[20px]">monitoring</span>
-            </div>
-            <h3 className="text-[13.5px] font-semibold">Observability</h3>
-          </div>
-          <div className="flex items-start sm:items-center justify-between gap-4">
-            <div className="flex-1 min-w-0">
-              <p className="font-semibold text-[13.5px]">Enable Observability</p>
-              <p className="text-[12.5px] text-text-muted">
-                Record request details for inspection in the logs view
-              </p>
-            </div>
-            <Toggle
-              checked={observabilityEnabled}
-              onChange={updateObservabilityEnabled}
-              disabled={loading}
-            />
-          </div>
-        </Card>
-
-        {/* Account actions */}
-        <div className="flex flex-col sm:flex-row gap-2">
-          <Button
-            variant="outline"
-            fullWidth
-            icon="power_settings_new"
-            onClick={() => setShutdownOpen(true)}
-            className="text-text-main border-border hover:bg-surface-2 hover:border-text-main"
-          >
-            Shutdown
-          </Button>
-          <Button
-            variant="outline"
-            fullWidth
-            icon="logout"
-            onClick={handleLogout}
-          >
-            Logout
-          </Button>
-        </div>
-
-        {/* App Info */}
-        <div className="xl:col-span-2 text-center text-[12.5px] text-text-muted py-4">
-          <p>{APP_CONFIG.name} v{APP_CONFIG.version}</p>
-          <p className="mt-1">{isRemoteHost ? "Remote Mode" : "Local Mode - All data stored on your machine"}</p>
+          </Card>
         </div>
       </div>
-
-      <LanguageSwitcher
-        hideTrigger
-        isOpen={langOpen}
-        onClose={(next) => {
-          setLangOpen(false);
-          setLocale(next);
-        }}
-      />
-      <ConfirmModal
-        isOpen={shutdownOpen}
-        onClose={() => setShutdownOpen(false)}
-        onConfirm={handleShutdown}
-        title="Close Proxy"
-        message="Are you sure you want to close the proxy server?"
-        confirmText="Close"
-        cancelText="Cancel"
-        variant="danger"
-        loading={isShuttingDown}
-      />
-
-      <Modal
-        isOpen={dbAuth.open}
-        onClose={() => setDbAuth({ open: false, mode: "", password: "" })}
-        title="Confirm Password"
-        size="sm"
-        footer={
-          <>
-            <Button variant="ghost" onClick={() => setDbAuth({ open: false, mode: "", password: "" })} disabled={dbLoading}>
-              Cancel
-            </Button>
-            <Button variant="primary" onClick={handleDbAuthConfirm} loading={dbLoading} disabled={!dbAuth.password}>
-              Confirm
-            </Button>
-          </>
-        }
-      >
-        <p className="text-text-muted mb-3 text-sm">
-          Enter your current password to {dbAuth.mode === "export" ? "export" : "import"} the database.
-        </p>
-        <Input
-          type="password"
-          value={dbAuth.password}
-          onChange={(e) => setDbAuth((s) => ({ ...s, password: e.target.value }))}
-          onKeyDown={(e) => { if (e.key === "Enter" && dbAuth.password) handleDbAuthConfirm(); }}
-          placeholder="Current password"
-          autoFocus
-        />
-      </Modal>
     </div>
   );
 }

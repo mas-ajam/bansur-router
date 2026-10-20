@@ -1,303 +1,180 @@
 "use client";
 
-import { useState } from "react";
-import { Card, Button } from "@/shared/components";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Card, Button, Select } from "@/shared/components";
 import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
-import dynamic from "next/dynamic";
 
-const Editor = dynamic(() => import("@monaco-editor/react"), { ssr: false });
-
-// 7 steps matching requestLogger files exactly
-const STEPS = [
-  { id: 1, label: "Client Request",         file: "1_req_client.json",  lang: "json", desc: "Raw request from client" },
-  { id: 2, label: "Source Body",            file: "2_req_source.json",  lang: "json", desc: "After initial conversion" },
-  { id: 3, label: "OpenAI Intermediate",    file: "3_req_openai.json",  lang: "json", desc: "source → openai" },
-  { id: 4, label: "Target Request",         file: "4_req_target.json",  lang: "json", desc: "openai → target + URL + headers" },
-  { id: 5, label: "Provider Response",      file: "5_res_provider.txt", lang: "text", desc: "Raw SSE from provider" },
-  { id: 6, label: "OpenAI Response",        file: "6_res_openai.txt",   lang: "text", desc: "target → openai (response)" },
-  { id: 7, label: "Client Response",        file: "7_res_client.txt",   lang: "text", desc: "Final response to client" },
-];
-
-const EDITOR_OPTIONS = {
-  minimap: { enabled: false },
-  fontSize: 12,
-  lineNumbers: "on",
-  scrollBeyondLastLine: false,
-  wordWrap: "on",
-  automaticLayout: true,
+// Sample payloads — copied from the artifact's translator JS (one per format).
+const SAMPLES = {
+  openai: { model: "kr/claude-sonnet-4.5", messages: [{ role: "system", content: "You are a careful coding assistant." }, { role: "user", content: "Explain what this router does in one sentence." }], temperature: 0.7, max_tokens: 512 },
+  claude: { model: "kr/claude-sonnet-4.5", system: "You are a careful coding assistant.", messages: [{ role: "user", content: [{ type: "text", text: "Explain what this router does in one sentence." }] }], max_tokens: 512, temperature: 0.7 },
+  gemini: { model: "kr/claude-sonnet-4.5", systemInstruction: { parts: [{ text: "You are a careful coding assistant." }] }, contents: [{ role: "user", parts: [{ text: "Explain what this router does in one sentence." }] }], generationConfig: { temperature: 0.7, maxOutputTokens: 512 } },
 };
 
-export default function TranslatorPage() {
-  const [contents, setContents] = useState({});
-  const [expanded, setExpanded] = useState({ 1: true });
-  const [loading, setLoading] = useState({});
-  // Detected from step 1: { provider, model, sourceFormat, targetFormat }
-  const [meta, setMeta] = useState(null);
+const FORMAT_OPTIONS = [
+  { value: "openai", label: "OpenAI format" },
+  { value: "claude", label: "Claude format" },
+  { value: "gemini", label: "Gemini format" },
+];
 
-  const setLoad = (key, val) => setLoading(prev => ({ ...prev, [key]: val }));
-  const setContent = (id, val) => setContents(prev => ({ ...prev, [id]: val }));
-  const toggle = (id) => setExpanded(prev => ({ ...prev, [id]: !prev[id] }));
-
-  const openNext = (nextId) => setExpanded(prev => {
-    const next = {};
-    STEPS.forEach(s => { next[s.id] = false; });
-    next[nextId] = true;
-    return next;
-  });
-
-  // Load file from logs/translator/
-  const handleLoad = async (stepId) => {
-    const step = STEPS.find(s => s.id === stepId);
-    setLoad(`load-${stepId}`, true);
-    try {
-      const res = await fetch(`/api/translator/load?file=${step.file}`);
-      const data = await res.json();
-      if (data.success) {
-        setContent(stepId, data.content);
-        if (stepId === 1) await detectMeta(data.content);
-      } else {
-        alert(data.error || "File not found");
-      }
-    } catch (e) {
-      alert(e.message);
-    }
-    setLoad(`load-${stepId}`, false);
-  };
-
-  // Step 1: detect provider/format from model field
-  const detectMeta = async (rawContent) => {
-    try {
-      const body = typeof rawContent === "string" ? JSON.parse(rawContent) : rawContent;
-      const res = await fetch("/api/translator/translate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ step: 1, body })
-      });
-      const data = await res.json();
-      if (data.success) setMeta(data.result);
-    } catch { /* ignore */ }
-  };
-
-  const save = (file, content) => fetch("/api/translator/save", {
+async function postTranslate(payload) {
+  const res = await fetch("/api/translator/translate", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ file, content })
-  }).catch(() => {});
-
-  // Step 1 → Step 3: source → OpenAI intermediate
-  const handleToOpenAI = async () => {
-    setLoad("toOpenAI", true);
-    try {
-      const raw = contents[1];
-      const body = JSON.parse(raw);
-      // Save input: 1_req_client.json + 2_req_source.json (body only)
-      save("1_req_client.json", raw);
-      save("2_req_source.json", JSON.stringify({ timestamp: new Date().toISOString(), headers: {}, body: body.body || body }, null, 2));
-
-      const res = await fetch("/api/translator/translate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ step: 2, body })
-      });
-      const data = await res.json();
-      if (!data.success) { alert(data.error); return; }
-      const str = JSON.stringify(data.result.body, null, 2);
-      setContent(3, str);
-      openNext(3);
-    } catch (e) { alert(e.message); }
-    setLoad("toOpenAI", false);
-  };
-
-  // Step 3 → Step 4: OpenAI → target + build URL/headers
-  const handleToTarget = async () => {
-    setLoad("toTarget", true);
-    try {
-      const raw = contents[3];
-      const openaiBody = JSON.parse(raw);
-      // Save input: 3_req_openai.json
-      save("3_req_openai.json", raw);
-
-      const res = await fetch("/api/translator/translate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ step: 3, body: { ...openaiBody, provider: meta?.provider, model: meta?.model } })
-      });
-      const data = await res.json();
-      if (!data.success) { alert(data.error); return; }
-      // Embed provider + model so Send works even without meta
-      const step4Content = { ...data.result, provider: meta?.provider, model: meta?.model };
-      setContent(4, JSON.stringify(step4Content, null, 2));
-      openNext(4);
-    } catch (e) { alert(e.message); }
-    setLoad("toTarget", false);
-  };
-
-  // Step 4 → Step 5: send to provider via executor
-  const handleSend = async () => {
-    setLoad("send", true);
-    try {
-      const raw = contents[4];
-      const step4 = JSON.parse(raw);
-      // Save input: 4_req_target.json
-      save("4_req_target.json", raw);
-
-      // Read provider/model from step4 content (embedded during build), fallback to meta
-      const provider = step4.provider || meta?.provider;
-      const model = step4.model || meta?.model;
-
-      if (!provider || !model) {
-        alert("Missing provider or model. Please run step 1 first to detect them.");
-        return;
-      }
-
-      const res = await fetch("/api/translator/send", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ provider, model, body: step4.body || step4 })
-      });
-
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({ error: res.statusText }));
-        alert(err.error || "Send failed");
-        return;
-      }
-
-      // Accumulate streaming response
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
-      let full = "";
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        full += decoder.decode(value, { stream: true });
-      }
-
-      setContent(5, full);
-      openNext(5);
-
-      // Save to logs/translator/5_res_provider.txt
-      await fetch("/api/translator/save", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ file: "5_res_provider.txt", content: full })
-      });
-    } catch (e) {
-      alert(e.message);
-    } finally {
-      setLoad("send", false);
-    }
-  };
-
-  const { copy } = useCopyToClipboard();
-
-  const handleCopy = async (id) => {
-    if (!contents[id]) return;
-    copy(contents[id], `translator-step-${id}`);
-  };
-
-  const handleFormat = (id) => {
-    try {
-      const obj = JSON.parse(contents[id]);
-      setContent(id, JSON.stringify(obj, null, 2));
-    } catch { /* not JSON, skip */ }
-  };
-
-  // Render action button per step
-  const getAction = (stepId) => {
-    if (stepId === 1) return <Button size="sm" icon="arrow_forward" loading={loading["toOpenAI"]} onClick={handleToOpenAI}>→ OpenAI</Button>;
-    if (stepId === 3) return <Button size="sm" icon="arrow_forward" loading={loading["toTarget"]} onClick={handleToTarget}>→ Target</Button>;
-    if (stepId === 4) return <Button size="sm" icon="send" loading={loading["send"]} onClick={handleSend}>Send</Button>;
-    return null;
-  };
-
-  return (
-    <div className="flex flex-col gap-3.5">
-      {/* Page head */}
-      <div className="flex items-start justify-between gap-3 flex-wrap">
-        <div>
-          <h2 className="text-xl font-semibold tracking-[-0.01em] text-text-main">Translator</h2>
-          <p className="mt-1 text-[13.5px] text-text-muted max-w-[640px]">Replay request flow — matches log files. The router converts between provider formats on the fly; each step below is one stage of that conversion.</p>
-        </div>
-        {meta && (
-          <div className="flex items-center gap-2 flex-wrap justify-end">
-            <MetaBadge label="src" value={meta.sourceFormat} color="blue" />
-            <span className="material-symbols-outlined text-text-muted text-[14px]">arrow_forward</span>
-            <MetaBadge label="dst" value={meta.targetFormat} color="orange" />
-            <MetaBadge label="provider" value={meta.provider} color="green" />
-            <MetaBadge label="model" value={meta.model} color="purple" />
-          </div>
-        )}
-      </div>
-
-      {STEPS.map((step) => {
-        const action = getAction(step.id);
-        const isExpanded = !!expanded[step.id];
-        const content = contents[step.id] || "";
-
-        return (
-          <Card key={step.id} padding="none">
-            <div className="px-[18px] py-4 flex flex-col gap-3">
-              {/* Step header */}
-              <div className="flex items-center justify-between">
-                <button onClick={() => toggle(step.id)} className="flex items-center gap-2.5 flex-1 text-left group">
-                  <span className="material-symbols-outlined text-[20px] text-text-muted group-hover:text-primary transition-colors">
-                    {isExpanded ? "expand_more" : "chevron_right"}
-                  </span>
-                  <span className="flex size-[22px] shrink-0 items-center justify-center rounded-full border-[1.5px] border-text-main font-mono text-[11.5px] font-semibold text-text-main">{step.id}</span>
-                  <h3 className="text-[13.5px] font-semibold text-text-main">{step.label}</h3>
-                  <span className="text-xs text-text-muted/60 font-mono">{step.file}</span>
-                  {content && <span className="text-xs text-text-main">({content.length} chars)</span>}
-                </button>
-                {!isExpanded && (
-                  <div className="flex gap-1 shrink-0">
-                    <Button size="sm" variant="ghost" icon="folder_open" loading={loading[`load-${step.id}`]} onClick={() => handleLoad(step.id)} />
-                    {action}
-                  </div>
-                )}
-              </div>
-
-              {/* Expanded content */}
-              {isExpanded && (
-                <>
-                  <div className="border border-border rounded-brand overflow-hidden">
-                    <Editor
-                      height="400px"
-                      defaultLanguage={step.lang === "text" ? "plaintext" : "json"}
-                      value={content}
-                      onChange={(v) => {
-                        setContent(step.id, v || "");
-                        if (step.id === 1) detectMeta(v || "");
-                      }}
-                      theme="vs-dark"
-                      options={EDITOR_OPTIONS}
-                    />
-                  </div>
-                  <div className="flex gap-2 flex-wrap">
-                    <Button size="sm" variant="outline" icon="folder_open" loading={loading[`load-${step.id}`]} onClick={() => handleLoad(step.id)}>Load</Button>
-                    <Button size="sm" variant="outline" icon="data_object" onClick={() => handleFormat(step.id)}>Format</Button>
-                    <Button size="sm" variant="outline" icon="content_copy" onClick={() => handleCopy(step.id)}>Copy</Button>
-                    {action}
-                  </div>
-                </>
-              )}
-            </div>
-          </Card>
-        );
-      })}
-    </div>
-  );
+    body: JSON.stringify(payload),
+  });
+  return res.json();
 }
 
-function MetaBadge({ label, value, color }) {
-  const colors = {
-    blue: "bg-surface-2 text-text-muted",
-    orange: "bg-surface-2 text-primary",
-    green: "bg-surface-2 text-text-main",
-    purple: "bg-surface-2 text-text-muted",
+export default function TranslatorPage() {
+  const [from, setFrom] = useState("openai");
+  const [to, setTo] = useState("claude");
+  const [source, setSource] = useState(() => JSON.stringify(SAMPLES.openai, null, 2));
+  const [output, setOutput] = useState("");
+  const [busy, setBusy] = useState(false);
+  const { copy } = useCopyToClipboard();
+  const runIdRef = useRef(0);
+
+  // Conversion wiring (TR-03) — pivots through OpenAI on the real
+  // /api/translator/translate machinery, exactly like the old debugger:
+  //   step 2: source body -> OpenAI intermediate (format auto-detected
+  //           server-side from the body shape, as the debugger relied on)
+  //   step 1: detect { provider, model, targetFormat } from the body
+  //   step 3: OpenAI intermediate -> the provider's target format
+  // Step 3's target format is a property of the model's provider, so a
+  // cross-format leg is only performed when the detected provider actually
+  // targets the requested format — otherwise the limitation is reported in
+  // the output pane instead of simulating a conversion client-side.
+  const runTranslate = useCallback(async (srcText, fromFmt, toFmt) => {
+    const runId = ++runIdRef.current;
+    let parsed;
+    try {
+      parsed = JSON.parse(srcText);
+    } catch {
+      setOutput("Source is not valid JSON.");
+      return;
+    }
+    const header = `// ${fromFmt} -> ${toFmt}  (applied by the proxy per request)`;
+    if (fromFmt === toFmt) {
+      setOutput(`${header}\n${JSON.stringify(parsed, null, 2)}`);
+      return;
+    }
+    setBusy(true);
+    try {
+      // Leg 1: source -> OpenAI intermediate (skipped when already OpenAI).
+      let openaiBody = parsed;
+      if (fromFmt !== "openai") {
+        const data = await postTranslate({ step: 2, body: parsed });
+        if (!data.success) throw new Error(data.error || "Translation failed");
+        openaiBody = data.result.body;
+      }
+      if (toFmt === "openai") {
+        if (runId === runIdRef.current) setOutput(`${header}\n${JSON.stringify(openaiBody, null, 2)}`);
+        return;
+      }
+      // Leg 2: OpenAI -> target format, via the provider the model routes to.
+      const detected = await postTranslate({ step: 1, body: openaiBody });
+      if (!detected.success) throw new Error(detected.error || "Could not detect provider for this model");
+      const { provider, model, targetFormat } = detected.result;
+      if (targetFormat !== toFmt) {
+        if (runId === runIdRef.current) {
+          setOutput(
+            `${header}\nCannot produce ${toFmt} format for this model: it routes to provider "${provider}", whose target format is ${targetFormat}. The proxy converts per provider, so ${toFmt} output requires a model on a ${toFmt}-format provider.`
+          );
+        }
+        return;
+      }
+      const data = await postTranslate({ step: 3, body: { ...openaiBody, provider, model } });
+      if (!data.success) throw new Error(data.error || "Translation failed");
+      if (runId === runIdRef.current) {
+        setOutput(`${header}\n${JSON.stringify(data.result.body, null, 2)}`);
+      }
+    } catch (error) {
+      if (runId === runIdRef.current) {
+        setOutput(`${header}\n${error.message || "Translation failed"}`);
+      }
+    } finally {
+      if (runId === runIdRef.current) setBusy(false);
+    }
+  }, []);
+
+  // Initial run, matching the artifact (translates the prefilled sample).
+  useEffect(() => {
+    runTranslate(JSON.stringify(SAMPLES.openai, null, 2), "openai", "claude");
+  }, [runTranslate]);
+
+  const handleFromChange = (e) => {
+    const next = e.target.value;
+    setFrom(next);
+    const sample = JSON.stringify(SAMPLES[next], null, 2);
+    setSource(sample);
+    runTranslate(sample, next, to);
   };
+
+  const handleToChange = (e) => {
+    const next = e.target.value;
+    setTo(next);
+    runTranslate(source, from, next);
+  };
+
   return (
-    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-mono ${colors[color]}`}>
-      <span className="text-text-muted/70 font-sans text-[10px]">{label}:</span>{value}
-    </span>
+    <div className="flex flex-col">
+      {/* Page head */}
+      <div className="mb-5">
+        <h2 className="text-xl font-semibold tracking-[-0.01em]">Translator</h2>
+        <p className="mt-1 text-[13.5px] text-text-muted max-w-[640px]">The router converts between provider formats on the fly. Paste a request on the left and see exactly what another provider receives.</p>
+      </div>
+
+      {/* Toolbar */}
+      <div className="flex items-center gap-2.5 flex-wrap mb-3.5">
+        <div className="w-full max-w-[210px]">
+          <Select options={FORMAT_OPTIONS} value={from} onChange={handleFromChange} />
+        </div>
+        <span className="text-text-subtle">→</span>
+        <div className="w-full max-w-[210px]">
+          <Select options={FORMAT_OPTIONS} value={to} onChange={handleToChange} />
+        </div>
+        <Button variant="primary" onClick={() => runTranslate(source, from, to)} loading={busy}>
+          Translate
+        </Button>
+        <div className="flex-1" />
+        <span className="text-xs text-text-muted">Same conversion the proxy applies per request.</span>
+      </div>
+
+      <div className="grid gap-3.5 grid-cols-1 min-[821px]:grid-cols-2">
+        {/* Source */}
+        <Card padding="none">
+          <div className="flex items-center gap-2.5 px-[18px] py-[14px] border-b border-border">
+            <h3 className="text-[13.5px] font-semibold">Source request</h3>
+          </div>
+          <div className="p-3.5">
+            <textarea
+              className="w-full border border-border-strong bg-surface rounded-md px-[11px] py-2 font-mono text-[12.5px] leading-[1.6] focus:outline-none focus:border-brand-500 focus:shadow-[var(--shadow-focus)]"
+              rows={16}
+              spellCheck={false}
+              style={{ resize: "vertical" }}
+              value={source}
+              onChange={(e) => setSource(e.target.value)}
+            />
+          </div>
+        </Card>
+
+        {/* Translated */}
+        <Card padding="none">
+          <div className="flex items-center gap-2.5 px-[18px] py-[14px] border-b border-border">
+            <h3 className="text-[13.5px] font-semibold">Translated request</h3>
+            <div className="flex-1" />
+            <Button variant="secondary" size="sm" onClick={() => output && copy(output, "translator-output")}>
+              Copy output
+            </Button>
+          </div>
+          <div className="p-3.5">
+            <div className="bg-surface-2 text-text-main border border-border rounded-brand px-4 py-3.5 font-mono text-[12.5px] leading-[1.65] overflow-x-auto whitespace-pre-wrap break-words min-h-[352px]">
+              {output}
+            </div>
+          </div>
+        </Card>
+      </div>
+    </div>
   );
 }

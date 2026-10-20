@@ -49,7 +49,8 @@ const getPageTitle = (pathname) => {
   if (pathname.includes("/skills")) return "Skills";
   if (pathname.includes("/proxy-pools")) return "Proxy Pools";
   if (pathname.includes("/mitm")) return "MITM";
-  if (pathname.includes("/profile")) return "Settings";
+  if (pathname.includes("/profile")) return "Profile";
+  if (pathname.includes("/settings")) return "Settings";
   if (pathname.includes("/auth-files")) return "Auth Files";
   return "";
 };

@@ -147,7 +147,7 @@ const NAV_GROUPS = [
       },
       {
         key: "media",
-        href: "/dashboard/media-providers/embedding",
+        href: "/dashboard/media-providers",
         label: "Media Providers",
         icon: (
           <>
@@ -205,7 +205,7 @@ const NAV_GROUPS = [
       },
       {
         key: "settings",
-        href: "/dashboard/profile",
+        href: "/dashboard/settings",
         label: "Settings",
         icon: (
           <>
@@ -252,12 +252,9 @@ export default function Sidebar({ onClose }) {
       case "web":
         return pathname.startsWith("/dashboard/media-providers/web");
       case "profile":
-        // Profile and Settings are one merged screen until the Phase 3
-        // split (audit PF-01); the merged screen carries the Settings
-        // active state, matching the topbar title.
-        return false;
-      case "settings":
         return pathname.startsWith("/dashboard/profile");
+      case "settings":
+        return pathname.startsWith("/dashboard/settings");
       default:
         return pathname.startsWith(item.href);
     }

@@ -1,27 +1,26 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
-import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
-import { restrictToVerticalAxis, restrictToParentElement } from "@dnd-kit/modifiers";
-import { Card, Button, Modal, Input, CardSkeleton, ModelSelectModal, ConfirmModal, CapacityBadges, Select, Toggle } from "@/shared/components";
-import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
+import { Card, Button, Input, Select, CardSkeleton, ConfirmModal } from "@/shared/components";
+import SpecIcon from "@/shared/components/SpecIcon";
 import { useModelCaps } from "@/shared/hooks/useModelCaps";
-import { aggregateComboCapabilities } from "open-sse/providers/capabilities.js";
+import { useNotificationStore } from "@/store/notificationStore";
+import { getModelsByProviderId } from "@/shared/constants/models";
+import { AI_PROVIDERS, getProviderAlias } from "@/shared/constants/providers";
 
 // Validate combo name: only a-z, A-Z, 0-9, -, _
 const VALID_NAME_REGEX = /^[a-zA-Z0-9_.\-]+$/;
 
-// Capacity adapter: global fallback pools of models per input-modality capability.
-// A request needing a capability the target model/combo lacks switches straight
-// to the first enabled model here instead of erroring or dropping the data.
+// Capacity adapter (global, settings.capacityAdapter): fallback pools of models
+// per input-modality capability. The artifact's per-combo Vision Adapter select
+// cannot persist per combo — POST /api/combos only accepts {name, models, kind}
+// and the combos table has no vision column — so the select in the combo form is
+// bound to the GLOBAL vision pool (first model / Off), the same settings entry
+// this page PATCHed before. Flagged C-08-C; per-combo binding is Phase-4.
 const CAPACITY_ADAPTER_CAPS = [
-  { key: "vision", label: "Vision", icon: "visibility", desc: "images (png, jpg, webp, …)" },
-  // pdf, videoInput temporarily hidden — no translator support yet for those blocks.
-  { key: "audioInput", label: "Audio", icon: "graphic_eq", desc: "audio input" },
+  { key: "vision", label: "Vision" },
+  { key: "audioInput", label: "Audio" },
 ];
-const DEFAULT_FALLBACK_MODEL = "oc/mimo-v2.6-flash-free";
 const EMPTY_CAP_ENTRY = { enabled: true, roundRobin: false, models: [] };
 const EMPTY_CAPACITY_ADAPTER = {
   vision: { ...EMPTY_CAP_ENTRY },
@@ -29,6 +28,7 @@ const EMPTY_CAPACITY_ADAPTER = {
   audioInput: { ...EMPTY_CAP_ENTRY },
   videoInput: { ...EMPTY_CAP_ENTRY },
 };
+const DEFAULT_FALLBACK_MODEL = "oc/mimo-v2.6-flash-free";
 const upgradeLegacyModel = (m) => (m === "oc/mimo-v2.5-free" ? DEFAULT_FALLBACK_MODEL : m);
 
 // Backward-compat: legacy stored form was an array of {model, enabled}.
@@ -47,110 +47,45 @@ function normalizeCapEntry(entry) {
 }
 
 const STRATEGY_OPTIONS = [
-  { value: "fallback", label: "Fallback — try in order" },
-  { value: "round-robin", label: "Round Robin — rotate" },
-  { value: "fusion", label: "Fusion — panel + judge" },
+  { value: "fallback", label: "Fallback (in order)" },
+  { value: "round-robin", label: "Round robin" },
+  { value: "fusion", label: "Fusion (panel + judge)" },
 ];
+const STRATEGY_TEXT = {
+  fallback: "Fallback",
+  "round-robin": "Round robin",
+  fusion: "Fusion",
+};
+const VISION_OFF = "__off__";
+
+const visionValueFromAdapter = (adapter) => {
+  const entry = adapter?.vision;
+  if (!entry || entry.enabled === false || !Array.isArray(entry.models) || entry.models.length === 0) return VISION_OFF;
+  return entry.models[0];
+};
 
 export default function CombosPage() {
   const [combos, setCombos] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const [editingCombo, setEditingCombo] = useState(null);
   const [activeProviders, setActiveProviders] = useState([]);
   const [comboStrategies, setComboStrategies] = useState({});
   const [capacityAdapter, setCapacityAdapter] = useState(EMPTY_CAPACITY_ADAPTER);
   const { getCaps } = useModelCaps();
   const [confirmState, setConfirmState] = useState(null);
-  const [presetLoading, setPresetLoading] = useState(null); // "cursor" | "claude" | null
-  const [selectedIds, setSelectedIds] = useState([]);
-  const [bulkBusy, setBulkBusy] = useState(false);
-  const { copied, copy } = useCopyToClipboard();
+  const notify = useNotificationStore();
 
-  useEffect(() => {
-    fetchData();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  // Inline combo form (artifact C-09): always visible below the table.
+  const [editingId, setEditingId] = useState(null);
+  const [formName, setFormName] = useState("");
+  const [formStrategy, setFormStrategy] = useState("fallback");
+  const [formModels, setFormModels] = useState([]);
+  const [formVision, setFormVision] = useState(VISION_OFF);
+  const [nameError, setNameError] = useState("");
+  const [saving, setSaving] = useState(false);
+  const formRef = useRef(null);
 
-  // Drop stale selection when the combo list changes (delete / refresh).
-  useEffect(() => {
-    const alive = new Set(combos.map((c) => c.id));
-    setSelectedIds((prev) => prev.filter((id) => alive.has(id)));
-  }, [combos]);
-
-  const selectedCombos = combos.filter((c) => selectedIds.includes(c.id));
-  const allSelected = combos.length > 0 && selectedIds.length === combos.length;
-  const someSelected = selectedIds.length > 0;
-
-  const toggleSelect = (id) => {
-    setSelectedIds((prev) => (
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
-    ));
-  };
-
-  const toggleSelectAll = () => {
-    setSelectedIds(allSelected ? [] : combos.map((c) => c.id));
-  };
-
-  const clearSelection = () => setSelectedIds([]);
-
-  const handleGeneratePresets = async (source) => {
-    const label = source === "cursor" ? "Cursor Default" : "Claude Default";
-    setPresetLoading(source);
-    try {
-      const previewRes = await fetch(`/api/combos/presets?source=${source}`);
-      const preview = await previewRes.json();
-      if (!previewRes.ok) {
-        alert(preview.error || `Failed to preview ${label}`);
-        return;
-      }
-
-      const toCreate = preview.toCreate ?? (preview.items || []).filter((i) => !i.exists).length;
-      const toSkip = preview.toSkip ?? (preview.items || []).filter((i) => i.exists).length;
-      const total = (preview.items || []).length;
-
-      if (total === 0) {
-        alert(`No ${label} models available to generate.`);
-        return;
-      }
-
-      if (toCreate === 0) {
-        alert(`All ${total} ${label} combos already exist. Nothing to create.`);
-        return;
-      }
-
-      setConfirmState({
-        title: `Generate ${label}`,
-        message: `Create ${toCreate} combo${toCreate === 1 ? "" : "s"} named like ${source === "cursor" ? "Cursor" : "Claude"} model IDs (seeded with cu/… or cc/…). ${toSkip} already exist and will be skipped. You can edit any combo afterward to add fallbacks.`,
-        confirmText: "Generate",
-        variant: "primary",
-        onConfirm: async () => {
-          setConfirmState((prev) => prev ? { ...prev, loading: true } : null);
-          try {
-            const res = await fetch("/api/combos/presets", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ source }),
-            });
-            const data = await res.json();
-            if (!res.ok) {
-              alert(data.error || `Failed to generate ${label}`);
-              return;
-            }
-            await fetchData();
-            setConfirmState(null);
-          } catch (error) {
-            console.log(`Error generating ${label}:`, error);
-            alert(`Failed to generate ${label}`);
-            setConfirmState((prev) => prev ? { ...prev, loading: false } : null);
-          }
-        },
-      });
-    } catch (error) {
-      console.log(`Error previewing ${label}:`, error);
-      alert(`Failed to preview ${label}`);
-    } finally {
-      setPresetLoading(null);
-    }
+  const scrollToForm = () => {
+    requestAnimationFrame(() => formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }));
   };
 
   const fetchData = async () => {
@@ -165,7 +100,8 @@ export default function CombosPage() {
       const settingsData = settingsRes.ok ? await settingsRes.json() : {};
 
       // Only LLM combos here - webSearch/webFetch combos belong to media-providers/web
-      if (combosRes.ok) setCombos((combosData.combos || []).filter(c => !c.kind || c.kind === "llm"));
+      const llmCombos = combosRes.ok ? (combosData.combos || []).filter((c) => !c.kind || c.kind === "llm") : [];
+      if (combosRes.ok) setCombos(llmCombos);
       if (providersRes.ok) {
         setActiveProviders((providersData.connections || []).filter((c) => c.isActive !== false));
       }
@@ -175,13 +111,25 @@ export default function CombosPage() {
       for (const cap of CAPACITY_ADAPTER_CAPS) {
         normalized[cap.key] = normalizeCapEntry(rawAdapter[cap.key]);
       }
-      setCapacityAdapter(normalized);
+      setCapacityAdapter((prev) => ({ ...prev, ...normalized }));
+      setFormVision((prev) =>
+        // Keep an in-progress pick; otherwise mirror the global pool.
+        prev === VISION_OFF || normalized.vision?.models?.includes(prev)
+          ? visionValueFromAdapter({ vision: normalized.vision })
+          : prev
+      );
+      return llmCombos;
     } catch (error) {
       console.log("Error fetching data:", error);
+      return [];
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchData();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSetCapacityAdapter = async (next) => {
     setCapacityAdapter(next);
@@ -193,44 +141,6 @@ export default function CombosPage() {
       });
     } catch (error) {
       console.log("Error updating capacity adapter:", error);
-    }
-  };
-
-  const handleCreate = async (data) => {
-    try {
-      const res = await fetch("/api/combos", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
-      if (res.ok) {
-        await fetchData();
-        setShowCreateModal(false);
-      } else {
-        const err = await res.json();
-        alert(err.error || "Failed to create combo");
-      }
-    } catch (error) {
-      console.log("Error creating combo:", error);
-    }
-  };
-
-  const handleUpdate = async (id, data) => {
-    try {
-      const res = await fetch(`/api/combos/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
-      if (res.ok) {
-        await fetchData();
-        setEditingCombo(null);
-      } else {
-        const err = await res.json();
-        alert(err.error || "Failed to update combo");
-      }
-    } catch (error) {
-      console.log("Error updating combo:", error);
     }
   };
 
@@ -255,7 +165,7 @@ export default function CombosPage() {
       title: "Delete Combo",
       message: combo ? `Delete combo "${combo.name}"?` : "Delete this combo?",
       onConfirm: async () => {
-        setConfirmState((prev) => prev ? { ...prev, loading: true } : null);
+        setConfirmState((prev) => (prev ? { ...prev, loading: true } : null));
         try {
           const res = await fetch(`/api/combos/${id}`, { method: "DELETE" });
           if (res.ok) {
@@ -263,796 +173,87 @@ export default function CombosPage() {
               await persistComboStrategies(pruneStrategiesForNames([combo.name]));
             }
             setCombos((prev) => prev.filter((c) => c.id !== id));
-            setSelectedIds((prev) => prev.filter((x) => x !== id));
+            if (editingId === id) resetForm();
+            notify.success("Combo deleted");
           }
           setConfirmState(null);
         } catch (error) {
           console.log("Error deleting combo:", error);
-          setConfirmState((prev) => prev ? { ...prev, loading: false } : null);
-        }
-      }
-    });
-  };
-
-  const handleBulkDelete = () => {
-    if (selectedCombos.length === 0) return;
-    const count = selectedCombos.length;
-    setConfirmState({
-      title: "Delete Selected Combos",
-      message: `Delete ${count} selected combo${count === 1 ? "" : "s"}? This cannot be undone.`,
-      confirmText: "Delete",
-      variant: "danger",
-      onConfirm: async () => {
-        setConfirmState((prev) => prev ? { ...prev, loading: true } : null);
-        setBulkBusy(true);
-        try {
-          const ids = selectedCombos.map((c) => c.id);
-          const names = selectedCombos.map((c) => c.name);
-          const results = await Promise.all(
-            ids.map((id) => fetch(`/api/combos/${id}`, { method: "DELETE" }))
-          );
-          const failed = results.filter((r) => !r.ok).length;
-          await persistComboStrategies(pruneStrategiesForNames(names));
-          setCombos((prev) => prev.filter((c) => !ids.includes(c.id)));
-          clearSelection();
-          setConfirmState(null);
-          if (failed > 0) alert(`Deleted with ${failed} failure${failed === 1 ? "" : "s"}.`);
-        } catch (error) {
-          console.log("Error bulk deleting combos:", error);
-          alert("Failed to delete selected combos");
-          setConfirmState((prev) => prev ? { ...prev, loading: false } : null);
-        } finally {
-          setBulkBusy(false);
+          setConfirmState((prev) => (prev ? { ...prev, loading: false } : null));
         }
       },
     });
   };
 
-  // Merge a per-combo strategy patch into settings.comboStrategies. Passing an empty
-  // patch (strategy back to default "fallback") drops the entry entirely.
-  const handleSetComboStrategy = async (comboName, patch) => {
-    try {
-      const updated = { ...comboStrategies };
-      const next = { ...(updated[comboName] || {}), ...patch };
-      // Prune to keep settings clean: default fallback with no extras = no entry.
-      if (!next.fallbackStrategy || next.fallbackStrategy === "fallback") {
-        delete updated[comboName];
-      } else {
-        updated[comboName] = next;
+  // Models list for the inline form's selects: same sources the old
+  // ModelSelectModal used (connected providers + the static catalog), labelled
+  // `{Provider} · {model}`. Combos themselves are valid chain members, and any
+  // model already referenced by a combo stays selectable.
+  const modelOptions = useMemo(() => {
+    const seen = new Set();
+    const opts = [];
+    const push = (value, label) => {
+      if (value && !seen.has(value)) {
+        seen.add(value);
+        opts.push({ value, label });
       }
-
-      await persistComboStrategies(updated);
-    } catch (error) {
-      console.log("Error updating combo strategy:", error);
-    }
-  };
-
-  const handleBulkSetStrategy = async (strategy) => {
-    if (selectedCombos.length === 0 || !strategy) return;
-    setBulkBusy(true);
-    try {
-      const updated = { ...comboStrategies };
-      for (const combo of selectedCombos) {
-        if (!strategy || strategy === "fallback") {
-          delete updated[combo.name];
-        } else {
-          updated[combo.name] = {
-            ...(updated[combo.name] || {}),
-            fallbackStrategy: strategy,
-          };
-        }
-      }
-      await persistComboStrategies(updated);
-    } catch (error) {
-      console.log("Error bulk updating combo strategy:", error);
-      alert("Failed to update strategy for selected combos");
-    } finally {
-      setBulkBusy(false);
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="flex flex-col gap-3.5">
-        <CardSkeleton />
-        <CardSkeleton />
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex min-w-0 flex-col gap-3.5">
-      {/* Page head */}
-      <div>
-        <h2 className="text-xl font-semibold tracking-[-0.01em] text-text-main">Combo &amp; Vision Adapter</h2>
-        <p className="mt-1 text-[13.5px] text-text-muted max-w-[640px]">Chain models behind one name. The first healthy model answers; if it fails, the next one in the chain takes over.</p>
-      </div>
-      {/* Header */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div className="min-w-0">
-          <p className="text-[13.5px] text-text-muted">
-            Group models under one name, then pick a strategy per combo:
-          </p>
-          <ul className="text-[13.5px] text-text-muted mt-2 flex flex-col gap-1">
-            <li><span className="font-medium text-text-main">Fallback</span> — tries models in order (next on failure)</li>
-            <li><span className="font-medium text-text-main">Round Robin</span> — rotates models across requests to spread load</li>
-            <li><span className="font-medium text-text-main">Fusion</span> — queries all models in parallel, then a judge synthesizes one answer. Best quality, but costs the most: every request bills all panel models + the judge (N+1 calls)</li>
-          </ul>
-          <p className="hidden text-xs text-text-muted mt-3 max-w-2xl">
-            <span className="font-medium text-text-main">Cursor / Claude Default</span> create combos named exactly like those clients&apos; model IDs (e.g. <code className="font-mono">composer-2.5</code>, <code className="font-mono">opus</code>), seeded with the matching <code className="font-mono">cu/…</code> or <code className="font-mono">cc/…</code> route so traffic can hit bansur-router without the prefix.
-            {" "}Note: Cursor IDE itself often blocks built-in Composer / Grok from Override OpenAI Base URL (&quot;model does not support custom API&quot;); add them via Cursor&apos;s <span className="font-medium text-text-main">Add Custom Model</span> using the combo name, or pick a model Cursor allows through the custom endpoint.
-          </p>
-        </div>
-        <div className="flex w-full flex-col gap-2 sm:w-auto sm:items-stretch">
-          <Button icon="add" onClick={() => setShowCreateModal(true)} className="w-full sm:w-auto whitespace-nowrap">
-            Create Combo
-          </Button>
-          <div className="hidden">
-            <Button
-              variant="secondary"
-              size="sm"
-              icon="edit_note"
-              loading={presetLoading === "cursor"}
-              disabled={!!presetLoading}
-              onClick={() => handleGeneratePresets("cursor")}
-              className="w-full whitespace-nowrap"
-            >
-              Cursor Default
-            </Button>
-            <Button
-              variant="secondary"
-              size="sm"
-              icon="smart_toy"
-              loading={presetLoading === "claude"}
-              disabled={!!presetLoading}
-              onClick={() => handleGeneratePresets("claude")}
-              className="w-full whitespace-nowrap"
-            >
-              Claude Default
-            </Button>
-          </div>
-        </div>
-      </div>
-
-      {/* Combos List */}
-      {combos.length === 0 ? (
-        <Card>
-          <div className="text-center py-12">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full border border-border bg-surface-2 text-text-main mb-4">
-              <span className="material-symbols-outlined text-[32px]">layers</span>
-            </div>
-            <p className="text-text-main font-medium mb-1">No combos yet</p>
-            <p className="text-sm text-text-muted mb-4">Create model combos with fallback support</p>
-            <Button icon="add" onClick={() => setShowCreateModal(true)} className="w-full sm:w-auto">
-              Create Combo
-            </Button>
-          </div>
-        </Card>
-      ) : (
-        <div className="flex flex-col gap-3.5">
-          {/* Selection toolbar */}
-          <div className="flex min-w-0 flex-col gap-2 rounded-brand border border-border bg-surface-2 px-3.5 py-2.5 sm:flex-row sm:items-center sm:justify-between">
-            <label className="flex cursor-pointer items-center gap-2 text-xs text-text-muted hover:text-primary select-none">
-              <input
-                type="checkbox"
-                checked={allSelected}
-                ref={(el) => {
-                  if (el) el.indeterminate = someSelected && !allSelected;
-                }}
-                onChange={toggleSelectAll}
-                className="h-3.5 w-3.5 rounded border-gray-300 text-primary focus:ring-primary"
-              />
-              <span>
-                {someSelected
-                  ? `${selectedIds.length} selected`
-                  : `Select all (${combos.length})`}
-              </span>
-            </label>
-
-            <div className="flex min-w-0 flex-wrap items-center gap-2">
-              {someSelected && (
-                <>
-                  <div className="w-full min-w-[160px] sm:w-[200px]">
-                    <Select
-                      options={STRATEGY_OPTIONS}
-                      value=""
-                      placeholder="Set strategy…"
-                      disabled={bulkBusy}
-                      onChange={(e) => {
-                        const v = e.target.value;
-                        if (v) handleBulkSetStrategy(v);
-                      }}
-                      selectClassName="py-1.5 text-xs"
-                    />
-                  </div>
-                  <Button
-                    size="sm"
-                    variant="danger"
-                    icon="delete"
-                    disabled={bulkBusy}
-                    loading={bulkBusy}
-                    onClick={handleBulkDelete}
-                    className="whitespace-nowrap"
-                  >
-                    Delete ({selectedIds.length})
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={clearSelection}
-                    disabled={bulkBusy}
-                  >
-                    Clear
-                  </Button>
-                </>
-              )}
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-3.5">
-            {(() => {
-              const comboByName = Object.fromEntries(combos.map((c) => [c.name, c.models]));
-              return combos.map((combo) => (
-                <ComboCard
-                  key={combo.id}
-                  combo={combo}
-                  getCaps={getCaps}
-                  comboByName={comboByName}
-                  activeProviders={activeProviders}
-                  copied={copied}
-                  onCopy={copy}
-                  onEdit={() => setEditingCombo(combo)}
-                  onDelete={() => handleDelete(combo.id)}
-                  strategy={comboStrategies[combo.name] || {}}
-                  onSetStrategy={(patch) => handleSetComboStrategy(combo.name, patch)}
-                  selected={selectedIds.includes(combo.id)}
-                  onToggleSelect={() => toggleSelect(combo.id)}
-                />
-              ));
-            })()}
-          </div>
-        </div>
-      )}
-
-      {/* Capacity Adapter */}
-      <CapacityAdapterSection
-        capacityAdapter={capacityAdapter}
-        onChange={handleSetCapacityAdapter}
-        activeProviders={activeProviders}
-        getCaps={getCaps}
-      />
-
-      {/* Create Modal - Use key to force remount and reset state */}
-      {showCreateModal && (
-        <ComboFormModal
-          key="create"
-          isOpen={showCreateModal}
-          onClose={() => setShowCreateModal(false)}
-          onSave={handleCreate}
-          activeProviders={activeProviders}
-        />
-      )}
-
-      {editingCombo && (
-        <ComboFormModal
-          key={editingCombo.id}
-          isOpen={!!editingCombo}
-          combo={editingCombo}
-          onClose={() => setEditingCombo(null)}
-          onSave={(data) => handleUpdate(editingCombo.id, data)}
-          activeProviders={activeProviders}
-        />
-      )}
-
-      {/* Confirm (delete / generate presets) */}
-      <ConfirmModal
-        isOpen={!!confirmState}
-        onClose={() => !confirmState?.loading && setConfirmState(null)}
-        onConfirm={confirmState?.onConfirm}
-        title={confirmState?.title || "Confirm"}
-        message={confirmState?.message}
-        confirmText={confirmState?.confirmText || "Confirm"}
-        variant={confirmState?.variant || "danger"}
-        loading={!!confirmState?.loading}
-      />
-    </div>
-  );
-}
-
-const fmtK = (n) => {
-  if (!n) return "?";
-  if (n >= 1000000) {
-    const m = n / 1000000;
-    return `${Number.isInteger(m) ? m : m.toFixed(1)}M`;
-  }
-  return `${Math.round(n / 1000)}k`;
-};
-
-function ComboCard({ combo, getCaps, comboByName = {}, activeProviders = [], copied, onCopy, onEdit, onDelete, strategy = {}, onSetStrategy, selected = false, onToggleSelect }) {
-  const [showJudgeSelect, setShowJudgeSelect] = useState(false);
-  const current = strategy.fallbackStrategy || "fallback";
-  const judge = strategy.judgeModel || "";
-  const isFusion = current === "fusion";
-  // The synced catalog is server-only, so resolving here would fall back to the
-  // generic patterns and under-report the limits. getCaps carries the server's
-  // answer for /api/models.
-  const comboCaps = aggregateComboCapabilities(combo.models, comboByName, getCaps);
-
-  return (
-    <Card padding="md" className={`group ${selected ? "ring-1 ring-primary/40 bg-primary/[0.03]" : ""}`}>
-      <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex min-w-0 flex-1 items-start gap-3 sm:items-center">
-          <label className="flex shrink-0 items-center pt-1 sm:pt-0 cursor-pointer" title="Select combo">
-            <input
-              type="checkbox"
-              checked={selected}
-              onChange={onToggleSelect}
-              onClick={(e) => e.stopPropagation()}
-              className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-              aria-label={`Select ${combo.name}`}
-            />
-          </label>
-          <div className="size-[38px] rounded-md border border-border bg-surface-2 flex items-center justify-center shrink-0">
-            <span className="material-symbols-outlined text-text-main text-[19px]">layers</span>
-          </div>
-          <div className="min-w-0 flex-1">
-            <code className="block truncate font-mono text-[13px] font-semibold">{combo.name}</code>
-            <div className="mt-1 flex min-w-0 flex-wrap items-center gap-1">
-              {combo.models.length === 0 ? (
-                <span className="text-xs text-text-muted italic">No models</span>
-              ) : (
-                combo.models.slice(0, 3).map((model, index) => (
-                  <code key={index} className="inline-flex items-center gap-1 rounded-[5px] border border-border bg-surface-2 px-1.5 py-0.5 font-mono text-xs text-text-muted">
-                    <span>{model}</span>
-                    <CapacityBadges caps={
-                      comboByName[model]
-                        ? aggregateComboCapabilities(comboByName[model], comboByName, getCaps)
-                        : getCaps?.(model)
-                    } />
-                  </code>
-                ))
-              )}
-              {combo.models.length > 3 && (
-                <span className="text-[10px] text-text-muted">+{combo.models.length - 3} more</span>
-              )}
-            </div>
-            {comboCaps && (
-              <div className="mt-1 flex items-center gap-2 text-[10px] text-text-muted">
-                <span>ctx {fmtK(comboCaps.contextWindow)}</span>
-                <span className="opacity-40">·</span>
-                <span>max {fmtK(comboCaps.maxOutput)}</span>
-              </div>
-            )}
-            {/* Fusion: judge picker (Auto = first model) */}
-            {isFusion && (
-              <div className="mt-2 flex min-w-0 flex-wrap items-center gap-1.5">
-                <span className="text-[11px] font-medium text-text-muted">Judge</span>
-                <button
-                  onClick={() => setShowJudgeSelect(true)}
-                  className="inline-flex max-w-full items-center gap-1 rounded border border-dashed border-primary/40 px-1.5 py-0.5 font-mono text-[11px] text-primary hover:border-primary hover:bg-primary/5 transition-colors"
-                  title="Pick the model that fuses panel answers"
-                >
-                  <span className="material-symbols-outlined text-[13px]">gavel</span>
-                  <span className="truncate">{judge || `Auto — ${combo.models[0] || "first model"}`}</span>
-                </button>
-                {judge && (
-                  <button
-                    onClick={() => onSetStrategy({ judgeModel: "" })}
-                    className="p-0.5 rounded text-text-muted hover:text-text-main hover:bg-surface-2 transition-colors"
-                    title="Reset judge to Auto"
-                  >
-                    <span className="material-symbols-outlined text-[13px]">close</span>
-                  </button>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Actions */}
-        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center sm:gap-3 sm:shrink-0">
-          {/* Strategy selector — always visible */}
-          <div className="w-full sm:w-[200px]">
-            <Select
-              options={STRATEGY_OPTIONS}
-              value={current}
-              onChange={(e) => onSetStrategy({ fallbackStrategy: e.target.value })}
-              selectClassName="py-1.5 text-xs"
-            />
-          </div>
-
-          <div className="grid grid-cols-3 gap-1 sm:flex">
-            <button
-              onClick={(e) => { e.stopPropagation(); onCopy(combo.name, `combo-${combo.id}`); }}
-              className="flex flex-col items-center rounded px-2 py-1 text-text-muted transition-colors hover:bg-surface-2 hover:text-text-main"
-              title="Copy combo name"
-            >
-              <span className="material-symbols-outlined text-[18px]">
-                {copied === `combo-${combo.id}` ? "check" : "content_copy"}
-              </span>
-              <span className="text-[10px] leading-tight">Copy</span>
-            </button>
-            <button
-              onClick={onEdit}
-              className="flex flex-col items-center rounded px-2 py-1 text-text-muted transition-colors hover:bg-surface-2 hover:text-text-main"
-              title="Edit"
-            >
-              <span className="material-symbols-outlined text-[18px]">edit</span>
-              <span className="text-[10px] leading-tight">Edit</span>
-            </button>
-            <button
-              onClick={onDelete}
-              className="flex flex-col items-center rounded px-2 py-1 text-text-main transition-colors hover:bg-surface-2"
-              title="Delete"
-            >
-              <span className="material-symbols-outlined text-[18px]">delete</span>
-              <span className="text-[10px] leading-tight">Delete</span>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Judge model picker (single-select; combo members make natural judges too) */}
-      {showJudgeSelect && (
-        <ModelSelectModal
-          isOpen={showJudgeSelect}
-          onClose={() => setShowJudgeSelect(false)}
-          onSelect={(m) => { onSetStrategy({ judgeModel: m?.value || "" }); setShowJudgeSelect(false); }}
-          activeProviders={activeProviders}
-          title="Select Judge Model"
-          addedModelValues={judge ? [judge] : []}
-          closeOnSelect={true}
-        />
-      )}
-    </Card>
-  );
-}
-
-function CapacityAdapterSection({ capacityAdapter, onChange, activeProviders, getCaps }) {
-  return (
-    <div className="flex flex-col gap-3">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="min-w-0">
-          <p className="text-[13px] font-semibold uppercase tracking-[0.08em] text-text-subtle">Vision Adapter</p>
-          <p className="text-xs text-text-muted mt-0.5">
-            Your model can&apos;t read image/audio? Auto-switches to a model in the pool below.
-          </p>
-        </div>
-      </div>
-      <div className="flex flex-col gap-4">
-        {CAPACITY_ADAPTER_CAPS.map((cap) => (
-          <CapacityAdapterCap
-            key={cap.key}
-            cap={cap}
-            entry={capacityAdapter[cap.key] || EMPTY_CAP_ENTRY}
-            onChange={(entry) => onChange({ ...capacityAdapter, [cap.key]: entry })}
-            activeProviders={activeProviders}
-            getCaps={getCaps}
-          />
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function CapacityAdapterCap({ cap, entry, onChange, activeProviders, getCaps }) {
-  const [showModelSelect, setShowModelSelect] = useState(false);
-  const { enabled, roundRobin, models } = entry;
-
-  const patch = (p) => onChange({ ...entry, ...p });
-
-  const handleAdd = (model) => {
-    const value = model?.value || model?.name || model;
-    if (!value || models.includes(value)) return;
-    patch({ models: [...models, value] });
-  };
-
-  const handleDeselect = (model) => {
-    const value = model?.value || model?.name || model;
-    const next = models.filter((m) => m !== value);
-    patch({ models: next.length === 0 ? [DEFAULT_FALLBACK_MODEL] : next });
-  };
-
-  const handleRemove = (index) => {
-    const next = models.filter((_, i) => i !== index);
-    patch({ models: next.length === 0 ? [DEFAULT_FALLBACK_MODEL] : next });
-  };
-
-  const handleMove = (index, delta) => {
-    const target = index + delta;
-    if (target < 0 || target >= models.length) return;
-    const next = [...models];
-    [next[index], next[target]] = [next[target], next[index]];
-    patch({ models: next });
-  };
-
-  return (
-    <Card padding="md" className={`group ${!enabled ? "opacity-50" : ""}`}>
-      <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        {/* Master toggle + icon + label */}
-        <div className="flex min-w-0 flex-1 items-start gap-2.5 sm:items-center">
-          <Toggle
-            checked={enabled}
-            onChange={(v) => patch({ enabled: v })}
-            aria-label={`Enable ${cap.label} adapter`}
-          />
-          <div className="size-[38px] rounded-md border border-border bg-surface-2 flex items-center justify-center shrink-0">
-            <span className="material-symbols-outlined text-text-main text-[19px]">{cap.icon}</span>
-          </div>
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-1.5">
-              <code className="font-mono text-[13px] font-semibold">{cap.label}</code>
-              <span className="text-[10px] text-text-muted">— {cap.desc}</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Actions: Round-robin toggle + Add Model */}
-        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center sm:gap-3 sm:shrink-0">
-          <label className="flex items-center gap-1.5 text-xs text-text-muted cursor-pointer select-none">
-            <Toggle
-              checked={roundRobin}
-              onChange={(v) => patch({ roundRobin: v })}
-              disabled={!enabled}
-              aria-label={`Round-robin ${cap.label} adapter`}
-            />
-            <span>Round</span>
-          </label>
-          <Button
-            icon="add"
-            variant="ghost"
-            size="sm"
-            onClick={() => setShowModelSelect(true)}
-            disabled={!enabled}
-            title={`Add ${cap.label} model`}
-          >
-            Add Model
-          </Button>
-        </div>
-      </div>
-
-      {/* Model pool list/table */}
-      {models.length === 0 ? (
-        <div className="mt-3 py-2 text-center text-xs text-text-muted italic">
-          No models in pool (will fallback to {DEFAULT_FALLBACK_MODEL})
-        </div>
-      ) : (
-        <div className="mt-3 overflow-hidden rounded-brand border border-border">
-          <table className="w-full text-left text-xs">
-            <thead>
-              <tr className="border-b border-border text-text-subtle">
-                <th className="w-12 px-3.5 py-[9px] text-[11px] font-semibold uppercase tracking-[0.07em] text-center">#</th>
-                <th className="px-3.5 py-[9px] text-[11px] font-semibold uppercase tracking-[0.07em]">Model</th>
-                <th className="w-24 px-3.5 py-[9px] text-[11px] font-semibold uppercase tracking-[0.07em] text-center">Order</th>
-                <th className="w-12 px-3.5 py-[9px] text-right"></th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border/30 font-mono">
-              {models.map((model, index) => (
-                <tr key={`${model}-${index}`} className="hover:bg-surface-2/50 transition-colors">
-                  <td className="px-3 py-2 text-center text-text-muted text-[11px] font-sans">
-                    #{index + 1}
-                  </td>
-                  <td className="px-3 py-2 text-text-main">
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      <span className="truncate">{model}</span>
-                      <CapacityBadges caps={getCaps?.(model)} />
-                      {model === DEFAULT_FALLBACK_MODEL && (
-                        <span className="rounded bg-surface-2 px-1.5 py-0.5 font-sans text-[10px] font-medium text-text-main dark:text-text-main">
-                          free default
-                        </span>
-                      )}
-                    </div>
-                  </td>
-                  <td className="px-3 py-2 text-center">
-                    <div className="inline-flex items-center gap-1">
-                      <button
-                        type="button"
-                        onClick={() => handleMove(index, -1)}
-                        disabled={!enabled || index === 0}
-                        className={`p-1 rounded transition-colors ${
-                          !enabled || index === 0
-                            ? "text-text-muted/20 cursor-not-allowed"
-                            : "text-text-muted hover:text-primary hover:bg-black/5 dark:hover:bg-white/5"
-                        }`}
-                        title="Move up"
-                      >
-                        <span className="material-symbols-outlined text-[16px] leading-none">arrow_upward</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleMove(index, 1)}
-                        disabled={!enabled || index === models.length - 1}
-                        className={`p-1 rounded transition-colors ${
-                          !enabled || index === models.length - 1
-                            ? "text-text-muted/20 cursor-not-allowed"
-                            : "text-text-muted hover:text-primary hover:bg-black/5 dark:hover:bg-white/5"
-                        }`}
-                        title="Move down"
-                      >
-                        <span className="material-symbols-outlined text-[16px] leading-none">arrow_downward</span>
-                      </button>
-                    </div>
-                  </td>
-                  <td className="px-3 py-2 text-right">
-                    <button
-                      type="button"
-                      onClick={() => handleRemove(index)}
-                      disabled={!enabled}
-                      className={`p-1 rounded transition-colors ${
-                        !enabled
-                          ? "text-text-muted/20 cursor-not-allowed"
-                          : "text-text-muted hover:text-text-main hover:bg-surface-2"
-                      }`}
-                      title="Remove model"
-                    >
-                      <span className="material-symbols-outlined text-[16px] leading-none">close</span>
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      {showModelSelect && (
-        <ModelSelectModal
-          isOpen={showModelSelect}
-          onClose={() => setShowModelSelect(false)}
-          onSelect={handleAdd}
-          onDeselect={handleDeselect}
-          activeProviders={activeProviders}
-          title={`Add ${cap.label} Model`}
-          addedModelValues={models}
-          capFilter={cap.key}
-          closeOnSelect={false}
-        />
-      )}
-    </Card>
-  );
-}
-
-function ModelItem({ id, index, model, isFirst, isLast, onEdit, onMoveUp, onMoveDown, onRemove }) {
-  const { attributes, listeners, setNodeRef, transform, isDragging } = useSortable({ id });
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    // no transition — prevents the CSS settle animation fighting React's re-render on drop
-    opacity: isDragging ? 0.4 : 1,
-    zIndex: isDragging ? 999 : undefined,
-  };
-  const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState(model);
-  const commit = () => {
-    const trimmed = draft.trim();
-    if (trimmed && trimmed !== model) onEdit(trimmed);
-    else setDraft(model);
-    setEditing(false);
-  };
-
-  const handleKeyDown = (e) => {
-    if (e.key === "Enter") commit();
-    if (e.key === "Escape") { setDraft(model); setEditing(false); }
-  };
-
-  return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      className={`group flex min-w-0 items-center gap-1.5 rounded-md px-2 py-1 bg-black/[0.02] hover:bg-black/[0.04] dark:bg-white/[0.02] dark:hover:bg-white/[0.04] transition-colors ${isDragging ? "shadow-md ring-1 ring-primary/30" : ""}`}
-    >
-      {/* Drag handle */}
-      <button
-        {...attributes}
-        {...listeners}
-        type="button"
-        className="cursor-grab touch-none p-0.5 rounded text-text-muted hover:text-primary active:cursor-grabbing shrink-0"
-        title="Drag to reorder"
-      >
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-          <circle cx="9" cy="4" r="2"/><circle cx="15" cy="4" r="2"/>
-          <circle cx="9" cy="12" r="2"/><circle cx="15" cy="12" r="2"/>
-          <circle cx="9" cy="20" r="2"/><circle cx="15" cy="20" r="2"/>
-        </svg>
-      </button>
-
-      {/* Index badge */}
-      <span className="text-[10px] font-medium text-text-muted w-3 text-center shrink-0">{index + 1}</span>
-
-      {/* Inline editable model value */}
-      {editing ? (
-        <input
-          autoFocus
-          value={draft}
-          onChange={(e) => setDraft(e.target.value)}
-          onBlur={commit}
-          onKeyDown={handleKeyDown}
-          className="min-w-0 flex-1 rounded border border-primary/40 bg-white px-1.5 py-0.5 font-mono text-xs text-text-main outline-none dark:bg-black/20"
-        />
-      ) : (
-        <div
-          className="min-w-0 flex-1 cursor-text truncate rounded px-1.5 py-0.5 font-mono text-xs text-text-main hover:bg-black/5 dark:hover:bg-white/5"
-          onClick={() => setEditing(true)}
-          title="Click to edit"
-        >
-          {model}
-        </div>
-      )}
-
-      {/* Priority arrows */}
-      <div className="flex shrink-0 items-center gap-0.5">
-        <button
-          onClick={onMoveUp}
-          disabled={isFirst}
-          className={`p-0.5 rounded ${isFirst ? "text-text-muted/20 cursor-not-allowed" : "text-text-muted hover:text-primary hover:bg-black/5 dark:hover:bg-white/5"}`}
-          title="Move up"
-        >
-          <span className="material-symbols-outlined text-[12px]">arrow_upward</span>
-        </button>
-        <button
-          onClick={onMoveDown}
-          disabled={isLast}
-          className={`p-0.5 rounded ${isLast ? "text-text-muted/20 cursor-not-allowed" : "text-text-muted hover:text-primary hover:bg-black/5 dark:hover:bg-white/5"}`}
-          title="Move down"
-        >
-          <span className="material-symbols-outlined text-[12px]">arrow_downward</span>
-        </button>
-      </div>
-
-      {/* Remove */}
-      <button
-        onClick={onRemove}
-        className="p-0.5 hover:bg-surface-2 rounded text-text-muted hover:text-text-main transition-all"
-        title="Remove"
-      >
-        <span className="material-symbols-outlined text-[12px]">close</span>
-      </button>
-    </div>
-  );
-}
-
-function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, kindFilter = null }) {
-  // Initialize state with combo values - key prop on parent handles reset on remount
-  const [name, setName] = useState(combo?.name || "");
-  const [models, setModels] = useState(combo?.models || []);
-  const [showModelSelect, setShowModelSelect] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [nameError, setNameError] = useState("");
-  const [modelAliases, setModelAliases] = useState({});
-
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
-  );
-
-  // Use stable index-based IDs so duplicates and similar names are handled correctly
-  const modelItems = models.map((model, i) => ({ uid: `item-${i}`, model }));
-
-  const handleDragEnd = (event) => {
-    const { active, over } = event;
-    if (over && active.id !== over.id) {
-      const oldIndex = modelItems.findIndex((m) => m.uid === active.id);
-      const newIndex = modelItems.findIndex((m) => m.uid === over.id);
-      if (oldIndex !== -1 && newIndex !== -1) {
-        setModels((prev) => arrayMove(prev, oldIndex, newIndex));
+    };
+    for (const combo of combos) push(combo.name, `Combo · ${combo.name}`);
+    const providerIds = [...new Set(activeProviders.map((c) => c.provider || c.id).filter(Boolean))];
+    for (const providerId of providerIds) {
+      const alias = getProviderAlias(providerId);
+      const providerName = AI_PROVIDERS[providerId]?.name || providerId;
+      for (const model of getModelsByProviderId(providerId)) {
+        push(`${alias}/${model.id}`, `${providerName} · ${model.id}`);
       }
     }
-  };
-
-  const fetchModalData = async () => {
-    try {
-      const aliasesRes = await fetch("/api/models/alias");
-      if (!aliasesRes.ok) return;
-      const aliasesData = await aliasesRes.json();
-      setModelAliases(aliasesData.aliases || {});
-    } catch (error) {
-      console.error("Error fetching modal data:", error);
+    for (const combo of combos) {
+      for (const model of combo.models || []) push(model, model);
     }
+    for (const model of formModels) push(model, model);
+    return opts;
+  }, [combos, activeProviders, formModels]);
+
+  // Vision Adapter options: vision-capable models (per useModelCaps) + Off last.
+  const visionOptions = useMemo(() => {
+    const opts = modelOptions.filter((o) => getCaps(o.value)?.vision);
+    const seen = new Set(opts.map((o) => o.value));
+    const globalVision = visionValueFromAdapter(capacityAdapter);
+    if (globalVision !== VISION_OFF && !seen.has(globalVision)) {
+      const known = modelOptions.find((o) => o.value === globalVision);
+      opts.push(known || { value: globalVision, label: globalVision });
+    }
+    if (formVision !== VISION_OFF && !opts.some((o) => o.value === formVision)) {
+      const known = modelOptions.find((o) => o.value === formVision);
+      opts.push(known || { value: formVision, label: formVision });
+    }
+    opts.push({ value: VISION_OFF, label: "Off" });
+    return opts;
+  }, [modelOptions, getCaps, capacityAdapter, formVision]);
+
+  const resetForm = () => {
+    setEditingId(null);
+    setFormName("");
+    setFormStrategy("fallback");
+    setFormModels([]);
+    setFormVision(visionValueFromAdapter(capacityAdapter));
+    setNameError("");
   };
 
-  useEffect(() => {
-    if (isOpen) fetchModalData();
-  }, [isOpen]);
+  const loadComboIntoForm = (combo) => {
+    setEditingId(combo.id);
+    setFormName(combo.name || "");
+    setFormStrategy(comboStrategies[combo.name]?.fallbackStrategy || "fallback");
+    setFormModels([...(combo.models || [])]);
+    setFormVision(visionValueFromAdapter(capacityAdapter));
+    setNameError("");
+    scrollToForm();
+  };
+
+  const handleNewCombo = () => {
+    resetForm();
+    scrollToForm();
+  };
 
   const validateName = (value) => {
     if (!value.trim()) {
@@ -1067,150 +268,274 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, kindF
     return true;
   };
 
-  const handleNameChange = (e) => {
-    const value = e.target.value;
-    setName(value);
-    if (value) validateName(value);
-    else setNameError("");
-  };
+  const handleSaveCombo = async () => {
+    const name = formName.trim();
+    if (!validateName(name)) return;
+    const editingCombo = editingId ? combos.find((c) => c.id === editingId) : null;
+    const oldName = editingCombo?.name || null;
+    setSaving(true);
+    try {
+      // 1) Combo record — /api/combos accepts {name, models, kind} only.
+      if (editingId) {
+        const res = await fetch(`/api/combos/${editingId}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, models: formModels }),
+        });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          notify.error(err.error || "Failed to update combo");
+          return;
+        }
+      } else {
+        const res = await fetch("/api/combos", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, models: formModels }),
+        });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          notify.error(err.error || "Failed to create combo");
+          return;
+        }
+      }
 
-  const handleAddModel = (model) => {
-    if (!models.includes(model.value)) {
-      setModels([...models, model.value]);
+      // 2) Strategy — stored in settings.comboStrategies[name] (merging keeps
+      // an existing fusion judgeModel; a rename prunes the old name's entry).
+      const updatedStrategies = { ...comboStrategies };
+      if (oldName && oldName !== name) delete updatedStrategies[oldName];
+      const nextStrategy = { ...(updatedStrategies[name] || {}), fallbackStrategy: formStrategy };
+      if (!nextStrategy.fallbackStrategy || nextStrategy.fallbackStrategy === "fallback") {
+        delete updatedStrategies[name];
+      } else {
+        updatedStrategies[name] = nextStrategy;
+      }
+      await persistComboStrategies(updatedStrategies);
+
+      // 3) Vision Adapter — global binding (C-08-C): the select drives the
+      // global vision pool's first model, or disables the pool on Off.
+      const currentVision = visionValueFromAdapter(capacityAdapter);
+      if (formVision !== currentVision) {
+        const visionEntry = { ...(capacityAdapter.vision || EMPTY_CAP_ENTRY) };
+        if (formVision === VISION_OFF) {
+          visionEntry.enabled = false;
+        } else {
+          visionEntry.enabled = true;
+          visionEntry.models = [formVision];
+        }
+        await handleSetCapacityAdapter({ ...capacityAdapter, vision: visionEntry });
+      }
+
+      const fresh = await fetchData();
+      const saved = (fresh || []).find((c) => c.name === name);
+      if (saved) setEditingId(saved.id);
+      notify.success("Combo saved");
+    } catch (error) {
+      console.log("Error saving combo:", error);
+      notify.error("Failed to save combo");
+    } finally {
+      setSaving(false);
     }
   };
 
-  const handleDeselectModel = (model) => {
-    setModels(models.filter((m) => m !== model.value));
-  };
+  if (loading) {
+    return (
+      <div className="flex flex-col gap-3.5">
+        <CardSkeleton />
+        <CardSkeleton />
+      </div>
+    );
+  }
 
-  const handleRemoveModel = (index) => {
-    setModels(models.filter((_, i) => i !== index));
-  };
-
-  const handleMoveUp = (index) => {
-    if (index === 0) return;
-    const newModels = [...models];
-    [newModels[index - 1], newModels[index]] = [newModels[index], newModels[index - 1]];
-    setModels(newModels);
-  };
-
-  const handleMoveDown = (index) => {
-    if (index === models.length - 1) return;
-    const newModels = [...models];
-    [newModels[index], newModels[index + 1]] = [newModels[index + 1], newModels[index]];
-    setModels(newModels);
-  };
-
-  const handleSave = async () => {
-    if (!validateName(name)) return;
-    setSaving(true);
-    await onSave({ name: name.trim(), models });
-    setSaving(false);
-  };
-
-  const isEdit = !!combo;
+  const strategyOf = (combo) => comboStrategies[combo.name]?.fallbackStrategy || "fallback";
+  const judgeOf = (combo) => comboStrategies[combo.name]?.judgeModel || "";
 
   return (
-    <>
-      <Modal
-        isOpen={isOpen}
-        onClose={onClose}
-        title={isEdit ? "Edit Combo" : "Create Combo"}
-      >
-        <div className="flex flex-col gap-3">
-          {/* Name */}
-          <div>
-            <Input
-              label="Combo Name"
-              value={name}
-              onChange={handleNameChange}
-              placeholder="my-combo"
-              error={nameError}
-            />
-            <p className="text-[10px] text-text-muted mt-0.5">
-              Only letters, numbers, -, _ and . allowed
-            </p>
-          </div>
+    <div className="flex min-w-0 flex-col">
+      {/* Page head */}
+      <div className="mb-5">
+        <h2 className="text-xl font-semibold tracking-[-0.01em]">Combo &amp; Vision Adapter</h2>
+        <p className="mt-1 text-[13.5px] text-text-muted max-w-[640px]">Create model combos with fallback support: one model name that walks a chain of providers until one answers.</p>
+      </div>
 
-          {/* Models */}
-          <div>
-            <label className="text-sm font-medium mb-1.5 block">Models</label>
-
-            {models.length === 0 ? (
-              <div className="text-center py-4 border border-dashed border-black/10 dark:border-white/10 rounded-lg bg-black/[0.01] dark:bg-white/[0.01]">
-                <span className="material-symbols-outlined text-text-muted text-xl mb-1">layers</span>
-                <p className="text-xs text-text-muted">No models added yet</p>
-              </div>
-            ) : (
-            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd} modifiers={[restrictToVerticalAxis, restrictToParentElement]}>
-              <SortableContext items={modelItems.map((m) => m.uid)} strategy={verticalListSortingStrategy}>
-                <div className="flex max-h-[55vh] min-w-0 flex-col gap-1 overflow-y-auto sm:max-h-[350px]">
-                  {modelItems.map(({ uid, model }, index) => (
-                    <ModelItem
-                      key={uid}
-                      id={uid}
-                      index={index}
-                      model={model}
-                      isFirst={index === 0}
-                      isLast={index === modelItems.length - 1}
-                      onEdit={(newVal) => {
-                        const updated = [...models];
-                        updated[index] = newVal;
-                        setModels(updated);
-                      }}
-                      onMoveUp={() => handleMoveUp(index)}
-                      onMoveDown={() => handleMoveDown(index)}
-                      onRemove={() => handleRemoveModel(index)}
-                    />
-                  ))}
-                </div>
-              </SortableContext>
-            </DndContext>
-            )}
-
-            {/* Add Model button */}
-            <button
-              onClick={() => setShowModelSelect(true)}
-              className="w-full mt-2 py-2 border border-dashed border-black/10 dark:border-white/10 rounded-lg text-xs text-primary font-medium hover:text-primary hover:border-primary/50 transition-colors flex items-center justify-center gap-1"
-            >
-              <span className="material-symbols-outlined text-[16px]">add</span>
-              Add Model
-            </button>
-          </div>
-
-          {/* Actions */}
-          <div className="flex flex-col gap-2 pt-1 sm:flex-row">
-            <Button onClick={onClose} variant="ghost" fullWidth size="sm">
-              Cancel
-            </Button>
-            <Button
-              onClick={handleSave}
-              fullWidth
-              size="sm"
-              disabled={!name.trim() || !!nameError || saving}
-            >
-              {saving ? "Saving..." : isEdit ? "Save" : "Create"}
-            </Button>
-          </div>
+      {/* Combos table */}
+      <Card padding="none">
+        <div className="flex items-center gap-2.5 px-[18px] py-[14px] border-b border-border">
+          <h3 className="text-[13.5px] font-semibold">Combos</h3>
+          <div className="flex-1" />
+          <Button variant="primary" size="sm" onClick={handleNewCombo}>+ New combo</Button>
         </div>
-      </Modal>
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse text-[13px] [&_tbody_tr:last-child_td]:border-b-0">
+            <thead>
+              <tr>
+                <th className="text-left text-[11px] font-semibold uppercase tracking-[0.07em] text-text-subtle px-3.5 py-[9px] border-b border-border whitespace-nowrap">Combo</th>
+                <th className="text-left text-[11px] font-semibold uppercase tracking-[0.07em] text-text-subtle px-3.5 py-[9px] border-b border-border whitespace-nowrap">Chain</th>
+                <th className="text-left text-[11px] font-semibold uppercase tracking-[0.07em] text-text-subtle px-3.5 py-[9px] border-b border-border whitespace-nowrap">Strategy</th>
+                <th className="text-left text-[11px] font-semibold uppercase tracking-[0.07em] text-text-subtle px-3.5 py-[9px] border-b border-border whitespace-nowrap">Status</th>
+                <th className="text-left text-[11px] font-semibold uppercase tracking-[0.07em] text-text-subtle px-3.5 py-[9px] border-b border-border whitespace-nowrap"></th>
+              </tr>
+            </thead>
+            <tbody>
+              {combos.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="px-3.5 py-2.5 border-b border-border align-middle">
+                    <span className="text-xs text-text-muted">No combos yet — create one with + New combo.</span>
+                  </td>
+                </tr>
+              ) : (
+                combos.map((combo) => {
+                  const strategy = strategyOf(combo);
+                  const isFusion = strategy === "fusion";
+                  const judge = judgeOf(combo);
+                  const hint = combo.hint || combo.description || "";
+                  return (
+                    <tr key={combo.id}>
+                      <td className="px-3.5 py-2.5 border-b border-border align-middle">
+                        <b className="font-mono text-[12.5px] font-semibold">{combo.name}</b>
+                        {hint && <div className="text-xs text-text-muted">{hint}</div>}
+                      </td>
+                      <td className="px-3.5 py-2.5 border-b border-border align-middle">
+                        {(combo.models || []).length === 0 ? (
+                          <span className="text-xs text-text-muted">No models</span>
+                        ) : (
+                          <div className="flex items-center gap-2 flex-wrap font-mono text-xs">
+                            {(combo.models || []).map((model, index) => (
+                              <Fragment key={`${model}-${index}`}>
+                                {index > 0 && <span className="text-text-subtle">{isFusion ? "+" : "→"}</span>}
+                                <span className="border border-border-strong bg-surface-2 rounded-md px-2.5 py-[5px]">{model}</span>
+                              </Fragment>
+                            ))}
+                            {isFusion && judge && (
+                              <>
+                                <span className="text-text-subtle">→</span>
+                                <span className="border border-border-strong bg-surface-2 rounded-md px-2.5 py-[5px]">judge: {judge}</span>
+                              </>
+                            )}
+                          </div>
+                        )}
+                      </td>
+                      <td className="px-3.5 py-2.5 border-b border-border align-middle">{STRATEGY_TEXT[strategy] || "Fallback"}</td>
+                      {/* C-07: no per-combo health/last-outcome field exists — render — (Phase-4). */}
+                      <td className="px-3.5 py-2.5 border-b border-border align-middle">—</td>
+                      <td className="px-3.5 py-2.5 border-b border-border align-middle">
+                        <Button variant="ghost" size="sm" onClick={() => loadComboIntoForm(combo)}>Edit</Button>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
+      </Card>
 
-      {/* Model Select Modal */}
-      {showModelSelect && (
-        <ModelSelectModal
-          isOpen={showModelSelect}
-          onClose={() => setShowModelSelect(false)}
-          onSelect={handleAddModel}
-          onDeselect={handleDeselectModel}
-          activeProviders={activeProviders}
-          modelAliases={modelAliases}
-          title="Add Model to Combo"
-          kindFilter={kindFilter}
-          addedModelValues={models}
-          closeOnSelect={false}
-        />
-      )}
-    </>
+      {/* Inline combo form */}
+      <div ref={formRef} className="mt-3.5 scroll-mt-5">
+        <Card padding="none">
+          <div className="flex items-center gap-2.5 px-[18px] py-[14px] border-b border-border">
+            <h3 className="text-[13.5px] font-semibold">{editingId ? `Edit combo — ${formName}` : "New combo"}</h3>
+          </div>
+          <div className="px-[18px] py-4">
+            <div className="grid grid-cols-1 min-[821px]:grid-cols-2 gap-3.5">
+              <Input
+                label="Combo name"
+                value={formName}
+                onChange={(e) => {
+                  setFormName(e.target.value);
+                  if (e.target.value) validateName(e.target.value);
+                  else setNameError("");
+                }}
+                placeholder="my-combo"
+                error={nameError}
+                inputClassName="font-mono"
+              />
+              <Select
+                label="Strategy"
+                options={STRATEGY_OPTIONS}
+                value={formStrategy}
+                onChange={(e) => setFormStrategy(e.target.value)}
+              />
+            </div>
+
+            <label className="block text-[12.5px] font-semibold mb-1.5 mt-3.5">Models in order</label>
+            <div className="flex flex-col gap-2">
+              {formModels.map((model, index) => (
+                <div key={index} className="flex items-center gap-2">
+                  <span className="font-mono text-text-subtle w-[18px] shrink-0">{index + 1}</span>
+                  <div className="flex-1 min-w-0">
+                    <Select
+                      options={modelOptions}
+                      value={model}
+                      onChange={(e) => {
+                        const next = [...formModels];
+                        next[index] = e.target.value;
+                        setFormModels(next);
+                      }}
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setFormModels(formModels.filter((_, i) => i !== index))}
+                    className="w-[30px] h-[30px] shrink-0 border border-border-strong rounded-md flex items-center justify-center text-text-muted hover:bg-surface-2"
+                    aria-label={`Remove step ${index + 1}`}
+                  >
+                    <SpecIcon size={14}>
+                      <path d="M6 6l12 12M18 6L6 18" />
+                    </SpecIcon>
+                  </button>
+                </div>
+              ))}
+            </div>
+            <div className="mt-3">
+              <Button
+                variant="secondary"
+                size="sm"
+                disabled={modelOptions.length === 0}
+                onClick={() => modelOptions[0] && setFormModels([...formModels, modelOptions[0].value])}
+              >
+                + Add model
+              </Button>
+            </div>
+
+            <div className="h-px bg-border my-[18px]" />
+
+            <div className="flex items-center gap-3.5 py-[13px] pt-0">
+              <div className="flex-1 min-w-0">
+                <b className="block text-[13.5px] font-semibold">Vision Adapter</b>
+                <span className="text-[12.5px] text-text-muted">Route image inputs in this combo to a vision-capable model automatically</span>
+              </div>
+              <div className="w-full max-w-[260px] shrink-0">
+                <Select options={visionOptions} value={formVision} onChange={(e) => setFormVision(e.target.value)} />
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 flex-wrap mt-3.5">
+              <Button variant="primary" onClick={handleSaveCombo} loading={saving} disabled={!formName.trim() || !!nameError}>
+                Save combo
+              </Button>
+              {editingId && (
+                <Button variant="secondary" onClick={() => handleDelete(editingId)}>
+                  Delete
+                </Button>
+              )}
+              <span className="text-xs text-text-muted">Sticky limit: keep a session on one account for up to 20 requests before rotating.</span>
+            </div>
+          </div>
+        </Card>
+      </div>
+
+      {/* Confirm (delete) */}
+      <ConfirmModal
+        isOpen={!!confirmState}
+        onClose={() => !confirmState?.loading && setConfirmState(null)}
+        onConfirm={confirmState?.onConfirm}
+        title={confirmState?.title || "Confirm"}
+        message={confirmState?.message}
+        confirmText={confirmState?.confirmText || "Confirm"}
+        variant={confirmState?.variant || "danger"}
+        loading={!!confirmState?.loading}
+      />
+    </div>
   );
 }
