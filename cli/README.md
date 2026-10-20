@@ -1,44 +1,53 @@
 <div align="center">
-  <img src="https://raw.githubusercontent.com/mas-ajam/bansur-router/main/images/banner.png" alt="Bansur Router" width="700"/>
-</div>
 
-# Bansur Router - FREE AI Router & Token Saver
+<img src="https://raw.githubusercontent.com/mas-ajam/bansur-router/main/images/banner.png" alt="Bansur Router" width="700"/>
 
-**Never stop coding. Save 20-40% tokens with RTK + auto-fallback to FREE & cheap AI models.**
-
-**Connect All AI Code Tools (Claude Code, Cursor, Antigravity, Copilot, Codex, Gemini, OpenCode, Cline, OpenClaw...) to 40+ AI Providers & 100+ Models.**
+**One endpoint for every AI provider.**
 
 [![npm](https://img.shields.io/npm/v/bansur-router.svg)](https://www.npmjs.com/package/bansur-router)
 [![Downloads](https://img.shields.io/npm/dm/bansur-router.svg)](https://www.npmjs.com/package/bansur-router)
 [![Docker Pulls](https://img.shields.io/docker/pulls/bansur/router.svg?logo=docker&label=Docker%20pulls)](https://hub.docker.com/r/bansur/router)
+[![Docker Version](https://img.shields.io/docker/v/bansur/router?logo=docker&label=Docker%20version)](https://hub.docker.com/r/bansur/router)
 [![GHCR](https://img.shields.io/badge/GHCR-mas-ajam%2Fbansur-router-blue?logo=github)](https://github.com/mas-ajam/bansur-router/pkgs/container/bansur-router)
 [![License](https://img.shields.io/npm/l/bansur-router.svg)](https://github.com/mas-ajam/bansur-router/blob/main/LICENSE)
 
+[Quick Start](#quick-start) · [CLI Options](#cli-options) · [Key Features](#key-features) · [Documentation](https://bansur-router.pages.dev)
 
-[🌐 Website](https://bansur-router.pages.dev) • [📖 Full Docs](https://github.com/mas-ajam/bansur-router)
-
----
-
-## 🤔 Why Bansur Router?
-
-**Stop wasting money, tokens and hitting limits:**
-
-- ❌ Subscription quota expires unused every month
-- ❌ Rate limits stop you mid-coding
-- ❌ Tool outputs (git diff, grep, ls...) burn tokens fast
-- ❌ Expensive APIs ($20-50/month per provider)
-
-**Bansur Router solves this:**
-
-- ✅ **RTK Token Saver** - Auto-compress tool_result, save 20-40% tokens
-- ✅ **Maximize subscriptions** - Track quota, use every bit before reset
-- ✅ **Auto fallback** - Subscription → Cheap → Free, zero downtime
-- ✅ **Multi-account** - Round-robin between accounts per provider
-- ✅ **Universal** - Works with any OpenAI/Claude-compatible CLI
+</div>
 
 ---
 
-## ⚡ Quick Start
+# Bansur Router
+
+Bansur Router is a local AI gateway for coding tools. It runs on your own machine and presents a single OpenAI-compatible endpoint — `http://localhost:667/v1` — in front of every provider you connect to it.
+
+This package installs the `bansur-router` command, which starts the gateway and its dashboard. Configure your tool once. From then on, Bansur Router handles the provider connections behind that endpoint: which account answers a request, how the request format is translated, how much quota is left, and what happens when a provider says no. Subscriptions you already pay for are used first, cheaper APIs take over when they run out, and free tiers keep the session alive at the end of the chain.
+
+- **One endpoint, one key** — every connected provider, reachable from every tool
+- **800+ models** — listed live through `GET /v1/models`
+- **3-tier fallback** — Subscription, then Cheap, then Free
+- **Token saving built in** — tool outputs are compressed before they reach the model
+- **Local-first** — your keys and your traffic stay on your machine
+
+Current release: v1.0.5. Requires Node.js 20.9 or later.
+
+---
+
+## Why Bansur Router
+
+| Problem | What Bansur Router does |
+| --- | --- |
+| Subscription quota expires unused every month | Tracks quota per account and spends it before it resets |
+| A rate limit stops you in the middle of a coding session | Falls back automatically: Subscription → Cheap → Free |
+| Tool outputs such as `git diff`, `grep`, and `ls` burn tokens | Compresses tool results with RTK, saving 20–40% of tokens per request |
+| Every provider wants $20–50 per month | Routes work to cheap and free tiers when they are good enough |
+| Switching providers by hand, separately for each tool | Gives every tool one endpoint and one key, with multi-account round-robin behind it |
+
+---
+
+## Quick Start
+
+### 1. Install and run
 
 **Option 1 — npm (recommended for desktop):**
 
@@ -60,26 +69,27 @@ docker run -d --name bansur-router -p 667:667 \
 
 Published images: [Docker Hub](https://hub.docker.com/r/bansur/router) • [GHCR](https://github.com/mas-ajam/bansur-router/pkgs/container/bansur-router) (multi-platform amd64/arm64).
 
-🎉 Dashboard opens at `http://localhost:667`
+The dashboard opens at `http://localhost:667`.
 
-**2. Connect a FREE provider (no signup needed):**
+### 2. Connect a provider
 
-Dashboard → Providers → Connect **Kiro AI** (free Claude unlimited) or **OpenCode Free** (no auth) → Done!
+Open **Dashboard → Providers → Connect**.
 
-**3. Use in your CLI tool:**
+You do not need a paid account to start. Connect **Kiro AI** for a free tier of about 50 credits per month, which includes Claude 4.5, GLM-5, and MiniMax, or connect **OpenCode Free**, which needs no authentication at all. If you already have subscriptions or API keys, connect those instead — or as well.
 
+### 3. Point your tool at Bansur Router
+
+```text
+Endpoint: http://localhost:667/v1
+API Key:  copy it from the dashboard
+Model:    kr/claude-sonnet-4.5
 ```
-Claude Code/Codex/OpenClaw/Cursor/Cline Settings:
-  Endpoint: http://localhost:667/v1
-  API Key:  [copy from dashboard]
-  Model:    kr/claude-sonnet-4.5
-```
 
-That's it! Start coding with FREE AI models.
+That is the whole setup. The tool now reaches every connected provider through the one endpoint, and Bansur Router decides where each request goes.
 
 ---
 
-## 🚀 CLI Options
+## CLI Options
 
 ```bash
 bansur-router                    # Start with default settings
@@ -93,7 +103,7 @@ bansur-router --help             # Show all options
 
 ---
 
-## 🔌 Connect to a Remote Bansur Router
+## Connect to a Remote Bansur Router
 
 Already running Bansur Router on another machine (e.g. a team server on your LAN)? Point this machine's CLI tools at it — no local server is started:
 
@@ -183,7 +193,26 @@ See `bansur-router connect --help` for the full list.
 
 ---
 
-## 🛠️ Supported CLI Tools
+## Key Features
+
+| Feature | What it does |
+| --- | --- |
+| RTK Token Saver | Compresses tool outputs — `git diff`, `grep`, `ls`, and similar results — before they are sent to the model, saving 20–40% of tokens per request |
+| Headroom Token Saver | Applies additional compression to request context, further reducing the tokens a long session consumes |
+| Smart 3-Tier Fallback | Routes each request Subscription → Cheap → Free, switching tiers automatically on quota exhaustion or rate limits |
+| Real-Time Quota Tracking | Shows live usage and reset timing per account, so subscription quota is spent before it expires instead of after |
+| Format Translation | Translates between OpenAI, Claude, and Gemini request formats, so a tool built for one API can use providers built for another |
+| Multi-Account Support | Holds several accounts per provider and distributes requests across them with round-robin routing |
+| Auto Token Refresh | Refreshes OAuth tokens automatically, so connected providers stay connected without repeated sign-ins |
+| Custom Combos | Groups models from different providers and tiers into named combinations you select as a single model in your tool |
+| Request Logging | Records requests and responses for inspection, which makes routing and provider problems visible instead of silent |
+| Cloud Sync | Synchronizes your configuration across machines, so a second computer starts from the same providers and combos |
+| Usage Analytics | Breaks down token usage over time by provider, account, and model |
+| Deploy Anywhere | Runs locally, in Docker, or on a VPS, with the same dashboard and endpoint in each case |
+
+---
+
+## Supported CLI Tools
 
 Claude-Code • OpenClaw • Codex • OpenCode • Cursor • Antigravity • Cline • Continue • Droid • Roo • Copilot • Kilo Code • Gemini CLI • Qwen Code • iFlow • Crush • Crusher • Aider
 
@@ -191,7 +220,7 @@ Any tool supporting OpenAI/Claude-compatible API works.
 
 ---
 
-## 💾 Data Location
+## Data Location
 
 - **macOS/Linux**: `~/.bansur-router/db/data.sqlite`
 - **Windows**: `%APPDATA%/bansur-router/db/data.sqlite`
@@ -199,7 +228,7 @@ Any tool supporting OpenAI/Claude-compatible API works.
 
 ---
 
-## 📚 Documentation
+## Documentation
 
 Full docs, advanced setup, video tutorials & development guide:
 
@@ -209,10 +238,6 @@ Full docs, advanced setup, video tutorials & development guide:
 
 ---
 
-## 🙏 Acknowledgments
-
-- **[CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI)** - Original Go implementation
-
-## 📄 License
+## License
 
 MIT License - see [LICENSE](LICENSE) for details.

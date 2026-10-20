@@ -1,1307 +1,346 @@
 <div align="center">
-  <img src="../images/banner.png" alt="Bansur Router" width="880"/>
-  
-  # Bansur Router - 免费 AI 路由器
-  
-  **永不停歇的编程体验。智能回退，自动路由到免费和廉价的 AI 模型。**
-  
-  **OpenClaw 的免费 AI 提供商。**
-  
-  <p align="center">
-    <img src="../public/providers/openclaw.png" alt="OpenClaw" width="80"/>
-  </p>
-  
-  [![npm](https://img.shields.io/npm/v/bansur-router.svg)](https://www.npmjs.com/package/bansur-router)
-  [![Downloads](https://img.shields.io/npm/dm/bansur-router.svg)](https://www.npmjs.com/package/bansur-router)
-  [![License](https://img.shields.io/npm/l/bansur-router.svg)](https://github.com/mas-ajam/bansur-router/blob/main/LICENSE)
-  
-  [🚀 快速开始](#-quick-start) • [💡 特性](#-key-features) • [📖 设置](#-setup) • [🌐 网站](https://bansur-router.pages.dev)
+
+<img src="../images/banner.png" alt="Bansur Router" width="880"/>
+
+**一个端点，连接所有 AI 提供商。**
+
+[![npm](https://img.shields.io/npm/v/bansur-router.svg)](https://www.npmjs.com/package/bansur-router)
+[![Downloads](https://img.shields.io/npm/dm/bansur-router.svg)](https://www.npmjs.com/package/bansur-router)
+[![Docker Pulls](https://img.shields.io/docker/pulls/bansur/router.svg?logo=docker&label=Docker%20pulls)](https://hub.docker.com/r/bansur/router)
+[![Docker Version](https://img.shields.io/docker/v/bansur/router?logo=docker&label=Docker%20version)](https://hub.docker.com/r/bansur/router)
+[![GHCR](https://img.shields.io/badge/GHCR-mas-ajam%2Fbansur-router-blue?logo=github)](https://github.com/mas-ajam/bansur-router/pkgs/container/bansur-router)
+[![License](https://img.shields.io/npm/l/bansur-router.svg)](https://github.com/mas-ajam/bansur-router/blob/main/LICENSE)
+
+[快速开始](#快速开始) · [主要功能](#主要功能) · [提供商](#支持的提供商) · [设置指南](#设置指南) · [文档](https://bansur-router.pages.dev)
+
+[🇧🇷 Português (Brasil)](./README.pt-BR.md) • [🇻🇳 Tiếng Việt](./README.vi.md) • [🇨🇳 中文](./README.zh-CN.md) • [🇯🇵 日本語](./README.ja-JP.md) • [🇷🇺 Русский](./README.ru.md) • [🇹🇭 ไทย](./README.th.md) • [🇮🇷 فارسی](./README.fa_IR.md) • [🇮🇩 Indonesia](./README.id-ID.md) • [🇪🇸 Español](./README.es.md) • [🇫🇷 Français](./README.fr.md)
+
 </div>
 
 ---
 
-## 🤔 为什么选择 Bansur Router？
+# Bansur Router
 
-**停止浪费金钱和触碰限制：**
+Bansur Router 是一个面向编程工具的本地 AI 网关。它运行在你自己的机器上，在你连接的每一个提供商之前提供一个统一的、兼容 OpenAI 的端点 —— `http://localhost:667/v1`。
 
-- ❌ 订阅配额每月未使用即过期
-- ❌ 编程中途遭遇速率限制
-- ❌ 昂贵的 API（每个提供商 $20-50/月）
-- ❌ 手动在提供商之间切换
+只需配置一次工具。此后，Bansur Router 会在这个端点之后处理提供商连接：由哪个账户响应请求、请求格式如何转换、还剩多少配额，以及当提供商拒绝时该怎么办。你已经付费的订阅会被优先使用；订阅配额耗尽时，由更便宜的 API 接手；免费层级则在链的末端让会话得以持续。
 
-**Bansur Router 解决方案：**
+控制台运行在 `http://localhost:667/dashboard`，你可以在那里连接提供商、构建模型组合（combo），并查看用量。密钥保存在你的机器上，流量在本地路由；该网关以 npm 包和 Docker 镜像的形式发布，基于一个运行在 Node.js 上的 Next.js 应用。
 
-- ✅ **最大化订阅价值** - 追踪配额，在重置前用尽每一分
-- ✅ **自动回退** - 订阅 廉价 → 免费，零停机时间
-- ✅ **多账户** - 每个提供商的账户间轮询
-- ✅ **通用性** - 适用于 Claude Code, Codex, Gemini CLI, Cursor, Cline, 任何 CLI 工具
+- **一个端点，一个密钥** —— 每一个已连接的提供商，都可以从每一个工具访问
+- **800+ 模型** —— 通过 `GET /v1/models` 实时列出
+- **三级回退** —— 先订阅，再廉价，最后免费
+- **内置 Token 节省** —— 工具输出在送达模型之前先行压缩
+- **本地优先** —— 你的密钥和流量始终留在你的机器上
 
----
-
-## 🔄 工作原理
-
-```
-┌─────────────┐
-│  Your CLI   │  (Claude Code, Codex, OpenClaw, Cursor, Cline, Antigravity...)
-│   Tool      │
-└──────┬──────┘
-       │ http://localhost:667/v1
-       ↓
-┌─────────────────────────────────────────────┐
-│           Bansur Router (Smart Router)            │
-│  • RTK Token Saver (节省 20-40% Token)      │
-│  • 格式转换 (OpenAI ↔ Claude)               │
-│  • 配额追踪 (Quota tracking)                │
-│  • 自动刷新 OAuth Token                     │
-└──────┬──────────────────────────────────────┘
-       │
-       ├─→ [Tier 1: 订阅] Claude Code, Codex, GitHub Copilot
-       │   ↓ 配额用尽
-       ├─→ [Tier 2: 低价] GLM ($0.6/1M), MiniMax ($0.2/1M)
-       │   ↓ 触及预算上限
-       └─→ [Tier 3: 免费] Kiro AI, OpenCode Free, Vertex AI ($300 credits)
-
-结果：永不停歇的编程体验，最低成本 + 通过 RTK 节省 20-40% Token
-```
+当前版本：v1.0.5。需要 Node.js 20.9 或更高版本。
 
 ---
 
-## ⚡ 快速开始
+## 为什么选择 Bansur Router
 
-**1. 全局安装：**
+| 问题 | Bansur Router 的做法 |
+| --- | --- |
+| 订阅配额每月到期却从未用完 | 按账户跟踪配额，在重置前把它用掉 |
+| 速率限制在编程中途打断你 | 自动回退：Subscription → Cheap → Free |
+| `git diff`、`grep`、`ls` 等工具输出大量消耗 tokens | 用 RTK 压缩工具结果，每次请求节省 20–40% 的 tokens |
+| 每个提供商每月都要 $20–50 | 在足够用时，将工作路由到廉价和免费层级 |
+| 为每个工具分别手动切换提供商 | 为每个工具提供一个端点和一个密钥，背后是多账户轮询 |
+
+---
+
+## 快速开始
+
+### 1. 安装并运行
 
 ```bash
 npm install -g bansur-router
 bansur-router
 ```
 
-🎉 仪表板将在 `http://localhost:667` 打开
+控制台会在 `http://localhost:667` 打开。
 
-**2. 连接免费提供商（无需注册）：**
+### 2. 连接一个提供商
 
-仪表板 → 提供商 → 连接 **Claude Code** 或 **Antigr** → OAuth 登录 → 完成！
+打开 **Dashboard → Providers → Connect**。
 
-**3. 在您的 CLI 工具中使用：**
+开始使用不需要付费账户。连接 **Kiro AI**，可获得每月约 50 点额度的免费层级，其中包含 Claude 4.5、GLM-5 和 MiniMax；或者连接 **OpenCode Free**，它完全不需要身份验证。如果你已经有订阅或 API 密钥，也可以连接那些 —— 单独连接，或一并连接。
 
+### 3. 将你的工具指向 Bansur Router
+
+```text
+Endpoint: http://localhost:667/v1
+API Key:  copy it from the dashboard
+Model:    kr/claude-sonnet-4.5
 ```
-Claude Code/Codex/Gemini CLI/OpenClaw/Cursor/Cline 设置:
-  Endpoint: http://localhost:667/v1
-  API Key: [从仪表板复制]
-  Model: if/kimi-k2-thinking
+
+设置到此为止。你的工具现在通过这一个端点访问每一个已连接的提供商，由 Bansur Router 决定每个请求发往何处。
+
+运行 Bansur Router 的其他方式 —— Docker 和从源码构建 —— 见[设置指南](#设置指南)。
+
+---
+
+## 工作原理
+
+每个请求以你的工具发送的格式到达，穿过网关，再以所选提供商期望的格式离开。
+
+```text
+Your CLI tool
+  Claude Code, Codex, Cursor, Cline, ...
+        |
+        |  http://localhost:667/v1
+        v
+Bansur Router
+  - RTK token saver (compress tool results)
+  - Format translation (OpenAI <-> Claude <-> Gemini)
+  - Quota tracking per account
+  - Automatic OAuth token refresh
+        |
+        +--> Tier 1: SUBSCRIPTION
+        |    Claude Code, Codex, GitHub Copilot
+        |    (used first, while quota lasts)
+        |
+        +--> Tier 2: CHEAP
+        |    GLM ($0.6 / 1M tokens), MiniMax ($0.20 / 1M tokens)
+        |    (takes over when subscription quota runs out)
+        |
+        +--> Tier 3: FREE
+             Kiro, OpenCode Free, Vertex AI ($300 credits
+             for new Google Cloud accounts)
+             (keeps the session running at no cost)
 ```
 
-**就是这样！** 开始使用免费 AI 模型编程。
+回退是自动的。当当前层级返回配额错误或速率限制时，请求会沿着链向下移动，而不是在你的编辑器里失败。
 
-**替代方案：从源码运行（此仓库）：**
+---
 
-此仓库包是私有的（`bansur-router-app`），因此源码/Docker 执行是预期的本地开发路径。
+## 主要功能
+
+| 功能 | 作用 |
+| --- | --- |
+| RTK Token 节省器 | 在工具输出 —— `git diff`、`grep`、`ls` 等结果 —— 发送给模型之前先行压缩，每次请求节省 20–40% 的 tokens |
+| Headroom Token 节省器 | 对请求上下文施加额外压缩，进一步减少长会话消耗的 tokens |
+| 智能三级回退 | 按 Subscription → Cheap → Free 路由每个请求，在配额耗尽或速率限制时自动切换层级 |
+| 实时配额追踪 | 显示每个账户的实时用量和重置时间，让订阅配额在过期之前、而不是之后被用掉 |
+| 格式转换 | 在 OpenAI、Claude 和 Gemini 的请求格式之间互相转换，使为一种 API 构建的工具可以使用为另一种 API 构建的提供商 |
+| 多账户支持 | 每个提供商可以保存多个账户，并通过轮询路由在它们之间分发请求 |
+| 自动 Token 刷新 | 自动刷新 OAuth tokens，使已连接的提供商无需反复登录即可保持连接 |
+| 自定义组合 | 将来自不同提供商和层级的模型分组为命名的组合，在你的工具中作为单个模型来选择 |
+| 请求日志 | 记录请求与响应以便检查，让路由和提供商的问题变得可见，而不是无声无息 |
+| 云同步 | 在多台机器之间同步你的配置，使第二台电脑从相同的提供商和组合起步 |
+| 使用分析 | 按提供商、账户和模型，细分一段时间内的 token 用量 |
+| 随处部署 | 可在本地、Docker 或 VPS 上运行，每种情况下都是相同的控制台和端点 |
+
+---
+
+## 支持的 CLI 工具
+
+任何接受自定义的、兼容 OpenAI 的端点的工具都可以使用 Bansur Router。以下工具得到直接支持，而且其中大多数可以从控制台的 CLI Tools 部分进行配置，无需手动编辑配置文件。
+
+- Claude Code
+- OpenAI Codex
+- Cursor
+- Cline
+- OpenCode
+- Antigravity
+- GitHub Copilot
+- OpenClaw
+- Continue
+- RooCode
+
+对每个工具，配置都是同样的三个值：端点 `http://localhost:667/v1`、从控制台复制的 API 密钥，以及你希望该工具使用的模型或组合。
+
+---
+
+## 支持的提供商
+
+已连接的提供商通过一个端点暴露 800 多个模型。对正在运行的实例调用 `GET /v1/models`，即可获得你的连接可用的确切列表。
+
+### OAuth 提供商
+
+通过控制台登录即可连接。Bansur Router 会保存会话、自动刷新其 tokens，并跟踪其配额。
+
+- Claude Code
+- Codex
+- GitHub Copilot
+- Antigravity
+- Gemini
+- iFlow
+- Windsurf
+- Kiro
+
+### 免费提供商
+
+使用这些层级无需付费，这使它们成为完成第一个请求的快捷方式。
+
+| 提供商 | 免费层级提供什么 |
+| --- | --- |
+| Kiro AI | 每月约 50 点额度免费，包括 Claude 4.5、GLM-5 和 MiniMax |
+| OpenCode Free | 无需身份验证即可访问 |
+| Vertex AI | 新 Google Cloud 账户可获得 $300 额度 |
+
+### API 密钥提供商
+
+超过 40 个提供商可使用 API 密钥连接，包括 OpenAI 与 Anthropic 风格的服务以及众多模型托管商。最常用作第二层级的低成本选项是：
+
+| 提供商 | 价格 |
+| --- | --- |
+| GLM | $0.6 per 1M tokens |
+| MiniMax | $0.20 per 1M tokens |
+| Kimi | $9 per month flat |
+
+### 自托管提供商
+
+任何使用 OpenAI 兼容格式的端点都可以连接为提供商，因此你自己托管的模型与托管提供商处于同一条路由链 —— 以及同样的组合 —— 之中。
+
+---
+
+## API 参考
+
+Bansur Router 在其本地端点上暴露一个兼容 OpenAI 的 API。使用控制台中显示的 API 密钥进行身份验证。
+
+### 列出模型
+
+```text
+GET /v1/models
+```
+
+返回你的所有已连接提供商可用的每一个模型 —— 连接常见提供商后，模型数量超过 800 个。
+
+### 创建聊天补全
+
+```text
+POST /v1/chat/completions
+Authorization: Bearer <dashboard API key>
+```
+
+```bash
+curl http://localhost:667/v1/chat/completions \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "kr/claude-sonnet-4.5",
+    "messages": [
+      { "role": "user", "content": "Explain what this function does." }
+    ]
+  }'
+```
+
+请求和响应的结构遵循 OpenAI 聊天补全格式。Bansur Router 会将它们转换为路由链所选提供商的原生格式。
+
+默认安装的关键 URL：
+
+- 控制台：`http://localhost:667/dashboard`
+- API 基础地址：`http://localhost:667/v1`
+
+---
+
+## 设置指南
+
+### 使用 Docker 运行
+
+从本仓库的一个检出（checkout）中执行：
+
+```bash
+docker compose up -d
+```
+
+发布的镜像可在 Docker Hub 上以 `bansur/router` 获取，也可在 GitHub Container Registry 上以 `ghcr.io/mas-ajam/bansur-router` 获取。控制台和 API 在 667 端口提供服务，与本地安装相同。
+
+### 从源码运行
 
 ```bash
 cp .env.example .env
 npm install
-PORT=667 NEXT_PUBLIC_BASE_URL=http://localhost:667 npm run dev
-```
-
-生产模式：
-
-```bash
 npm run build
 PORT=667 HOSTNAME=0.0.0.0 NEXT_PUBLIC_BASE_URL=http://localhost:667 npm run start
 ```
 
-默认 URL：
-- 仪表板：`http://localhost:667/dashboard`
-- OpenAI 兼容 API：`http://localhost:667/v1`
+### 连接提供商
 
----
+1. 启动 Bansur Router 并打开 `http://localhost:667/dashboard`。
+2. 进入 **Providers**，在你想用的提供商上选择 **Connect**。
+3. 对于 OAuth 提供商，在打开的窗口中完成登录；对于 API 密钥提供商，粘贴该提供商签发的密钥。
+4. 发送一个请求。随着请求被路由，提供商的配额和用量会出现在控制台中。
 
-## 🎥 视频教程
+如果你只是想验证设置，从一个免费提供商开始：Kiro AI 或 OpenCode Free 都无需付费计划即可使用。
 
-<div align="center">
-  
-### 📺完整设置指南 - Bansur Router + Claude Code 免费
-  
-[![Bansur Router + Claude Code Setup](https://img.youtube.com/vi/raEyZPg5xE0/maxresdefault.jpg)](https://www.youtube.com/watch?v=raEyZPg5xE0)
+### 构建组合
 
-**🎬 观看完整的分步教程：**
-- ✅ Bansur Router 安装与设置
-- ✅ 免费 Claude Sonnet 4.5 配置
-- ✅ Claude Code 集成
-- ✅ 实时编程演示
+组合是一个被当作单个可选模型的有序模型列表。将你的订阅模型放在第一位，廉价模型放在第二位，免费模型放在最后，然后在你的工具中选择该组合。当第一个模型不可用时 —— 配额耗尽、被速率限制或出错 —— 请求会自动移动到下一个条目。
 
-**⏱️ 时长：** 20 分钟 | **👥 作者** 开发者社区
+### 更改端口
 
-[▶️ 在 YouTube 上观看](https://www.youtube.com/watch?v=o3qYCyjrFYg)
-
-</div>
-
----
-
-## 🛠️ 支持的 CLI 工具
-
-Bansur Router 与所有主流 AI 编程工具无缝协作：
-
-<div align="center">
-  <table>
-    <tr>
-      <td align="center" width="120">
-        <img src="../public/providers/claude.png" width="60" alt="Claude Code"/><br/>
-        <b>Claude-Code</b>
-      </td>
-      <td align="center" width="120">
-        <img src="../public/providers/openclaw.png" width="60" alt="OpenClaw"/><br/>
-        <b>OpenClaw</b>
-      </td>
-      <td align="center" width="120">
-        <img src="../public/providers/codex.png" width="60" alt="Codex"/><br/>
-        <b>Codex</b>
-      </td>
-      <td align="center" width="120">
-        <img src="../public/providers/opencode.png" width="60" alt="OpenCode"/><br/>
-        <b>OpenCode</b>
-      </td>
-      <td align="center" width="120">
-        <img src="../public/providers/cursor.png" width="60" alt="Cursor"/><br/>
-        <b>Cursor</b>
-      </td>
-      <td align="center" width="120">
-        <img src="../public/providers/antigravity.png" width="60" alt="Antigravity"/><br/>
-        <b>Antigravity</b>
-      </td>
-    </tr>
-    <tr>
-      <td align="center" width="120">
-        <img src="../public/providers/cline.png" width="60" alt="Cline"/><br/>
-        <b>Cline</b>
-      </td>
-      <td align="center" width="120">
-        <img src="../public/providers/continue.png" width="60" alt="Continue"/><br/>
-        <b>Continue</b>
-      </td>
-      <td align="center" width="120">
-        <img src="../public/providers/droid.png" width="60" alt="Droid"/><br/>
-        <b>Droid</b>
-      </td>
-      <td align="center" width="120">
-        <img src="../public/providers/roo.png" width="60" alt="Roo"/><br/>
-        <b>Roo</b>
-      </td>
-      <td align="center" width="120">
-        <img src="../public/providers/copilot.png" width="60" alt="Copilot"/><br/>
-        <b>Copilot</b>
-      </td>
-      <td align="center" width="120">
-        <img src="../public/providers/kilocode.png" width="60" alt="Kilo Code"/><br/>
-        <b>Kilo Code</b>
-      </td>
-    </tr>
-  </table>
-</div>
-
----
-
-## 🌐 支持的提供商
-
-### 🔐 OAuth 提供商
-
-<div align="center">
-  <table>
-    <tr>
-      <td align="center" width="120">
-        <img src="../public/providers/claude.png" width="60" alt="Claude Code"/><br/>
-        <b>Claude-Code</b>
-      </td>
-      <td align="center" width="120">
-        <img src="../public/providers/antigravity.png" width="60" alt="Antigravity"/><br/>
-        <b>Antigravity</b>
-      </td>
-      <td align="center" width="120">
-        <img src="../public/providers/codex.png" width="60" alt="Codex"/><br/>
-        <b>Codex</b>
-      </td>
-      <td align="center" width="120">
-        <img src="../public/providers/github.png" width="60" alt="GitHub"/><br/>
-        <b>GitHub</b>
-      </td>
-      <td align="center" width="120">
-        <img src="../public/providers/cursor.png" width="60" alt="Cursor"/><br/>
-        <b>Cursor</b>
-      </td>
-    </tr>
-  </table>
-</div>
-
-### 🆓 免费提供商
-
-<div align="center">
-  <table>
-    <tr>
-      <td align="center" width="150">
-        <img src="../public/providers/iflow.png" width="70" alt="iFlow"/><br/>
-        <b>iFlow AI</b><br/>
-        <sub>8+ 模型 无限制</sub>
-      </td>
-      <td align="center" width="150">
-        <img src="../public/providers/qwen.png" width="70" alt="Qwen"/><br/>
-        <b>Qwen Code</b><br/>
-        <sub>3+ 模型 • 无限制</sub>
-      </td>
-      <td align="center" width="150">
-        <img src="../public/providers/gemini-cli.png" width="70" alt="Gemini CLI"/><br/>
-        <b>Gemini CLI</b><br/>
-        <sub>180K/月 免费</sub>
-      </td>
-      <td align="center" width="150">
-        <img src="../public/providers/kiro.png" width="70" alt="Kiro"/><br/>
-        <b>Kiro AI</b><br/>
-        <sub>Claude • 无限制</sub>
-      </td>
-    </tr>
-  </table>
-</div>
-
-### 🔑 API Key 提供商 (40+)
-
-<div align="center">
-  <table>
-    <tr>
-      <td align="center" width="100">
-        <img src="../public/providers/openrouter.png" width="50" alt="OpenRouter"/><br/>
-        <sub>OpenRouter</sub>
-      </td>
-      <td align="center" width="100">
-        <img src="../public/providers/glm.png" width="50" alt="GLM"/><br/>
-        <sub>GLM</sub>
-      </td>
-      <td align="center" width="100">
-        <img src="../public/providers/kimi.png" width="50" alt="Kimi"/><br/>
-        <sub>Kimi</sub>
-      </td>
-      <td align="center" width="100">
-        <img src="../public/providers/minimax.png" width="50" alt="MiniMax"/><br/>
-        <sub>MiniMax</sub>
-      </td>
-      <td align="center" width="100">
-        <img src="../public/providers/openai.png" width="50" alt="OpenAI"/><br/>
-        <sub>OpenAI</sub>
-      </td>
-      <td align="center" width="100">
-        <img src="../public/providers/anthropic.png" width="50" alt="Anthropic"/><br/>
-        <sub>Anthropic</sub>
-      </td>
-    </tr>
-    <tr>
-      <td align="center" width="100">
-        <img src="../public/providers/gemini.png" width="50" alt="Gemini"/><br/>
-        <sub>Gemini</sub>
-      </td>
-      <td align="center" width="100">
-        <img src="../public/providers/deepseek.png" width="50" alt="DeepSeek"/><br/>
-        <sub>DeepSeek</sub>
-      </td>
-      <td align="center" width="100">
-        <img src="../public/providers/groq.png" width="50" alt="Groq"/><br/>
-        <sub>Groq</sub>
-      </td>
-      <td align="center" width="100">
-        <img src="../public/providers/xai.png" width="50" alt="xAI"/><br/>
-        <sub>xAI</sub>
-      </td>
-      <td align="center" width="100">
-        <img src="../public/providers/mistral.png" width="50" alt="Mistral"/><br/>
-        <sub>Mistral</sub>
-      </td>
-      <td align="center" width="100">
-        <img src="../public/providers/perplexity.png" width="50" alt="Perplexity"/><br/>
-        <sub>Perplexity</sub>
-      </td>
-    </tr>
-    <tr>
-      <td align="center" width="100">
-        <img src="../public/providers/together.png" width="50" alt="Together"/><br/>
-        <sub>Together AI</sub>
-      </td>
-      <td align="center" width="100">
-        <img src="../public/providers/fireworks.png" width="50" alt="Fireworks"/><br/>
-        <sub>Fireworks</sub>
-      </td>
-      <td align="center" width="100">
-        <img src="../public/providers/cerebras.png" width="50" alt="Cerebras"/><br/>
-        <sub>Cerebras</sub>
-      </td>
-      <td align="center" width="100">
-        <img src="../public/providers/cohere.png" width="50" alt="Cohere"/><br/>
-        <sub>Cohere</sub>
-      </td>
-      <td align="center" width="100">
-        <img src="../public/providers/nvidia.png" width="50" alt="NVIDIA"/><br/>
-        <sub>NVIDIA</sub>
-      </td>
-      <td align="center" width="100">
-        <img src="../public/providers/siliconflow.png" width="50" alt="SiliconFlow"/><br/>
-        <sub>SiliconFlow</sub>
-      </td>
-    </tr>
-  </table>
-  <p><i>...以及 20+ 更多提供商，包括 Nebius, Chutes, Hyperbolic 和自定义 OpenAI/Anthropic 兼容端点</i></p>
-</div>
-
----
-
-## 💡 核心特性
-
-| 特性 | 功能 | 重要性 |
-|---------|--------------|----------------|
-|  **智能 3 层回退** | 自动路由：订阅 → 廉价 → 免费 | 永不停止编程，零停机时间 |
-| 📊 **实时配额追踪** | 实时 Token 计数 + 重置倒计时 | 最大化订阅价值 |
-| 🔄 **格式转换** | OpenAI ↔ Claude ↔ Gemini 无缝转换 | 适用于任何 CLI 工具 |
-| 👥 **多账户支持** | 每个提供商多个账户 | 负载均衡 + 冗余 |
-| 🔄 **自动 Token 刷新** | OAuth token 自动刷新 |需手动重新登录 |
-| 🎨 **自定义组合** | 创建无限模型组合 | 根据需求定制回退策略 |
-| 📝 **请求日志** | 调试模式包含完整请求/响应日志 | 轻松排查问题 |
-| 💾 **云端同步** | 跨设备同步配置 | 到处都是相同的设置 |
-| 📊 **使用分析** | 追踪 Token、成本、趋势 | 优化支出 |
-| 🌐 **随处部署** | 本地主机、VPS、Docker、Cloudflare Workers | 灵活的部署选项 |
-
-<details>
-<summary><b>📖 特性详情</b></summary>
-
-### 🎯 智能 3 层回退
-
-创建具有自动回退功能的组合：
-
-```
-Combo: "my-coding-stack"
-  1. cc/claude-opus-4-6        (your subscription)
-  2. glm/glm-4.7               (cheap backup, $0.6/1M)
-  3. if/kimi-k2-thinking       (free fallback)
-
-→ Auto switches when quota runs out or errors occur
-```
-
-### 📊 实时配额追踪
-
-- 每个提供商的 Token 消
-- 重置倒计时（5 小时、每日、每周）
-- 付费层的成本估算
-- 月度支出报告
-
-### 🔄 格式转换
-
-格式间无缝转换：
-- **OpenAI** ↔ **Claude** ↔ **Gemini** ↔ **OpenAI Responses**
-- 您的 CLI 工具发送 OpenAI 格式 → Bansur Router 转换 → 提供商接收原生格式
-- 适用于任何支持自定义 OpenAI 端点的工具
-
-### 👥 多账户支持
-
-- 每个提供商添加多个账户
-- 自动轮询或基于优先级的
-- 当一个账户达到配额时回退到下一个
-
-### 🔄 自动 Token 刷新
-
-- OAuth token 在过期前自动刷新
-- 无需手动重新认证
-- 所有提供商的无缝体验
-
-### 🎨 自定义组合
-
-- 创建无限模型组合
-- 混合订阅、廉价和免费层
-- 为您的组合命名以便访问
-- 通过云端同步跨设备共享组合
-
-### 📝 请求日志
-
-- 启用调试模式以获取完整请求/响应日志
-- 追踪 API 调用、标头和负载
-- 排查集成
-- 导出日志进行分析
-
-### 💾 云端同步
-
-- 跨设备同步提供商、组合和设置
-- 自动后台同步
-- 安全加密存储
-- 从任何地方访问您的设置
-
-#### 云端运行说明
-
-- 在生产环境中优先使用服务器端云变量：
-  - `BASE_URL`（同步调度器使用的内部回调 URL）
-  - `CLOUD_URL`（云端同步端点基础 URL）
-- `NEXT_PUBLIC_BASE_URL` 和 `NEXT_PUBLIC_CLOUD_URL` 仍支持兼容性/UI，但服务器运行时现在优先使用 `BASE_URL`/`C_URL`。
-- 云端同步请求现在使用超时 + 快速失败行为，以避免在云端 DNS/网络不可用时 UI 挂起。
-
-### 📊 使用分析
-
-- 追踪每个提供商和模型的 Token 使用情况
-- 成本估算和支出趋势
-- 月度报告和洞察
-- 优化您的 AI 支出
-
-> **💡 重要 - 理解仪表板成本：**
-> 
-> 使用分析中显示的“成本”**仅用于追踪和比较目的**。
-> Bansur Router 本身**从不向您收费**。您只需直接向提供商付款（如果使用付费服务）。
-> 
-> **示例：** 如果您的仪表板在使用 iFlow 模型时显示“$290 总成本”，这代表
-> 您直接使用付费 API 时需要支付的金额。您的实际成本 = **$0**（iFlow 是免费无限制的）。
-> 
-> 将其视为“节省追踪器”，显示您通过使用免费模型或
-> 通过 Bansur Router 路由节省了多少！
-
-### 🌐 随处部署
-
-- 💻 **本地主机** - 默认，离线工作
-- ☁️ **VPS/云** 跨设备共享
-- 🐳 **Docker** - 一键部署
-- 🚀 **Cloudflare Workers** - 全球边缘网络
-
-</details>
-
----
-
-## 💰 定价一览
-
-| 层级 | 提供商 | 成本 | 配额重置 | 最适合 |
-|------|----------|------|-------------|----------|
-| **💳 订阅** | Claude Code (Pro) | $20/月 | 5h + 每周 | 已订阅用户 |
-| | Codex (Plus/Pro) | $20-200/月 | 5h + 每周 OpenAI 用户 |
-| | Gemini CLI | **免费** | 180K/月 + 1K/天 | 所有人！ |
-| | GitHub Copilot | $10-19/月 | 每月 | GitHub 用户 |
-| **💰 廉价** | GLM-4.7 | $0.6/1M | 每日 10AM | 预算备份 |
-| | MiniMax M2.1 | $0.2/1M | 5 小时滚动 | 最便宜选项 |
-| | Kimi K2 | $9/月固定 | 10M tokens/月 | 可预测成本 |
-| **🆓 免费** | iFlow | $0 | 无限制 | 8 个模型免费 |
-| | Qwen | $0 | 无限制 | 3 个模型免费 |
-| | Kiro | $0 | 无限制 | Claude 免费 |
-
-**💡 专业提示：** 从 Gemini CLI（180K 免费/月）+ iFlow（无限制免费）组合开始 = $0 成本！
-
----
-
-### 📊 理解 Bansur Router 成本和计费
-
-**Bansur Router 计费现实：**
-
-✅ **Bansur Router 软件 = 永远免费**开源，从不收费）  
-✅ **仪表板“成本” = 仅显示/追踪**（非实际账单）  
-✅ **您直接向提供商付款**（订阅或 API 费用）  
-✅ **免费提供商保持免费**（iFlow, Kiro, Qwen = $0 无限制）  
-❌ **Bansur Router 从不发送发票**或向您的卡收费
-
-**成本显示如何工作：**
-
-仪表板显示**估算成本**，就像您直接使用付费 API 一样。这**不是计费** - 它是一个比较工具，用于显示您的节省。
-
-**示例场景：```
-仪表板显示：
-• 总请求数：1,662
-• 总 Token 数：47M
-• 显示成本：$290
-
-现实检查：
-• 提供商：iFlow（免费无限制）
-• 实际付款：$0.00
-• $290 的含义：您通过使用免费模型节省的金额！
-```
-
-**付款规则：**
-- **订阅提供商**（Claude Code, Codex）：通过他们的网站直接向他们付款
-- **廉价提供商**（GLM, MiniMax）：直接向他们付款，Bansur Router 只是路由
-- **免费**（iFlow, Kiro, Qwen）：真正永远免费，没有隐藏费用
-- **Bansur Router**：从不收取任何费用，永远
-
----
-
-## 🎯 使用案例
-
-### 案例 1：“我有 Claude Pro 订阅”
-
-**问题：** 配额未使用即过期，重度编程时遇到速率限制
-
-**解决方案：**
-```
-Combo: "maximize-claude"
-  1. cc/claude-opus-4-6        (use subscription fully)
-  2. glm/glm-4.7               (cheap backup when quota out)
-  3 if/kimi-k2-thinking       (free emergency fallback)
-
-Monthly cost: $20 (subscription) + ~$5 (backup) = $25 total
-vs. $20 + hitting limits = frustration
-```
-
-### 案例 2：“我想要零成本”
-
-**问题：** 负担不起订阅，需要可靠的 AI 编程
-
-**解决方案：**
-```
-Combo: "free-forever"
-  1. gc/gemini-3-flash         (180K free/month)
-  2. if/kimi-k2-thinking       (unlimited free)
-  3. qw/qwen3-c-plus       (unlimited free)
-
-Monthly cost: $0
-Quality: Production-ready models
-```
-
-### 案例 3：“我需要 24/7 编程，无中断”
-
-**问题：** 截止日期，不能承受停机
-
-**解决方案：**
-```
-Combo: "always-on"
-  1. cc/claude-opus-4-6        (best quality)
-  2. cx/gpt-5.2-codex          (second subscription)
-  3. glm/glm-4.7               (cheap, resets daily)
-  4. minimaxMiniMax-M2.1      (cheapest, 5h reset)
-  5. if/kimi-k2-thinking       (free unlimited)
-
-Result: 5 layers of fallback = zero downtime
-Monthly cost: $20-200 (subscriptions) + $10-20 (backup)
-```
-
-### 案例 4：“我想在 OpenClaw 中使用免费 AI”
-
-**问题：** 需要在消息应用（WhatsApp, Telegram, Slack...）中使用 AI 助手，完全免费
-
-**解决方案：**
-```
-Combo: "openclaw-free"
-  1. if/glm-4.7                (unlimited free)
-  2. if/minimax-m2.1           (unlimited free)
-  3. if/kimi-k2-thinking       (unlimited free)
-
-Monthly cost: $0
-Access via: WhatsApp, Telegram, Slack, Discord, iMessage, Signal...
-```
-
----
-
-## ❓ 常见问题
-
-<details>
-<summary><b>📊 为什么我的仪表板显示高成本？</b></summary>
-
-仪表板追踪您的 Token 使用情况，并显示**估算成本**，就像您直接使用付费 API 一样。这**不是实际计费** - 它是一个参考，显示您通过 Bansur Router 使用免费模型或现有订阅节省了多少。
-
-**示例：**
-- **仪表板显示：**“$290 总成本”
-- **现实：** 您正在使用 iFlow（免费无限制）
-- **您的实际成本：** **$0.00**
-- **$290 的含义：** 您通过使用免费模型而不是付费 API **节省**的金额！
-
-成本显示是一个“节省追踪器”，帮助您了解使用模式和优化机会。
-
-</details>
-
-<details>
-<summary><b>💳 Bansur Router 会向我收费吗？</b></summary>
-
-**不会。** 9 是免费的开源软件，在您自己的计算机上运行。它从不向您收费。
-
-**您只需支付：**
-- ✅ **订阅提供商**（Claude Code $20/月, Codex $20-200/月）→ 在他们的网站上直接向他们付款
-- ✅ **廉价提供商**（GLM, MiniMax）→ 直接向他们付款，Bansur Router 只是路由您的请求
-- ❌ **Bansur Router 本身** → **从不收取任何费用，永远**
-
-Bansur Router 是本地代理/路由器。它没有您的信用卡，不能发送发票，也没有计费系统。完全免费的软件。
-
-</details>
-
-<details>
-<summary><b>🆓 免费提供商真的无限制吗？</b></summary>
-
-**是的！** 标记为免费（iFlow, Kiro, Qwen）的提供商是真正无限制的，**没有隐藏费用**。
-
-这些是各自公司提供的免费服务：
-- **iFlow**：通过 OAuth 免费无限制访问 8+ 模型
-- **Kiro**：通过 AWS Builder ID 免费无限制 Claude 模型
-- **Qwen**：通过设备认证免费无限制访问 Qwen 模型
-
-Router 只是将您的请求路由到它们 - 没有“陷阱”或未来计费。它们是真正的免费服务，Bansur Router 使它们易于使用并支持回退。
-
-**注意：** 一些订阅提供商（Antigravity, GitHub Copilot）可能有免费预览期，后来可能变成付费，但这会由这些提供商明确宣布，而不是 Bansur Router。
-
-</details>
-
-<details>
-<summary><b>💰 如何最小化我的实际 AI 成本？</b></summary>
-
-**免费优先策略：**
-
-1. **从 100% 免费组合开始：**
-   ```
-   1. gc/gini-3-flash (180K/month free from Google)
-   2. if/kimi-k2-thinking (unlimited free from iFlow)
-   3. qw/qwen3-coder-plus (unlimited free from Qwen)
-   ```
-   **成本：$0/月**
-
-2. **仅在需要时添加廉价备份：**
-   ```
-   4. glm/glm-4.7 ($0.6/1M tokens)
-   ```
-   **额外成本：仅为您实际使用的付费**
-
-3. **最后使用订阅提供商：**
-   - 仅当您已经拥有它们时
-   - Bansur Router 通过配额追踪帮助最大化其价值
-
-**结果：** 大多数用户可以仅使用免费层以 $0/月运行！
-
-</details>
-
-<details>
-<summary><b>📈 如果我的使用量突然激增怎么办？</b></summary>
-
-Bansur Router 的智能回退可防止意外费用：
-
-**场景：** 您正在进行编程冲刺并耗尽了配额
-
-**没有 Bansur Router：**
-- ❌ 遇到速率限制 → 工作停止 → 沮丧
-- ❌ 或：意外累积巨额 API 账单
-
-**有 Bansur Router：**
-- ✅订阅达到限制 → 自动回退到廉价层
-- ✅ 廉价层变得昂贵 → 自动回退到免费层
-- ✅ 永不停止编程 → 可预测的成本
-
-**您在控制中：** 在仪表板中设置每个提供商的支出限制，Bansur Router 会遵守它们。
-
-</details>
-
----
-
-## 📖 设置指南
-
-<details>
-<summary><b>🔐 订阅提供商（最大化价值）</b></summary>
-
-### Claude Code (Pro/Max)
+667 是默认端口，而非强制要求。
 
 ```bash
-Dashboard → Providers → Connect Claude Code
-→ OAuth login → Auto token refresh
-→ 5-hour + weekly quota tracking
-
-Models:
-  cc/claude-opus-4-6
-  cc/claude-sonnet-4-5-20250929
-  cc/claude-haiku-4-5-20251001
+bansur-router --port 8080
 ```
 
-**专业提示：** 使用 Opus 处理复杂任务，Sonnet 追求速度。Bansur Router 追踪每个模型的配额！
-
-### OpenAI Codex (Plus/Pro)
-
-```bash
-Dashboard → Providers → Connect Codex
-→ OAuth login (port 1455)
-→ 5-hour + weekly reset
-
-Models:
- /gpt-5.2-codex
-  cx/gpt-5.1-codex-max
-```
-
-### Gemini CLI（免费 180K/月！）
-
-```bash
-Dashboard → Providers → Connect Gemini CLI
-→ Google OAuth
-→ 180K completions/month + 1K/day
-
-Models:
-  gc/gemini-3-flash-preview
-  gc/gemini-2.5-pro
-```
-
-**最佳价值：** 巨大的免费层！在付费层之前使用这个。
-
-### GitHub Copilot
-
-```bash
-Dashboard → Providers → Connect GitHub
-→ OAuth via
-→ Monthly reset (1st of month)
-
-Models:
-  gh/gpt-5
-  gh/claude-4.5-sonnet
-  gh/gemini-3-pro
-```
-
-</details>
-
-<details>
-<summary><b>💰 廉价提供商（备份）</b></summary>
-
-### GLM-4.7（每日重置，$0.6/1M）
-
-1. 注册：[Zhipu AI](https://open.bigmodel.cn/)
-2. 从 Coding Plan 获取 API key
-3. 仪表板 → 添加 API Key：
-   - Provider: `glm`
-   - API Key: `your-key`
-
-**使用：** `glm/glm-4.7`
-
-**专业提示：** Coding Plan 以 1/7 的成本提供 3× 配额！每日 10:00 AM 重置。
-
-### MiniMax M2.1（5h 重置，$0.20/1M）
-
-1. 注册：[MiniMax](https://www.minimax.io/)
-2. 获取 API key
-3. 仪表板 → 添加 API Key
-
-**使用：** `minimax/MiniMax-M2.1`
-
-**专业提示：** 长上下文（1M tokens）的最便宜选项！
-
-### Kimi K2（$9/月固定）
-
-1. 订阅：[Moonshot AI](https://platform.moonshot.ai/)
-2. 获取 API key
-3. 仪表板 → 添加 API Key
-
-**使用：** `kimi/kimi-latest`
-
-**专业提示：** 固定 $9/月可获得 10M tokens = $0.90/1M 实际成本！
-
-</details>
-
-<details>
-<summary><b>🆓 免费提供商（紧急备份）</b></summary>
-
-### i（8 个免费模型）
-
-```bash
-Dashboard → Connect iFlow
-→ iFlow OAuth login
-→ Unlimited usage
-
-Models:
-  if/kimi-k2-thinking
-  if/qwen3-coder-plus
-  if/glm-4.7
-  if/minimax-m2
-  if/deepseek-r1
-```
-
-### Qwen（3 个免费模型）
-
-```bash
-Dashboard → Connect Qwen
-→ Device code authorization
-→ Unlimited usage
-
-Models:
-  qw/qwen3-coder-plus
-  qw/qwen3-coder-flash
-```
-
-### Kiro（Claude 免费```bash
-Dashboard → Connect Kiro
-→ AWS Builder ID or Google/GitHub
-→ Unlimited usage
-
-Models:
-  kr/claude-sonnet-4.5
-  kr/claude-haiku-4.5
-```
-
-</details>
-
-<details>
-<summary><b>🎨 创建组合</b></summary>
-
-### 示例 1：最大化订阅 → 廉价备份
-
-```
-Dashboard → Combos → Create New
-
-Name: premium-coding
-Models:
-  1. cc/claude-opus-4-6 (Subscription primary)
-  2. glm/glm4.7 (Cheap backup, $0.6/1M)
-  3. minimax/MiniMax-M2.1 (Cheapest fallback, $0.20/1M)
-
-Use in CLI: premium-coding
-
-Monthly cost example (100M tokens):
-  80M via Claude (subscription): $0 extra
-  15M via GLM: $9
-  5M via MiniMax: $1
-  Total: $10 + your subscription
-```
-
-### 示例 2：仅免费（零成本）
-
-```
-Name: free-combo
-Models:
-  1. gc/gemini-3-flash-preview (180K free/month)
-  2. if/kimi-k2-thinking (unlimited)
-  3. qw/qwen3-coder-plus (unlimited)
-
-Cost: $0 forever!
-```
-
-</details>
-
-<details>
-<summary><b>🔧 CLI 集成</b></summary>
-
-### Cursor IDE
-
-```
-Settings → Models → Advanced:
-  OpenAI API Base URL: http://localhost:667/v1
-  OpenAI API Key: [from bansur-router dashboard]
-  Model: cc/claude-opus-4-6
-```
-
-使用组合：`premium-coding`
-
-### Claude Code
-
-编辑 `~/.claude/config.json`：
-
-```json
-{
-  "anthropic_api_base": "http://localhost:667/v1",
-  "anthropic_api_key": "your-bansur-router-api-key"
-}
-```
-
-### Codex CLI
-
-```bash
-export OPENAI_BASE_URL="http://localhost:667"
-export OPENAI_API_KEY="your-bansur-router-api-key"
-
-codex "your prompt"
-```
-
-### OpenClaw
-
-**选项 1 — 仪表板（推荐）：**
-
-```
-Dashboard → CLI Tools →Claw → Select Model → Apply
-```
-
-**选项 2 — 手动：** 编辑 `~/.openclaw/openclaw.json`：
-
-```json
-{
-  "agents": {
-    "defaults": {
-      "model": {
-        "primary": "bansur-router/if/glm-4.7"
-      }
-    }
-  },
-  "models": {
-    "providers": {
-      "bansur-router": {
-        "baseUrl": "http://127.0.0.1:667/v1",
-        "apiKey": "sk_bansur-router",
-        "api": "openai-completions",
-        "models": [
-          {
-            "id": "if/glm-4.7",
-            "name": "glm-4.7"
-          }
-        ]
-      }
-    }
-  }
-}
-```
-
-> **注意：** OpenClaw 仅适用于本地 Bansur Router。使用 `127.0.0.1` 而不是 `localhost` 以避免 IPv6 解析问题。
-
-### Cline / Continue / RooCode
-
-```
-Provider: OpenAI Compatible
-Base URL: http://localhost:667/v1
-API Key: [from dashboard]
-Model: cc/claudeus-4-6
-```
-
-</details>
-
-<details>
-<summary><b>🚀 部署</b></summary>
-
-### VPS 部署
-
-```bash
-# Clone and install
-git clone https://github.com/mas-ajam/bansur-router.git
-cd bansur-router
-npm install
-npm run build
-
-# Configure
-export JWT_SECRET="your-secure-secret-change-this"
-export INITIAL_PASSWORD="your-password"
-export DATA_DIR="/var/lib/bansur-router"
-export PORT="667"
-export HOSTNAME="0.0.0.0"
-export NODE_ENV="production"
-export NEXT_PUBLIC_BASE_URLhttp://localhost:667"
-export NEXT_PUBLIC_CLOUD_URL="https://bansur-router.pages.dev"
-export API_KEY_SECRET="endpoint-proxy-api-key-secret"
-export MACHINE_ID_SALT="endpoint-proxy-salt"
-
-# Start
-npm run start
-
-# Or use PM2
-npm install -g pm2
-pm2 start npm --name bansur-router -- start
-pm2 save
-pm2 startup
-```
-
-### Docker
-
-```bash
-# Build image (from repository root)
-docker build -t bansur-router .
-
-# Run container (command used in current setup)
-docker run -d \
-  --name bansur-router  -p 667:667 \
-  --env-file /root/dev/bansur-router/.env \
-  -v bansur-router-data:/app/data \
-  -v bansur-router-usage:/root/.bansur-router \
-  bansur-router
-```
-
-便携式命令（如果您已在仓库根目录）：
-
-```bash
-docker run -d \
-  --name bansur-router \
-  -p 667:667 \
-  --env-file ./.env \
-  -v bansur-router-data:/app/data \
-  -v bansur-router-usage:/root/.bansur-router \
-  9
-```
-
-容器默认值：
-- `PORT=667`
-- `HOSTNAME=0.0.0.0`
-
-有用命令：
-
-```bash
-docker logs -f bansur-router
-docker restart bansur-router
-docker stop bansur-router && docker rm bansur-router
-```
-
-### 环境变量
-
-| 变量 | 默认值 | 描述 |
-|----------|---------|-------------|
-| `JWT_SECRET` | 自动生成（`~/.bansur-router/jwt-secret`） | 仪表板认证 cookie 的 JWT 签名密钥（设置可在多实例间共享） |
-| `INITIAL_PASSWORD | `123456` | 当没有保存的哈希时的首次登录密码 |
-| `DATA_DIR` | `~/.bansur-router` | 主应用数据库位置（`db.json`） |
-| `PORT` | 框架默认值 | 服务端口（示例中为 `667`） |
-| `HOSTNAME` | 框架默认值 | 绑定主机（Docker 默认为 `0.0.0.0`） |
-| `NODE_ENV` | 运行时默认值 | 部署时设置 `production` |
-| `BASE_URL` |http://localhost:667` | 云同步作业使用的服务器端内部基础 URL |
-| `CLOUD_URL` | `https://bansur-router.pages.dev` | 服务器端云同步端点基础 URL |
-| `NEXT_PUBLIC_BASE_URL` | `http://localhost:3000` | 向后兼容/公共基础 URL（服务器运行时优先使用 `BASE_URL`） |
-| `NEXT_PUBLIC_CLOUD_URL` | `https://bansur-router.pages.dev` | 向后兼容/公共云 URL（服务器运行时优先使用 `CLOUD_URL`） |
-| `API_KEY_SECRET` | `endpoint-proxy-api-secret` | 生成的 API Key 的 HMAC 密钥 |
-| `MACHINE_ID_SALT` | `endpoint-proxy-salt` | 稳定机器 ID 哈希的盐值 |
-| `ENABLE_REQUEST_LOGS` | `false` | 在 `logs/` 下启用请求/响应日志 |
-| `AUTH_COOKIE_SECURE` | `false` | 强制 `Secure` 认证 cookie（在 HTTPS 反向代理后设置 `true`） |
-| `REQUIRE_API_KEY` | `false` | 在 `/v1/*` 路由上强制执行 Bearer API key推荐用于暴露在互联网的部署） |
-| `HTTP_PROXY`, `HTTPS_PROXY`, `ALL_PROXY`, `NO_PROXY` | 空 | 上游提供商调用的可选出站代理 |
-
-注意：
-- 也支持小写代理变量：`http_proxy`, `https_proxy`, `all_proxy`, `no_proxy`。
-- `.env` 不会烘焙到 Docker 镜像中（`.dockerignore`）；使用 `--env-file` 或 `-e` 注入运行时配置。
-- 在 Windows 上，`APPDATA` 可用于本地存储路径解析。
-- `INSTANCE_NAME` 出现在旧/环境模板中，但目前运行时未使用。
-
-### 运行时文件和存储
-
-- 主应用状态：`${DATA_DIR}/db.json`（提供商、组合、别名、密钥、设置），由 `src/lib/localDb.js` 管理。
-- 使用历史和日志：`~/.bansur-router/usage.json` 和 `~/.bansur-router/log.txt`，由 `src/lib/usageDb.js` 管理。
-- 可选请求/转换器日志：当 `ENABLE_REQUEST_LOGS=true` 时为 `<repo>/logs/...`。
-- 使用存储当前遵循 `~/.9` 路径逻辑，独立于 `DATA_DIR`。
-
-</details>
+短形式 `-p` 同样可用，`PORT` 环境变量可以为源码、Docker 和服务器部署设置端口。如果你更改了端口，请相应更新工具中的端点，例如 `http://localhost:8080/v1`。分离端口也是让 Bansur Router 与另一个已经占用 667 的本地服务并行运行的最简单方法。
 
 ---
 
-## 📊 可用模型
+## 常见问题
 
-<details>
-<summary><b>查看所有可用模型</b></summary>
+### 什么是 Bansur Router？
 
-**Claude Code (`cc/`)** - Pro/Max:
-- `cc/claude-opus-4-6`
-- `cc/claude-sonnet-4-5-20250929`
-- `cc/claude-haiku-4-5-20251001`
+一个面向编程工具的本地 AI 网关。它在你的所有 AI 提供商之前放置一个兼容 OpenAI 的端点，并将每个请求路由到最佳的可用提供商，这样你的工具保持单一配置，而提供商、账户和配额在其背后变化。
 
-**Codex (`cx/`)** - Plus/Pro:
-- `cx/gpt-5.2-codex- `cx/gpt-5.1-codex-max`
+### 它是免费的吗？
 
-**Gemini CLI (`gc/`)** - 免费:
-- `gc/gemini-3-flash-preview`
-- `gc/gemini-2.5-pro`
+是的。Bansur Router 本身免费，并依据 MIT 许可证开源。一个请求的费用取决于它被路由到的提供商：Kiro AI 和 OpenCode Free 等免费层级不收取任何费用；其余的则由你自带订阅和 API 密钥，直接向那些提供商付费，与没有网关时完全一样。
 
-**GitHub Copilot (`gh/`)**:
-- `gh/gpt-5`
-- `gh/claude-4.5-sonnet`
+### 我的数据存放在哪里？
 
-**GLM (`glm/`)** - $0.6/1M:
-- `glm/glm-4.7`
+在你的机器上。Bansur Router 本地优先：提供商密钥保存在本地，请求从你自己的安装中路由，网关的工作就是将它们转发到你选择的提供商。在发出第一个请求之前，无需创建任何单独的账户。
 
-**MiniMax (`minimax/`)** - $0.2/1M:
-- `imax/MiniMax-M2.1`
+### 它使用哪个端口？
 
-**iFlow (`if/`)** - 免费:
-- `if/kimi-k2-thinking`
-- `if/qwen3-coder-plus`
-- `if/deepseek-r1`
+默认是 667，控制台和 API 都使用它。启动 CLI 时可用 `--port`（或 `-p`）更改，也可使用 `PORT` 环境变量。
 
-**Qwen (`qw/`)** - 免费:
-- `qw/qwen3-coder-plus`
-- `qw/qwen3-coder-flash`
+### 它适用于哪些工具？
 
-**Kiro (`kr/`)** - 免费:
-- `kr/claude-sonnet-4.5`
-- `kr/claude-haiku-4.5`
+Claude Code、OpenAI Codex、Cursor、Cline、OpenCode、Antigravity、GitHub Copilot、OpenClaw、Continue 和 RooCode 得到直接支持。任何其他允许你设置自定义的、兼容 OpenAI 的端点和 API 密钥的工具，都可以使用同样的三个值。
 
-</details>
+### 给 Windows 用户的说明
+
+在更新全局 npm 包之前，先停止正在运行的 Bansur Router 实例。Windows 会锁定正在运行的安装的文件，因此在网关仍在运行时尝试更新会失败，直到进程被停止。
 
 ---
 
-## 🐛 故障排除
+## 故障排除
 
-“Language model did not provide messages”**
-- 提供商配额耗尽 → 检查仪表板配额追踪器
-- 解决方案：使用组合回退或切换到更便宜的层
+### 端口已被占用
 
-**速率限制**
-- 订阅配额用完 → 回退到 GLM/MiniMax
-- 添加组合：`cc/claude-opus-4-6 → glm/glm-4.7 → if/kimi-k2-thinking`
-
-**OAuth token 过期**
-- 由 Bansur Router 自动刷新
-- 如果问题持续：仪表板 → 提供商 → 重新
-
-**高成本**
-- 在仪表板中检查使用统计
-- 将主要模型切换为 GLM/MiniMax
-- 对非关键任务使用免费层（Gemini CLI, iFlow）
-
-**仪表板在错误的端口打开**
-- 设置 `PORT=667` 和 `NEXT_PUBLIC_BASE_URL=http://localhost:667`
-
-**云端同步错误**
-- 验证 `BASE_URL` 指向您正在运行的实例（例如：`http://localhost:667`）
-- 验证 `CLOUD_URL` 指向您预期的云端端点（例如：`https://bansur-router.pages.dev`）
-- 尽可能保持 `NEXT_PUBLIC_*` 值与服务器端值一致。
-
-**云端端点 `stream=false` 返回 500（`Unexpected token 'd'...`）**
-- 症状通常出现在公共云端端点（`https://bansur-router.pages.dev/v1`）的非流式调用上。
-- 根本原因：上游返回 SSE 负载（`data: ...`）而客户端期望 JSON。
-- 变通方法：对云端直接调用使用 `stream=true`。
-- 当上游返回 `text/event-stream` 时，本地 Bansur Router 运行时包含 SSE→JSON 回退用于非流式调用。
-
-**云端显示已连接，但请求仍然失败并显示 `Invalid API key`**
-- 从本地仪表板（`/api/keys`）创建新密钥并运行云端同步（`Enable Cloud` 然后 `Sync Now`）。
-- 旧/未同步的密钥即使在本地端点工作的情况下，仍可能在云端返回 `401`。
-
-**首次登录不工作**
-- 检查 `.env` 中的 `INITIAL_PASSWORD`
-- 如果未设置，回退密码是 `123456`
-
-**`logs/` 下没有请求日志**
-- 设置 `ENABLE_REQUEST_LOGS=true`
-
----
-
-## 🛠️ 技术栈
-
-- **运行时**：Node.js 20+
-- **框架**：Next.js 16
-- **UI**：React 19 + Tailwind CSS 4
-- **数据库**：LowDB（基于 JSON 文件）
-- **流式传输**：Server-Sent Events (SSE)
-- **认证**：OAuth 2.0 (PKCE) + JWT + API Keys
-
----
-
-## 📝 API 参考
-
-### Chat Completions
+你的机器上已有东西在监听 667，通常是一个仍在运行的、较早的 Bansur Router 进程。停止该进程，或者在另一个端口启动，并让你的工具指向它：
 
 ```bash
-POST httplocalhost:667/v1/chat/completions
-Authorization: Bearer your-api-key
-Content-Type: application/json
-
-{
-  "model": "cc/claude-opus-4-6",
-  "messages": [
-    {"role": "user", "content": "Write a function to..."}
-  ],
-  "stream": true
-}
+bansur-router --port 8080
 ```
 
-### 列出模型
+### 提供商连接失败
 
-```bash
-GET http://localhost:667/v1/models
-Authorization: Bearer your-api-key
+从控制台重新连接它：进入该提供商的 **Providers → Connect**，重新完成登录或密钥输入。新连接会替换已保存的会话，此后自动 token 刷新会保持其有效。
 
-→ Returns all models + combos in OpenAI format
-```
+### 在 Windows 上更新失败
 
-### 兼容性端点
+先停止正在运行的实例，然后重新运行更新。正在运行的安装会在 Windows 上锁定自己的程序文件，从而阻止全局 npm 包被替换。
 
-- ` /v1/chat/completions`
-- `POST /v1/messages`
-- `POST /v1/responses`
-- `GET /v1/models`
-- `POST /v1/messages/count_tokens`
-- `GET /v1beta/models`
-- `POST /v1beta/models/{...path}`（Gemini 风格 `generateContent`）
-- `POST /v1/api/chat`（Ollama 风格转换路径）
+### 更改端口后请求失败
 
-### 云端验证脚本
-
-在 `tester/security/` 下添加了测试脚本：
-
-- `tester/security/test-docker-hardening.sh`
-  - 构建 Docker 镜像并验证加固检查（`/api/cloud/auth` 认证保护、`REQUIRE_API_KEY`、安全认证 cookie 行为）。
-- `tester/security/test-cloud-openai-compatible.sh`
-  - 使用提供的模型/密钥向云端端点（`https://bansur-router.pages.dev/v1/chat/completions`）发送直接的 OpenAI 兼容请求。
-- `tester/security/test-cloud-sync-and-call.sh`
-  - 端到端流程：创建本地密钥 -> 启用/同步云端 -> 带重试调用云端端点。
-  - 包含使用 `stream` 的回退检查，以区分认证错误和非流式解析问题。
-
-云端测试脚本的安全说明：
-
-- 永远不要在脚本/提交中硬编码真实的 API 密钥。
-- 仅通过环境变量提供密钥：
-  - `API_KEY`, `CLOUD_API_KEY`, 或 `OPENAI_API_KEY`（由 `test-cloud-openai-compatible.sh` 支持）
-- 示例：
-
-```bash
-OPENAI_API_KEY="your-cloud-key" bash tester/security/test-cloud-openai-compatible.sh
-```
-
-最近验证的预期行为：
-
-- 本地运行时（`http://127.0.0.1:667/v1/chat/completions`）：使用 `stream=false` 和 `stream=true` 都可以工作。
-- Docker 运行时（容器暴露的相同 API 路径）：加固检查通过，云端认证保护工作，启用时严格 API 密钥模式工作。
-- 公共云端端点（`https://bansur-router.pages.dev/v1/chat/completions`）：
-  - `stream=true`：预期成功（返回 SSE 块）。
-  - `stream=false`：当上游向非流式客户端路径返回 SSE 内容时，可能失败并显示 `500` + 解析错误（`Unexpected token 'd'`）。
-
-### 仪表板和管理 API
-
-- 认证/设置：`/api/auth/login`, `/api/auth/logout`, `/api/settings`, `/api/settings/require-login`
-- 提供商管理：`/api/providers`, `/api/providers/[id]`, `/api/providers/[id]/test`, `/api/providers/[id]/models`, `/api/providers/validate`, `/api/provider-nodes*`
-- OAuth 流程：`/api/oauth/[provider]/[action]`（+ 特定提供商导入如 Cursor/Kiro）
- 路由配置：`/api/models/alias`, `/api/combos*`, `/api/keys*`, `/api/pricing`
-- 使用/日志：`/api/usage/history`, `/api/usage/logs`, `/api/usage/request-logs`, `/api/usage/[connectionId]`
-- 云端同步：`/api/sync/cloud`, `/api/sync/initialize`, `/api/cloud/*`
-- CLI 助手：`/api/cli-tools/claude-settings`, `/api/cli-tools/codex-settings`, `/api/cli-tools/droid-settings`, `/api/cli-tools/openaw-settings`
-
-### 认证行为
-
-- 仪表板路由（`/dashboard/*`）使用 `auth_token` cookie 保护。
-- 登录时如果存在保存的密码哈希则使用；否则回退到 `INITIAL_PASSWORD`。
-- `requireLogin` 可以通过 `/api/settings/require-login` 切换。
-
-### 请求处理（高级）
-
-1. 客户端向 `/v1/*` 发送请求。
-2. 路由处理器调用 `handleChat`（`src/sse/handlers/chat.js`）。
-3. 模型被解析直接提供商/模型或别名/组合解析）。
-4. 从本地数据库选择凭据，并进行账户可用性过滤。
-5. `handleChatCore`（`open-sse/handlers/chatCore.js`）检测格式并转换请求。
-6. 提供商执行器发送上游请求。
-7. 需要时将流转换回客户端格式。
-8. 记录使用/日志（`src/lib/usageDb.js`）。
-9. 根据组合规则在提供商/账户/模型错误时应用回退。
-
-完整架构参考：[`docs/ARCHITECTURE`](../docs/ARCHITECTURE.md)
+你的工具仍在指向旧地址。将其端点更新到新端口 —— 例如 `http://localhost:8080/v1` —— 并确认 API 密钥是当前运行实例的控制台中显示的那个。
 
 ---
 
-## 📧 支持
+## 支持
 
-- **网站**：[bansur-router.pages.dev](https://bansur-router.pages.dev)
-- **GitHub**：[github.com/mas-ajam/bansur-router](https://github.com/mas-ajam/bansur-router)
-- **问题**：[github.com/mas-ajam/bansur-router/issues](https://github.com/mas-ajam/bansur-router/issues)
+通过 `mas-ajam/bansur-router` 仓库上的 [GitHub Issues](https://github.com/mas-ajam/bansur-router/issues) 报告缺陷和请求功能。请附上你正在运行的版本、Bansur Router 的启动方式（npm、Docker 或源码），以及在涉及路由问题时的相关请求日志。
 
----
-
-## 👥 贡献者
-
-感谢所有帮助让 Bansur Router 变得更好的贡献者！
-
-[![Contributors](https://contrib.rocks/image?repo=mas-ajam/bansur-router&max=100&columns=20&anon=1)](https://github.com/mas-ajam/bansur-router/graphs/contributors)
+完整文档位于 [bansur-router.pages.dev](https://bansur-router.pages.dev)。
 
 ---
 
-## 📊 Star 图表
+## 许可证
 
-[![Star Chart](https://starchart.cc/mas-ajam/bansur-router.svg?variant=adaptive)](https://starchart.cc/mas-ajam/bansur-router)
-
-### 如何贡献
-
-1. Fork 仓库
-2. 创建您的功能分支（`git checkout -b feature/amazing-feature`）
-3. 提交您的更改（`git commit -m 'Add amazing feature'`）
-4 推送到分支（`git push origin feature/amazing-feature`）
-5. 打开 Pull Request
-
-详细指南请参阅 [Pull Requests](https://github.com/mas-ajam/bansur-router/pulls)。
-
----
-
-## 🔀 分支
-
-**[OmniRoute](https://github.com/diegosouzapw/OmniRoute)** — Bansur Router 的全功能 TypeScript 分支。添加了 36+ 提供商、4 层自动回退、多模态 API（图像、嵌入、音频、TTS）、熔断器、语义缓存、LLM 评估和精美的仪表板。8+ 单元测试。通过 npm 和 Docker 可用。
-
----
-
-## 🙏 致谢
-
-特别感谢 **CLIProxyAPI** - 启发这个 JavaScript 移植的原始 Go 实现。
-
----
-
-## 📄 许可证
-
-MIT License - 详情请参阅 [LICENSE](../LICENSE)。
-
----
-
-<div align="center">
-  <sub>用 ❤️ 为 24/7 编程的开发者构建</sub>
-</div>
+Bansur Router 依据 [MIT 许可证](../LICENSE) 发布。

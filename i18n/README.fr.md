@@ -1,1444 +1,346 @@
 <div align="center">
-  <img src="../images/banner.png" alt="Bansur Router" width="880"/>
-  
-  # Bansur Router - Routeur IA GRATUIT et économiseur de tokens
-  
-  **N'arrêtez jamais de coder. Économisez 20 à 40 % de tokens avec RTK + bascule automatique vers des modèles d'IA GRATUITS et bon marché.**
-  
-  **Connectez tous vos outils de codage IA (Claude Code, Cursor, Antigravity, Copilot, Codex, Gemini, OpenCode, Cline, OpenClaw...) à plus de 40 fournisseurs d'IA et plus de 100 modèles.**
-  
-  [![npm](https://img.shields.io/npm/v/bansur-router.svg)](https://www.npmjs.com/package/bansur-router)
-  [![Downloads](https://img.shields.io/npm/dm/bansur-router.svg)](https://www.npmjs.com/package/bansur-router)
-  [![Docker Pulls](https://img.shields.io/docker/pulls/bansur/router.svg?logo=docker&label=Docker%20pulls)](https://hub.docker.com/r/bansur/router)
-  [![GHCR](https://img.shields.io/badge/GHCR-mas-ajam%2Fbansur-router-blue?logo=github)](https://github.com/mas-ajam/bansur-router/pkgs/container/bansur-router)
-  [![License](https://img.shields.io/npm/l/bansur-router.svg)](https://github.com/mas-ajam/bansur-router/blob/main/LICENSE)
 
+<img src="../images/banner.png" alt="Bansur Router" width="880"/>
 
-[🚀 Démarrage rapide](#-démarrage-rapide) • [💡 Fonctionnalités](#-fonctionnalités-clés) • [📖 Configuration](#-guide-dinstallation) • [🌐 Site web](https://bansur-router.pages.dev)
+**Un seul endpoint pour tous les fournisseurs d'IA.**
 
-[🇻🇳 Tiếng Việt](./README.vi.md) • [🇨🇳 中文](./README.zh-CN.md) • [🇯🇵 日本語](./README.ja-JP.md) • [🇷🇺 Русский](./README.ru.md) • [🇹🇭 ไทย](./README.th.md) • [🇮🇷 فارسی](./README.fa_IR.md) • [🇮🇩 Indonesia](./README.id-ID.md) • [🇪🇸 Español](./README.es.md) • [🇫🇷 Français](./README.fr.md)
+[![npm](https://img.shields.io/npm/v/bansur-router.svg)](https://www.npmjs.com/package/bansur-router)
+[![Downloads](https://img.shields.io/npm/dm/bansur-router.svg)](https://www.npmjs.com/package/bansur-router)
+[![Docker Pulls](https://img.shields.io/docker/pulls/bansur/router.svg?logo=docker&label=Docker%20pulls)](https://hub.docker.com/r/bansur/router)
+[![Docker Version](https://img.shields.io/docker/v/bansur/router?logo=docker&label=Docker%20version)](https://hub.docker.com/r/bansur/router)
+[![GHCR](https://img.shields.io/badge/GHCR-mas-ajam%2Fbansur-router-blue?logo=github)](https://github.com/mas-ajam/bansur-router/pkgs/container/bansur-router)
+[![License](https://img.shields.io/npm/l/bansur-router.svg)](https://github.com/mas-ajam/bansur-router/blob/main/LICENSE)
+
+[Démarrage rapide](#démarrage-rapide) · [Fonctionnalités clés](#fonctionnalités-clés) · [Fournisseurs](#fournisseurs-pris-en-charge) · [Guide d'installation](#guide-dinstallation) · [Documentation](https://bansur-router.pages.dev)
+
+[🇧🇷 Português (Brasil)](./README.pt-BR.md) • [🇻🇳 Tiếng Việt](./README.vi.md) • [🇨🇳 中文](./README.zh-CN.md) • [🇯🇵 日本語](./README.ja-JP.md) • [🇷🇺 Русский](./README.ru.md) • [🇹🇭 ไทย](./README.th.md) • [🇮🇷 فارسی](./README.fa_IR.md) • [🇮🇩 Indonesia](./README.id-ID.md) • [🇪🇸 Español](./README.es.md) • [🇫🇷 Français](./README.fr.md)
 
 </div>
 
 ---
 
-## 🤔 Pourquoi Bansur Router ?
+# Bansur Router
 
-**Arrêtez de gaspiller de l'argent, des tokens et de buter contre les limites :**
+Bansur Router est une passerelle d'IA locale pour les outils de codage. Elle s'exécute sur votre propre machine et présente un unique endpoint compatible OpenAI — `http://localhost:667/v1` — devant chaque fournisseur que vous y connectez.
 
-- ❌ Le quota de votre abonnement expire inutilisé chaque mois
-- ❌ Les limites de débit vous interrompent en plein codage
-- ❌ Les sorties des outils (git diff, grep, ls...) consomment vos tokens rapidement
-- ❌ Des API coûteuses (20 à 50 $/mois par fournisseur)
-- ❌ Changement manuel entre les fournisseurs
+Configurez votre outil une seule fois. Dès lors, Bansur Router gère les connexions aux fournisseurs derrière cet endpoint : quel compte répond à une requête, comment le format de la requête est traduit, combien de quota il reste, et ce qui se passe quand un fournisseur refuse. Les abonnements que vous payez déjà sont utilisés en premier, les API moins chères prennent le relais quand ils s'épuisent, et les offres gratuites maintiennent la session active en bout de chaîne.
 
-**Bansur Router résout tout cela :**
+Le tableau de bord s'exécute à l'adresse `http://localhost:667/dashboard`, où vous connectez les fournisseurs, créez des combinaisons de modèles et suivez l'utilisation. Les clés restent sur votre machine, le trafic est routé localement, et la passerelle est distribuée sous forme de package npm et d'image Docker construits sur une application Next.js tournant sur Node.js.
 
-- ✅ **Économiseur de tokens RTK** - Compresse automatiquement le contenu de tool_result et économise 20 à 40 % de tokens par requête
-- ✅ **Maximise les abonnements** - Suit le quota et utilise chaque bit avant sa réinitialisation
-- ✅ **Bascule automatique** - Abonnement → Bon marché → Gratuit, zéro temps d'arrêt
-- ✅ **Multi-comptes** - Round-robin entre les comptes de chaque fournisseur
-- ✅ **Universel** - Fonctionne avec Claude Code, Codex, Cursor, Cline et tout outil CLI
+- **Un endpoint, une clé** — chaque fournisseur connecté, accessible depuis chaque outil
+- **Plus de 800 modèles** — listés en direct via `GET /v1/models`
+- **Bascule à 3 niveaux** — Abonnement, puis Économique, puis Gratuit
+- **Économie de tokens intégrée** — les sorties des outils sont compressées avant d'atteindre le modèle
+- **Local d'abord** — vos clés et votre trafic restent sur votre machine
+
+Version actuelle : v1.0.5. Nécessite Node.js 20.9 ou ultérieur.
 
 ---
 
-## 🔄 Comment ça marche
+## Pourquoi Bansur Router ?
 
-```
-┌─────────────┐
-│  Your CLI   │  (Claude Code, Codex, OpenClaw, Cursor, Cline...)
-│   Tool      │
-└──────┬──────┘
-       │ http://localhost:667/v1
-       ↓
-┌─────────────────────────────────────────────┐
-│           Bansur Router (Smart Router)            │
-│  • RTK Token Saver (cut tool_result tokens) │
-│  • Format translation (OpenAI ↔ Claude)     │
-│  • Quota tracking                           │
-│  • Auto token refresh                       │
-└──────┬──────────────────────────────────────┘
-       │
-       ├─→ [Tier 1: SUBSCRIPTION] Claude Code, Codex, GitHub Copilot
-       │   ↓ quota exhausted
-       ├─→ [Tier 2: CHEAP] GLM ($0.6/1M), MiniMax ($0.2/1M)
-       │   ↓ budget limit
-       └─→ [Tier 3: FREE] Kiro, OpenCode Free, Vertex ($300 credits)
-
-Result: Never stop coding, minimal cost + 20-40% token savings via RTK
-```
+| Problème | Ce que fait Bansur Router |
+| --- | --- |
+| Le quota d'abonnement expire inutilisé chaque mois | Suit le quota par compte et le dépense avant sa réinitialisation |
+| Une limite de débit vous arrête au milieu d'une session de codage | Bascule automatiquement : Abonnement → Économique → Gratuit |
+| Les sorties d'outils telles que `git diff`, `grep` et `ls` brûlent des tokens | Compresse les résultats des outils avec RTK, économisant 20–40% des tokens par requête |
+| Chaque fournisseur veut $20–50 par mois | Route le travail vers les niveaux économiques et gratuits quand ils suffisent |
+| Passer d'un fournisseur à l'autre à la main, séparément pour chaque outil | Donne à chaque outil un seul endpoint et une seule clé, avec une répartition round-robin entre plusieurs comptes derrière |
 
 ---
 
-## ⚡ Démarrage rapide
+## Démarrage rapide
 
-**1. Installez globalement :**
+### 1. Installation et lancement
 
 ```bash
 npm install -g bansur-router
 bansur-router
 ```
 
-🎉 Le tableau de bord s'ouvre sur `http://localhost:667`
+Le tableau de bord s'ouvre à l'adresse `http://localhost:667`.
 
-**2. Connectez un fournisseur GRATUIT (aucune inscription requise) :**
+### 2. Connecter un fournisseur
 
-Tableau de bord → Providers → Connectez **Kiro AI** (Claude gratuit et illimité) ou **OpenCode Free** (sans authentification) → C'est tout !
+Ouvrez **Tableau de bord → Fournisseurs → Connecter**.
 
-**3. Utilisez-le dans votre outil CLI :**
+Vous n'avez pas besoin d'un compte payant pour commencer. Connectez **Kiro AI** pour une offre gratuite d'environ 50 crédits par mois, qui inclut Claude 4.5, GLM-5 et MiniMax, ou connectez **OpenCode Free**, qui ne nécessite aucune authentification. Si vous avez déjà des abonnements ou des clés API, connectez-les à la place — ou en plus.
 
+### 3. Pointer votre outil vers Bansur Router
+
+```text
+Endpoint: http://localhost:667/v1
+API Key:  copy it from the dashboard
+Model:    kr/claude-sonnet-4.5
 ```
-Paramètres de Claude Code/Codex/OpenClaw/Cursor/Cline :
-  Endpoint : http://localhost:667/v1
-  API Key : [copiez depuis le tableau de bord]
-  Model : kr/claude-sonnet-4.5
+
+C'est toute la configuration. L'outil atteint désormais chaque fournisseur connecté via l'unique endpoint, et Bansur Router décide où va chaque requête.
+
+D'autres façons d'exécuter Bansur Router — Docker et la compilation depuis les sources — sont décrites dans le [Guide d'installation](#guide-dinstallation).
+
+---
+
+## Fonctionnement
+
+Chaque requête arrive dans le format envoyé par votre outil, traverse la passerelle et repart dans le format attendu par le fournisseur sélectionné.
+
+```text
+Your CLI tool
+  Claude Code, Codex, Cursor, Cline, ...
+        |
+        |  http://localhost:667/v1
+        v
+Bansur Router
+  - RTK token saver (compress tool results)
+  - Format translation (OpenAI <-> Claude <-> Gemini)
+  - Quota tracking per account
+  - Automatic OAuth token refresh
+        |
+        +--> Tier 1: SUBSCRIPTION
+        |    Claude Code, Codex, GitHub Copilot
+        |    (used first, while quota lasts)
+        |
+        +--> Tier 2: CHEAP
+        |    GLM ($0.6 / 1M tokens), MiniMax ($0.20 / 1M tokens)
+        |    (takes over when subscription quota runs out)
+        |
+        +--> Tier 3: FREE
+             Kiro, OpenCode Free, Vertex AI ($300 credits
+             for new Google Cloud accounts)
+             (keeps the session running at no cost)
 ```
 
-**Et voilà !** Commencez à coder avec des modèles d'IA GRATUITS.
+La bascule est automatique. Quand le niveau actif renvoie une erreur de quota ou une limite de débit, la requête descend dans la chaîne au lieu d'échouer dans votre éditeur.
 
-**Alternative : exécuter depuis le code source (ce dépôt) :**
+---
 
-Le paquet de ce dépôt est privé (`bansur-router-app`), donc l'exécution depuis le code source/Docker est le chemin de développement local attendu.
+## Fonctionnalités clés
+
+| Fonctionnalité | Ce qu'elle fait |
+| --- | --- |
+| Économie de tokens RTK | Compresse les sorties des outils — `git diff`, `grep`, `ls` et résultats similaires — avant leur envoi au modèle, économisant 20–40% des tokens par requête |
+| Économie de tokens Headroom | Applique une compression supplémentaire au contexte des requêtes, réduisant encore les tokens consommés par une longue session |
+| Bascule intelligente à 3 niveaux | Route chaque requête Abonnement → Économique → Gratuit, changeant de niveau automatiquement en cas d'épuisement du quota ou de limite de débit |
+| Suivi des quotas en temps réel | Affiche l'utilisation en direct et les échéances de réinitialisation par compte, afin que le quota d'abonnement soit dépensé avant son expiration plutôt qu'après |
+| Traduction de formats | Traduit entre les formats de requête OpenAI, Claude et Gemini, de sorte qu'un outil conçu pour une API peut utiliser des fournisseurs conçus pour une autre |
+| Prise en charge multi-comptes | Conserve plusieurs comptes par fournisseur et répartit les requêtes entre eux en round-robin |
+| Rafraîchissement automatique des tokens | Rafraîchit automatiquement les tokens OAuth, afin que les fournisseurs connectés le restent sans reconnexions répétées |
+| Combos personnalisés | Regroupe des modèles de différents fournisseurs et niveaux en combinaisons nommées que vous sélectionnez comme un seul modèle dans votre outil |
+| Journalisation des requêtes | Enregistre les requêtes et les réponses à des fins d'inspection, ce qui rend les problèmes de routage et de fournisseurs visibles au lieu de silencieux |
+| Synchronisation cloud | Synchronise votre configuration entre machines, afin qu'un second ordinateur parte des mêmes fournisseurs et combos |
+| Analyse d'utilisation | Détaille l'utilisation des tokens au fil du temps par fournisseur, compte et modèle |
+| Déploiement partout | S'exécute en local, dans Docker ou sur un VPS, avec le même tableau de bord et le même endpoint dans chaque cas |
+
+---
+
+## Outils CLI pris en charge
+
+Tout outil qui accepte un endpoint personnalisé compatible OpenAI peut utiliser Bansur Router. Les outils ci-dessous sont pris en charge directement, et la plupart d'entre eux peuvent être configurés depuis la section CLI Tools du tableau de bord plutôt qu'en modifiant les fichiers de configuration à la main.
+
+- Claude Code
+- OpenAI Codex
+- Cursor
+- Cline
+- OpenCode
+- Antigravity
+- GitHub Copilot
+- OpenClaw
+- Continue
+- RooCode
+
+Pour chaque outil, la configuration repose sur les trois mêmes valeurs : l'endpoint `http://localhost:667/v1`, la clé API copiée depuis le tableau de bord, et le modèle ou combo que vous voulez affecter à cet outil.
+
+---
+
+## Fournisseurs pris en charge
+
+Les fournisseurs connectés exposent plus de 800 modèles via un seul endpoint. Appelez `GET /v1/models` sur une instance en cours d'exécution pour obtenir la liste exacte disponible pour vos connexions.
+
+### Fournisseurs OAuth
+
+Connectez-vous depuis le tableau de bord. Bansur Router stocke la session, rafraîchit ses tokens automatiquement et suit son quota.
+
+- Claude Code
+- Codex
+- GitHub Copilot
+- Antigravity
+- Gemini
+- iFlow
+- Windsurf
+- Kiro
+
+### Fournisseurs gratuits
+
+Aucun paiement n'est requis pour utiliser ces offres, ce qui en fait le moyen le plus rapide d'obtenir une première requête fonctionnelle.
+
+| Fournisseur | Ce que l'offre gratuite vous apporte |
+| --- | --- |
+| Kiro AI | Environ 50 crédits par mois gratuits, incluant Claude 4.5, GLM-5 et MiniMax |
+| OpenCode Free | Accès sans aucune authentification |
+| Vertex AI | $300 de crédits pour les nouveaux comptes Google Cloud |
+
+### Fournisseurs par clé API
+
+Plus de 40 fournisseurs se connectent avec une clé API, y compris des services de type OpenAI et Anthropic et un large éventail d'hébergeurs de modèles. Les options à bas coût les plus souvent utilisées comme deuxième niveau sont :
+
+| Fournisseur | Prix |
+| --- | --- |
+| GLM | $0.6 per 1M tokens |
+| MiniMax | $0.20 per 1M tokens |
+| Kimi | $9 per month flat |
+
+### Fournisseurs auto-hébergés
+
+Tout endpoint qui parle le format compatible OpenAI peut être connecté comme fournisseur, de sorte que les modèles que vous servez vous-même siègent dans la même chaîne de routage — et les mêmes combos — que les fournisseurs hébergés.
+
+---
+
+## Référence de l'API
+
+Bansur Router expose une API compatible OpenAI sur son endpoint local. Authentifiez-vous avec la clé API affichée dans le tableau de bord.
+
+### Lister les modèles
+
+```text
+GET /v1/models
+```
+
+Renvoie chaque modèle disponible chez vos fournisseurs connectés — plus de 800 modèles une fois les fournisseurs courants connectés.
+
+### Créer une complétion de chat
+
+```text
+POST /v1/chat/completions
+Authorization: Bearer <dashboard API key>
+```
+
+```bash
+curl http://localhost:667/v1/chat/completions \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "kr/claude-sonnet-4.5",
+    "messages": [
+      { "role": "user", "content": "Explain what this function does." }
+    ]
+  }'
+```
+
+La forme de la requête et de la réponse suit le format des complétions de chat d'OpenAI. Bansur Router les traduit dans le format natif du fournisseur que la chaîne de routage sélectionne.
+
+URL clés d'une installation par défaut :
+
+- Tableau de bord : `http://localhost:667/dashboard`
+- Base de l'API : `http://localhost:667/v1`
+
+---
+
+## Guide d'installation
+
+### Exécuter avec Docker
+
+Depuis un clone de ce dépôt :
+
+```bash
+docker compose up -d
+```
+
+Les images publiées sont disponibles sous le nom `bansur/router` sur Docker Hub et `ghcr.io/mas-ajam/bansur-router` sur le GitHub Container Registry. Le tableau de bord et l'API sont servis sur le port 667, comme pour une installation locale.
+
+### Exécuter depuis les sources
 
 ```bash
 cp .env.example .env
 npm install
-PORT=667 NEXT_PUBLIC_BASE_URL=http://localhost:667 npm run dev
-```
-
-Mode production :
-
-```bash
 npm run build
 PORT=667 HOSTNAME=0.0.0.0 NEXT_PUBLIC_BASE_URL=http://localhost:667 npm run start
 ```
 
-URL par défaut :
+### Connecter un fournisseur
 
-- Tableau de bord : `http://localhost:667/dashboard`
-- API compatible OpenAI : `http://localhost:667/v1`
+1. Démarrez Bansur Router et ouvrez `http://localhost:667/dashboard`.
+2. Allez dans **Fournisseurs** et choisissez **Connecter** sur le fournisseur souhaité.
+3. Pour les fournisseurs OAuth, terminez la connexion dans la fenêtre qui s'ouvre. Pour les fournisseurs par clé API, collez la clé émise par ce fournisseur.
+4. Envoyez une requête. Le quota et l'utilisation du fournisseur apparaissent dans le tableau de bord à mesure que les requêtes sont routées.
 
----
+Commencez par un fournisseur gratuit si vous voulez seulement vérifier l'installation : Kiro AI et OpenCode Free fonctionnent tous deux sans offre payante.
 
-## 🎥 Guides vidéo
+### Créer un combo
 
-<div align="center">
+Un combo est une liste ordonnée de modèles traitée comme un seul modèle sélectionnable. Placez votre modèle d'abonnement en premier, un modèle économique en second et un modèle gratuit en dernier, puis sélectionnez le combo dans votre outil. Quand le premier modèle est indisponible — quota épuisé, limite de débit atteinte ou en erreur — la requête passe automatiquement à l'entrée suivante.
 
-<table>
-  <tr>
-  <td align="center" width="320">
-  <a href="https://www.youtube.com/watch?v=X69n5Lm06Yw">
-    <img src="https://img.youtube.com/vi/X69n5Lm06Yw/maxresdefault.jpg" alt="Tiết kiệm chi phí LLM với Bansur Router" width="300"/>
-  </a><br/>
-  <b>🇻🇳 Tiếng Việt</b><br/>
-  <sub>Tiết kiệm chi phí LLM cho OpenClaw với Bansur Router<br/>by <a href="https://www.youtube.com/c/M%C3%ACAIblog">Mì AI</a></sub>
-</td>
-<td align="center" width="320">
-      <a href="https://youtu.be/VQAw612S27Y">
-        <img src="https://img.youtube.com/vi/VQAw612S27Y/maxresdefault.jpg" alt="Bansur Router + Claude Code FREE Unlimited Setup" width="300"/>
-      </a><br/>
-      <b>🇵🇰 اردو / हिन्दी</b><br/>
-      <sub>Bansur Router + Claude Code FREE Unlimited Setup<br/>by <a href="https://www.youtube.com/@BuildAIWithHamid">Build AI With Hamid</a></sub>
-    </td>
-    <td align="center" width="320">
-      <a href="https://www.youtube.com/watch?v=raEyZPg5xE0">
-        <img src="https://img.youtube.com/vi/raEyZPg5xE0/maxresdefault.jpg" alt="Bansur Router Setup Tutorial" width="300"/>
-      </a><br/>
-      <b>🇺🇸 English</b><br/>
-      <sub>Bansur Router + Claude Code FREE Setup<br/>by <a href="https://www.youtube.com/@BuildAIWithHamid">Build AI With Hamid</a></sub>
-    </td>
-    
-  </tr>
-  <tr>
-  <td align="center" width="320">
-      <a href="https://youtu.be/3dF5GIYMrcQ?si=bAyfyiHbARJQAHj_">
-        <img src="https://img.youtube.com/vi/3dF5GIYMrcQ/hqdefault.jpg" alt="Bansur Router Setup Tutorial" width="300"/>
-      </a><br/>
-      <b>🇺🇸 English</b><br/>
-      <sub>Bansur Router + Claude Code FREE Setup<br/>by <a href="https://www.youtube.com/@BuildAIWithHamid">Build AI With Hamid</a></sub>
-    </td>
-    <td align="center" width="320">
-      <a href="https://www.youtube.com/watch?v=o3qYCyjrFYg">
-        <img src="https://img.youtube.com/vi/o3qYCyjrFYg/maxresdefault.jpg" alt="Claude Code FREE Forever" width="300"/>
-      </a><br/>
-      <b>🇺🇸 English</b><br/>
-      <sub>Claude Code FREE Forever — Unlimited Models<br/>by <a href="https://www.youtube.com/@BuildAIWithHamid">Build AI With Hamid</a></sub>
-    </td>
-    <td align="center" width="320">
-      <a href="https://www.youtube.com/watch?v=Ttpc26m39Dw">
-        <img src="https://img.youtube.com/vi/Ttpc26m39Dw/maxresdefault.jpg" alt="Claude CLI Free Setup" width="300"/>
-      </a><br/>
-      <b>🇺🇸 English</b><br/>
-      <sub>Claude CLI Free Setup with Bansur Router 🚀<br/>by <a href="https://www.youtube.com/@CodeVerseSoban">CodeVerse Soban</a></sub>
-    </td>
-    
-  </tr>
-  <tr>
-  <td align="center" width="320">
-      <a href="https://www.youtube.com/watch?v=G-5A_D5Pm6Y">
-        <img src="https://img.youtube.com/vi/G-5A_D5Pm6Y/maxresdefault.jpg" alt="Cài đặt OpenClaw Free A-Z" width="300"/>
-      </a><br/>
-      <b>🇻🇳 Tiếng Việt</b><br/>
-      <sub>Cài Đặt OpenClaw Free Từ A-Z + Bansur Router<br/>by <a href="https://www.youtube.com/@maigia">Mai Gia</a></sub>
-    </td>
-    <td align="center" width="320">
-      <a href="https://www.youtube.com/watch?v=JXmg8_gccgE">
-        <img src="https://img.youtube.com/vi/JXmg8_gccgE/maxresdefault.jpg" alt="FREE OpenClaw with Claude Opus" width="300"/>
-      </a><br/>
-      <b>🇺🇸 English</b><br/>
-      <sub>FREE OpenClaw + Claude Opus 4.6<br/>by <a href="https://www.youtube.com/@BuildAIWithHamid">Build AI With Hamid</a></sub>
-    </td>
-    <td align="center" width="320">
-      <a href="https://www.youtube.com/watch?v=CkVZZUSTXAI">
-        <img src="https://img.youtube.com/vi/CkVZZUSTXAI/mqdefault.jpg" alt="Claude CLI Free Setup" width="300"/>
-      </a><br/>
-      <b>🇮🇩 Indonesia</b><br/>
-      <sub>Koding 24 Jam Anti Rate Limit! Hemat Token AI 65% | Tutorial Quick Setup Bansur Router 🚀<br/>by <a href="https://www.youtube.com/@krisswuh">Krisswuh</a></sub>
-    </td>
-    
-  </tr>
-  
-  <tr>
-  <td align="center" width="320">
-      <a href="https://www.youtube.com/watch?v=TXGv4eofe1I">
-        <img src="https://img.youtube.com/vi/TXGv4eofe1I/mqdefault.jpg" alt="Cara Deploy Bansur Router di Hugging Face GRATIS Non-Stop! | Alternatif VPS RAM 16GB" width="300"/>
-      </a><br/>
-      <b>🇮🇩 Indonesia</b><br/>
-      <sub>Cara Deploy Bansur Router di Hugging Face GRATIS Non-Stop! | Alternatif VPS RAM 16GB<br/>by <a href="https://www.youtube.com/@krisswuh">Krisswuh</a></sub>
-    </td>
-  </tr>
+### Changer le port
 
-</table>
-
-</div>
-
-> 🎬 **Vous avez réalisé une vidéo sur Bansur Router ?** Envoyez une [Pull Request](https://github.com/mas-ajam/bansur-router/pulls) en ajoutant votre vidéo à cette section — nous la fusionnerons !
-
----
-
-## 🛠️ Outils CLI pris en charge
-
-Bansur Router fonctionne parfaitement avec tous les principaux outils de codage IA :
-
-<div align="center">
-  <table>
-    <tr>
-      <td align="center" width="120">
-        <img src="../public/providers/claude.png" width="60" alt="Claude Code"/><br/>
-        <b>Claude-Code</b>
-      </td>
-      <td align="center" width="120">
-        <img src="../public/providers/openclaw.png" width="60" alt="OpenClaw"/><br/>
-        <b>OpenClaw</b>
-      </td>
-      <td align="center" width="120">
-        <img src="../public/providers/codex.png" width="60" alt="Codex"/><br/>
-        <b>Codex</b>
-      </td>
-      <td align="center" width="120">
-        <img src="../public/providers/opencode.png" width="60" alt="OpenCode"/><br/>
-        <b>OpenCode</b>
-      </td>
-      <td align="center" width="120">
-        <img src="../public/providers/cursor.png" width="60" alt="Cursor"/><br/>
-        <b>Cursor</b>
-      </td>
-      <td align="center" width="120">
-        <img src="../public/providers/antigravity.png" width="60" alt="Antigravity"/><br/>
-        <b>Antigravity</b>
-      </td>
-    </tr>
-    <tr>
-      <td align="center" width="120">
-        <img src="../public/providers/cline.png" width="60" alt="Cline"/><br/>
-        <b>Cline</b>
-      </td>
-      <td align="center" width="120">
-        <img src="../public/providers/continue.png" width="60" alt="Continue"/><br/>
-        <b>Continue</b>
-      </td>
-      <td align="center" width="120">
-        <img src="../public/providers/droid.png" width="60" alt="Droid"/><br/>
-        <b>Droid</b>
-      </td>
-      <td align="center" width="120">
-        <img src="../public/providers/roo.png" width="60" alt="Roo"/><br/>
-        <b>Roo</b>
-      </td>
-      <td align="center" width="120">
-        <img src="../public/providers/copilot.png" width="60" alt="Copilot"/><br/>
-        <b>Copilot</b>
-      </td>
-      <td align="center" width="120">
-        <img src="../public/providers/kilocode.png" width="60" alt="Kilo Code"/><br/>
-        <b>Kilo Code</b>
-      </td>
-    </tr>
-  </table>
-</div>
-
----
-
-## 🌐 Fournisseurs pris en charge
-
-### 🔐 Fournisseurs OAuth
-
-<div align="center">
-  <table>
-    <tr>
-      <td align="center" width="120">
-        <img src="../public/providers/claude.png" width="60" alt="Claude Code"/><br/>
-        <b>Claude-Code</b>
-      </td>
-      <td align="center" width="120">
-        <img src="../public/providers/antigravity.png" width="60" alt="Antigravity"/><br/>
-        <b>Antigravity</b>
-      </td>
-      <td align="center" width="120">
-        <img src="../public/providers/codex.png" width="60" alt="Codex"/><br/>
-        <b>Codex</b>
-      </td>
-      <td align="center" width="120">
-        <img src="../public/providers/github.png" width="60" alt="GitHub"/><br/>
-        <b>GitHub</b>
-      </td>
-      <td align="center" width="120">
-        <img src="../public/providers/cursor.png" width="60" alt="Cursor"/><br/>
-        <b>Cursor</b>
-      </td>
-      <td align="center" width="120">
-        <img src="../public/providers/kimchi.png" width="60" alt="Kimchi"/><br/>
-        <b>Kimchi</b>
-      </td>
-    </tr>
-  </table>
-</div>
-
-### 🆓 Fournisseurs gratuits
-
-<div align="center">
-  <table>
-    <tr>
-      <td align="center" width="150">
-        <img src="../public/providers/kiro.png" width="70" alt="Kiro"/><br/>
-        <b>Kiro AI</b><br/>
-        <sub>Claude 4.5 + GLM-5 + MiniMax<br/>GRATUIT illimité</sub>
-      </td>
-      <td align="center" width="150">
-        <img src="../public/providers/opencode.png" width="70" alt="OpenCode Free"/><br/>
-        <b>OpenCode Free</b><br/>
-        <sub>Sans authentification • Modèles automatiques<br/>GRATUIT illimité</sub>
-      </td>
-      <td align="center" width="150">
-        <img src="../public/providers/gemini.png" width="70" alt="Vertex AI"/><br/>
-        <b>Vertex AI</b><br/>
-        <sub>Gemini 3 Pro + GLM-5 + DeepSeek<br/>300 $ de crédit gratuit</sub>
-      </td>
-    </tr>
-  </table>
-</div>
-
-> **Remarque :** Les niveaux gratuits d'iFlow, Qwen et Gemini CLI ont été interrompus en 2026. Utilisez plutôt Kiro / OpenCode Free / Vertex.
-
-### 🔑 Fournisseurs avec clé API (40+)
-
-<div align="center">
-  <table>
-    <tr>
-      <td align="center" width="100">
-        <img src="../public/providers/openrouter.png" width="50" alt="OpenRouter"/><br/>
-        <sub>OpenRouter</sub>
-      </td>
-      <td align="center" width="100">
-        <img src="../public/providers/glm.png" width="50" alt="GLM"/><br/>
-        <sub>GLM</sub>
-      </td>
-      <td align="center" width="100">
-        <img src="../public/providers/kimi.png" width="50" alt="Kimi"/><br/>
-        <sub>Kimi</sub>
-      </td>
-      <td align="center" width="100">
-        <img src="../public/providers/minimax.png" width="50" alt="MiniMax"/><br/>
-        <sub>MiniMax</sub>
-      </td>
-      <td align="center" width="100">
-        <img src="../public/providers/openai.png" width="50" alt="OpenAI"/><br/>
-        <sub>OpenAI</sub>
-      </td>
-      <td align="center" width="100">
-        <img src="../public/providers/anthropic.png" width="50" alt="Anthropic"/><br/>
-        <sub>Anthropic</sub>
-      </td>
-    </tr>
-    <tr>
-      <td align="center" width="100">
-        <img src="../public/providers/gemini.png" width="50" alt="Gemini"/><br/>
-        <sub>Gemini</sub>
-      </td>
-      <td align="center" width="100">
-        <img src="../public/providers/deepseek.png" width="50" alt="DeepSeek"/><br/>
-        <sub>DeepSeek</sub>
-      </td>
-      <td align="center" width="100">
-        <img src="../public/providers/groq.png" width="50" alt="Groq"/><br/>
-        <sub>Groq</sub>
-      </td>
-      <td align="center" width="100">
-        <img src="../public/providers/xai.png" width="50" alt="xAI"/><br/>
-        <sub>xAI</sub>
-      </td>
-      <td align="center" width="100">
-        <img src="../public/providers/mistral.png" width="50" alt="Mistral"/><br/>
-        <sub>Mistral</sub>
-      </td>
-      <td align="center" width="100">
-        <img src="../public/providers/perplexity.png" width="50" alt="Perplexity"/><br/>
-        <sub>Perplexity</sub>
-      </td>
-    </tr>
-    <tr>
-      <td align="center" width="100">
-        <img src="../public/providers/together.png" width="50" alt="Together"/><br/>
-        <sub>Together AI</sub>
-      </td>
-      <td align="center" width="100">
-        <img src="../public/providers/fireworks.png" width="50" alt="Fireworks"/><br/>
-        <sub>Fireworks</sub>
-      </td>
-      <td align="center" width="100">
-        <img src="../public/providers/cerebras.png" width="50" alt="Cerebras"/><br/>
-        <sub>Cerebras</sub>
-      </td>
-      <td align="center" width="100">
-        <img src="../public/providers/cohere.png" width="50" alt="Cohere"/><br/>
-        <sub>Cohere</sub>
-      </td>
-      <td align="center" width="100">
-        <img src="../public/providers/nvidia.png" width="50" alt="NVIDIA"/><br/>
-        <sub>NVIDIA</sub>
-      </td>
-      <td align="center" width="100">
-        <img src="../public/providers/siliconflow.png" width="50" alt="SiliconFlow"/><br/>
-        <sub>SiliconFlow</sub>
-      </td>
-    </tr>
-  </table>
-  <p><i>...et plus de 20 autres fournisseurs, dont Nebius, Chutes, Hyperbolic et des endpoints personnalisés compatibles OpenAI/Anthropic</i></p>
-</div>
-
----
-
-## 💡 Fonctionnalités clés
-
-| Fonctionnalité                                                                         | Ce qu'elle fait                                                                                      | Pourquoi c'est important                                  |
-| -------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
-| 🚀 **Économiseur de tokens RTK** ([RTK](https://github.com/rtk-ai/rtk) ⭐40K)           | Compresse les sorties des outils (`git diff`, `grep`, `ls`, `tree`...) avant de les envoyer au LLM    | Économise **20 à 40 % de tokens d'entrée** par requête    |
-| 🧠 **Économiseur de tokens Headroom** ([Headroom](https://github.com/chopratejas/headroom)) | Proxy externe optionnel `/v1/compress` avant le routage vers le fournisseur                      | Économise plus de tokens de contexte sans changer les clients |
-| 🪨 **Mode cavernicole** ([Caveman](https://github.com/JuliusBrussee/caveman) ⭐52K)     | Injecte un prompt en langage cavernicole → le LLM répond de manière concise, le contenu technique est conservé | Économise **jusqu'à 65 % de tokens de sortie** |
-| 🐴 **Ponytail** ([Ponytail](https://github.com/DietrichGebert/ponytail))                | Injecte un prompt de "dev sénior fainéant" → le LLM écrit un code minimal, YAGNI d'abord (Lite/Full/Ultra) | **Moins de tokens de sortie, moins de refactorisation** |
-| 🎯 **Repli intelligent à 3 niveaux**                                                    | Routage automatique : Abonnement → Bon marché → Gratuit                                              | N'arrêtez jamais de coder, zéro temps d'arrêt             |
-| 📊 **Suivi de quota en temps réel**                                                     | Compteur de tokens en direct + compte à rebours de réinitialisation                                   | Maximisez la valeur de votre abonnement                   |
-| 🔄 **Traduction de formats**                                                            | OpenAI ↔ Claude ↔ Gemini ↔ Cursor ↔ Kiro ↔ Vertex                                                   | Fonctionne avec n'importe quel outil CLI                  |
-| 👥 **Prise en charge multi-comptes**                                                    | Plusieurs comptes par fournisseur                                                                    | Équilibrage de charge + redondance                        |
-| 🔄 **Renouvellement automatique des tokens**                                            | Les tokens OAuth se renouvellent automatiquement                                                     | Plus besoin de se reconnecter manuellement                |
-| 🎨 **Combos personnalisés**                                                             | Créez des combinaisons de modèles illimitées                                                         | Adaptez le repli à vos besoins                            |
-| 📝 **Journalisation des requêtes**                                                      | Mode débogage avec journaux complets de requêtes/réponses                                            | Résolvez facilement les problèmes                         |
-| 💾 **Synchronisation cloud**                                                            | Synchronisez la configuration entre vos appareils                                                    | La même configuration partout                             |
-| 📊 **Analytique d'utilisation**                                                         | Suivez tokens, coûts et tendances au fil du temps                                                    | Optimisez vos dépenses                                    |
-| 🌐 **Déployez partout**                                                                 | Localhost, VPS, Docker, Cloudflare Workers                                                           | Options de déploiement flexibles                          |
-
-<details>
-<summary><b>📖 Détails des fonctionnalités</b></summary>
-
-### 🚀 Économiseur de tokens RTK
-
-Les sorties des outils (`git diff`, `grep`, `find`, `ls`, `tree`, vidages de journaux...) consomment souvent 30 à 50 % de votre budget de prompt. RTK les détecte et applique une compression intelligente et sans perte **avant** que la requête n'atteigne le LLM :
-
-- **Filtres :** `git-diff`, `git-status`, `grep`, `find`, `ls`, `tree`, `dedup-log`, `smart-truncate`, `read-numbered`, `search-list`
-- **Détection automatique :** Aucune configuration requise — RTK inspecte le premier 1 Ko de chaque `tool_result` et choisit le bon filtre.
-- **Sûr par conception :** Si un filtre échoue, génère une erreur ou rend la sortie plus volumineuse, RTK conserve silencieusement le texte original. Les erreurs ne cassent jamais votre requête.
-- **Universel :** Fonctionne dans tous les formats (OpenAI, Claude, Gemini, Cursor, Kiro, OpenAI Responses) car il s'exécute **avant** toute traduction de format.
-- **Activé par défaut :** Activez-le ou désactivez-le à tout moment dans Tableau de bord → Paramètres d'Endpoint.
-
-```
-Sans RTK : 47K tokens envoyés au LLM
-Avec RTK :   28K tokens envoyés au LLM   (40 % économisés · même contexte · même réponse)
-```
-
-### 🧠 Économiseur de tokens Headroom
-
-Headroom est optionnel et s'exécute séparément. Bansur Router appelle l'endpoint local `/v1/compress` de Headroom, puis conserve le routage, le repli, l'authentification et le suivi d'utilisation normaux :
-
-```
-Client → Bansur Router → Headroom /v1/compress → Bansur Router → fournisseur
-```
-
-Configuration locale :
+Le port 667 est la valeur par défaut, pas une obligation.
 
 ```bash
-pip install "headroom-ai[proxy]"
-headroom proxy --port 8787
+bansur-router --port 8080
 ```
 
-Activez-le dans Tableau de bord → Endpoint → Token Saver → Headroom. URL par défaut : `http://localhost:8787`.
-
-Exemples Docker :
-
-```bash
-# Service Headroom dans le même réseau Docker
-http://headroom:8787
-
-# Headroom exécuté sur la machine hôte
-http://host.docker.internal:8787
-```
-
-Si Headroom est indisponible ou renvoie une erreur, Bansur Router bascule en mode dégradé et envoie la requête originale.
-
-### 🐴 Ponytail (Dev sénior fainéant)
-
-Ponytail injecte un prompt système de _"dev sénior fainéant"_ dans chaque requête, orientant le LLM vers un code minimal et YAGNI d'abord — la suppression plutôt que l'ajout, la bibliothèque standard plutôt que de nouvelles dépendances, une ligne plutôt que des abstractions. Adapté de [DietrichGebert/ponytail](https://github.com/DietrichGebert/ponytail).
-
-- **Lite** — Construisez ce qui est demandé, nommez l'alternative plus fainéante.
-- **Full** — Hiérarchie YAGNI appliquée : stdlib → natif → dépendances existantes → une ligne → code minimal.
-- **Ultra** — Extrémiste du YAGNI : suppression d'abord, livrez la solution d'une ligne, remettez en question le reste de l'exigence dans la même réponse.
-
-```
-Sans Ponytail : code verbeux, abstractions superflues, échafaudage "au cas où"
-Avec Ponytail :    diff fonctionnel le plus court, aucune abstraction non demandée, moins de tokens
-```
-
-Ne sacrifie jamais : la validation des entrées, la gestion des erreurs qui évite la perte de données, la sécurité, l'accessibilité ni rien d'explicitement demandé. Activez-le dans Tableau de bord → Endpoint → Ponytail. Se cumule avec Caveman (concision de sortie) et RTK (compression d'entrée).
-
-### 🎯 Repli intelligent à 3 niveaux
-
-Créez des combos avec repli automatique :
-
-```
-Combo : "my-coding-stack"
-  1. cc/claude-opus-4-6        (votre abonnement)
-  2. glm/glm-4.7               (sauvegarde économique, $0.6/1M)
-  3. if/kimi-k2-thinking       (repli gratuit)
-
-→ Bascule automatiquement quand le quota est épuisé ou en cas d'erreur
-```
-
-### 📊 Suivi de quota en temps réel
-
-- Consommation de tokens par fournisseur
-- Compte à rebours de réinitialisation (5 heures, quotidien, hebdomadaire)
-- Estimation des coûts pour les niveaux payants
-- Rapports de dépenses mensuels
-
-### 🔄 Traduction de formats
-
-Traduction transparente entre les formats :
-
-- **OpenAI** ↔ **Claude** ↔ **Gemini** ↔ **Cursor** ↔ **Kiro** ↔ **Vertex** ↔ **Antigravity** ↔ **Ollama** ↔ **OpenAI Responses**
-- Votre outil CLI envoie le format OpenAI → Bansur Router le traduit → Le fournisseur reçoit le format natif
-- Fonctionne avec tout outil prenant en charge les endpoints OpenAI personnalisés
-
-### 👥 Prise en charge multi-comptes
-
-- Ajoutez plusieurs comptes par fournisseur
-- Routage automatique round-robin ou basé sur la priorité
-- Repli vers le compte suivant quand un compte atteint son quota
-
-### 🔄 Renouvellement automatique des tokens
-
-- Les tokens OAuth se renouvellent automatiquement avant expiration
-- Plus besoin de réauthentification manuelle
-- Expérience transparente avec tous les fournisseurs
-
-### 🎨 Combos personnalisés
-
-- Créez des combinaisons de modèles illimitées
-- Mélangez niveaux d'abonnement, économiques et gratuits
-- Nommez vos combos pour un accès facile
-- Partagez vos combos entre appareils grâce à la Synchronisation cloud
-
-### 📝 Journalisation des requêtes
-
-- Activez le mode débogage pour des journaux complets de requêtes/réponses
-- Suivez les appels API, les en-têtes et les charges utiles
-- Résolvez les problèmes d'intégration
-- Exportez les journaux pour analyse
-
-### 💾 Synchronisation cloud
-
-- Synchronisez fournisseurs, combos et paramètres entre appareils
-- Synchronisation automatique en arrière-plan
-- Stockage chiffré et sécurisé
-- Accédez à votre configuration depuis n'importe où
-
-#### Remarques sur le runtime cloud
-
-- Privilégiez les variables cloud côté serveur en production :
-  - `BASE_URL` (URL de rappel interne utilisée par le planificateur de synchronisation)
-  - `CLOUD_URL` (base de l'endpoint de synchronisation cloud)
-- `NEXT_PUBLIC_BASE_URL` et `NEXT_PUBLIC_CLOUD_URL` restent prises en charge pour la compatibilité/UI, mais le runtime serveur privilégie désormais `BASE_URL`/`CLOUD_URL`.
-- Les requêtes de synchronisation cloud utilisent désormais un délai d'expiration + un comportement de défaillance rapide pour éviter que l'UI ne se bloque quand le DNS/réseau cloud est indisponible.
-
-### 📊 Analytique d'utilisation
-
-- Suivez l'utilisation des tokens par fournisseur et modèle
-- Estimation des coûts et tendances de dépenses
-- Rapports et informations mensuels
-- Optimisez vos dépenses IA
-
-> **💡 IMPORTANT - Comprendre les coûts du tableau de bord :**
->
-> Le "coût" affiché dans l'Analytique d'utilisation est **uniquement à des fins de suivi et de comparaison**.
-> Bansur Router lui-même **ne vous facture jamais** quoi que ce soit. Vous ne payez que les fournisseurs directement (si vous utilisez des services payants).
->
-> **Exemple :** Si votre tableau de bord affiche "coût total de 290 $" alors que vous utilisez les modèles iFlow, cela représente
-> ce que vous auriez payé en utilisant des API payantes directement. Votre coût réel = **0 $** (iFlow est gratuit et illimité).
->
-> Considérez-le comme un "suivi d'économies" qui montre combien vous économisez en utilisant des modèles gratuits ou
-> en routant via Bansur Router !
-
-### 🌐 Déployez partout
-
-- 💻 **Localhost** - Par défaut, fonctionne hors ligne
-- ☁️ **VPS/Cloud** - Partagez entre appareils
-- 🐳 **Docker** - Déploiement en une commande
-- 🚀 **Cloudflare Workers** - Réseau mondial de périphérie
-
-</details>
+La forme courte `-p` fonctionne également, et la variable d'environnement `PORT` définit le port pour les déploiements depuis les sources, Docker et serveur. Si vous changez le port, mettez à jour l'endpoint dans vos outils en conséquence, par exemple `http://localhost:8080/v1`. Séparer le port est aussi le moyen le plus simple d'exécuter Bansur Router à côté d'un autre service local qui occupe déjà le 667.
 
 ---
 
-## 💰 Tarifs en un coup d'œil
+## Questions fréquentes
 
-| Niveau                 | Fournisseur           | Coût            | Réinitialisation du quota | Idéal pour                                |
-| ---------------------- | --------------------- | --------------- | ------------------------- | ----------------------------------------- |
-| **🚀 ÉCONOMIE DE TOKENS** | **RTK (intégré)**     | **GRATUIT**     | Toujours actif            | **Économisez 20 à 40 % de tokens sur CHAQUE requête** |
-| **💳 ABONNEMENT**      | Claude Code (Pro/Max) | 20 à 200 $/mois | 5 h + hebdomadaire        | Déjà abonné                                |
-|                        | Codex (Plus/Pro)      | 20 à 200 $/mois | 5 h + hebdomadaire        | Utilisateurs d'OpenAI                      |
-|                        | GitHub Copilot        | 10 à 19 $/mois  | Mensuelle                 | Utilisateurs de GitHub                     |
-|                        | Cursor IDE            | 20 $/mois       | Mensuelle                 | Utilisateurs de Cursor                     |
-| **💰 BON MARCHÉ**     | GLM-5.1 / GLM-4.7     | 0,6 $/1M        | Quotidienne 10 h          | Sauvegarde économique                      |
-|                        | MiniMax M2.7          | 0,2 $/1M        | Fenêtre de 5 heures       | L'option la moins chère                    |
-|                        | Kimi K2.5             | 9 $/mois forfait | 10M tokens/mois          | Coût prévisible                            |
-| **🆓 GRATUIT**         | Kiro AI               | 0 $             | Illimité                  | Claude 4.5 + GLM-5 + MiniMax gratuits      |
-|                        | OpenCode Free         | 0 $             | Illimité                  | Sans authentification, modèles automatiques |
-|                        | Vertex AI             | 300 $ de crédit | Nouveaux comptes GCP      | Gemini 3 Pro + DeepSeek + GLM-5            |
+### Qu'est-ce que Bansur Router ?
 
-**💡 Astuce pro :** Le combo RTK + Kiro AI + OpenCode Free = **0 $ de coût + 20 à 40 % d'économie de tokens** !
+Une passerelle d'IA locale pour les outils de codage. Elle place un unique endpoint compatible OpenAI devant tous vos fournisseurs d'IA et route chaque requête vers le meilleur disponible, de sorte que vos outils gardent une seule configuration pendant que les fournisseurs, les comptes et les quotas changent derrière.
 
----
+### Est-ce gratuit ?
 
-### 📊 Comprendre les coûts et la facturation de Bansur Router
+Oui. Bansur Router lui-même est gratuit et open source sous licence MIT. Le coût d'une requête dépend du fournisseur vers lequel elle est routée : les offres gratuites comme Kiro AI et OpenCode Free ne coûtent rien, et pour le reste vous apportez vos propres abonnements et clés API et payez ces fournisseurs directement, exactement comme vous le feriez sans la passerelle.
 
-**La réalité de la facturation de Bansur Router :**
+### Où vivent mes données ?
 
-✅ **Le logiciel Bansur Router = GRATUIT pour toujours** (open source, ne facture jamais)  
-✅ **Les "coûts" du tableau de bord = Affichage/suivi uniquement** (pas de vraies factures)  
-✅ **Vous payez les fournisseurs directement** (abonnements ou frais d'API)  
-✅ **Les fournisseurs GRATUITS restent GRATUITS** (iFlow, Kiro, Qwen = 0 $ illimité)  
-❌ **Bansur Router n'envoie jamais de factures** et ne débite pas votre carte
+Sur votre machine. Bansur Router est local d'abord : les clés des fournisseurs sont stockées localement, les requêtes sont routées depuis votre propre installation, et le travail de la passerelle consiste à les transmettre au fournisseur que vous avez sélectionné. Il n'y a aucun compte séparé à créer avant la première requête.
 
-**Comment fonctionne l'affichage des coûts :**
+### Quel port utilise-t-il ?
 
-Le tableau de bord affiche des **coûts estimés** comme si vous utilisiez des API payantes directement. Ce n'est **pas une facturation** — c'est un outil de comparaison pour montrer vos économies.
+667 par défaut, pour le tableau de bord comme pour l'API. Changez-le avec `--port` (ou `-p`) au démarrage de la CLI, ou avec la variable d'environnement `PORT`.
 
-**Scénario d'exemple :**
+### Avec quels outils fonctionne-t-il ?
 
-```
-Affichage du tableau de bord :
-• Total des requêtes : 1 662
-• Total des tokens : 47M
-• Coût affiché : 290 $
+Claude Code, OpenAI Codex, Cursor, Cline, OpenCode, Antigravity, GitHub Copilot, OpenClaw, Continue et RooCode sont pris en charge directement. Tout autre outil qui vous permet de définir un endpoint personnalisé compatible OpenAI et une clé API peut l'utiliser avec les trois mêmes valeurs.
 
-Vérification de la réalité :
-• Fournisseur : iFlow (GRATUIT illimité)
-• Paiement réel : 0,00 $
-• Ce que signifie 290 $ : Le montant que vous avez ÉCONOMISÉ en utilisant des modèles gratuits !
-```
+### Remarque pour les utilisateurs Windows
 
-**Règles de paiement :**
-
-- **Fournisseurs par abonnement** (Claude Code, Codex) : Payez-les directement via leurs sites web
-- **Fournisseurs bon marché** (GLM, MiniMax) : Payez-les directement, Bansur Router se contente de router
-- **Fournisseurs GRATUITS** (iFlow, Kiro, Qwen) : Vraiment gratuits pour toujours, sans frais cachés
-- **Bansur Router** : Ne facture jamais rien, jamais
+Arrêtez l'instance de Bansur Router en cours d'exécution avant de mettre à jour le package npm global. Windows verrouille les fichiers d'une installation en cours d'exécution, donc une mise à jour tentée pendant que la passerelle tourne échouera tant que le processus n'est pas arrêté.
 
 ---
 
-## 🎯 Cas d'utilisation
+## Dépannage
 
-### Cas 1 : "J'ai un abonnement Claude Pro"
+### Le port est déjà utilisé
 
-**Problème :** Le quota expire inutilisé, limites de débit pendant un codage intensif
+Quelque chose sur votre machine écoute déjà sur le 667, souvent un processus Bansur Router antérieur toujours en cours d'exécution. Arrêtez ce processus, ou démarrez sur un autre port et dirigez vos outils vers lui :
 
-**Solution :**
-
-```
-Combo : "maximize-claude"
-  1. cc/claude-opus-4-7        (utilisez l'abonnement à fond)
-  2. glm/glm-5.1               (sauvegarde économique quand le quota est épuisé)
-  3. kr/claude-sonnet-4.5      (repli gratuit d'urgence)
-
-Coût mensuel : 20 $ (abonnement) + ~5 $ (sauvegarde) = 25 $ au total
-vs. 20 $ + buter sur les limites = frustration
+```bash
+bansur-router --port 8080
 ```
 
-### Cas 2 : "Je veux un coût zéro"
+### Un fournisseur ne parvient pas à se connecter
 
-**Problème :** Impossible de payer un abonnement, besoin d'un codage IA fiable
+Reconnectez-le depuis le tableau de bord : **Fournisseurs → Connecter** pour ce fournisseur, et terminez à nouveau la connexion ou la saisie de la clé. Une nouvelle connexion remplace la session stockée, et le rafraîchissement automatique des tokens la garde valide à partir de là.
 
-**Solution :**
+### La mise à jour échoue sous Windows
 
-```
-Combo : "free-forever"
-  1. kr/claude-sonnet-4.5      (Claude 4.5 gratuit illimité)
-  2. kr/glm-5                  (GLM-5 gratuit via Kiro)
-  3. oc/<auto>                 (OpenCode Free, sans authentification)
+Arrêtez d'abord l'instance en cours d'exécution, puis relancez la mise à jour. Une installation en cours d'exécution verrouille ses propres fichiers programme sous Windows, ce qui empêche le remplacement du package npm global.
 
-Coût mensuel : 0 $
-Qualité : Modèles prêts pour la production + RTK économise 20 à 40 % de tokens
-```
+### Les requêtes échouent après le changement de port
 
-### Cas 3 : "J'ai besoin de coder 24h/24 et 7j/7, sans interruptions"
-
-**Problème :** Délais à respecter, pas de temps d'arrêt possible
-
-**Solution :**
-
-```
-Combo : "always-on"
-  1. cc/claude-opus-4-7        (meilleure qualité)
-  2. cx/gpt-5.5                (deuxième abonnement)
-  3. glm/glm-5.1               (bon marché, réinitialisation quotidienne)
-  4. minimax/MiniMax-M2.7      (le moins cher, réinitialisation 5 h)
-  5. kr/claude-sonnet-4.5      (gratuit illimité)
-
-Résultat : 5 couches de repli = zéro temps d'arrêt
-Coût mensuel : 20 à 200 $ (abonnements) + 10 à 20 $ (sauvegarde)
-```
-
-### Cas 4 : "Je veux une IA GRATUITE dans OpenClaw"
-
-**Problème :** Besoin d'un assistant IA dans les applications de messagerie (WhatsApp, Telegram, Slack...), entièrement gratuit
-
-**Solution :**
-
-```
-Combo : "openclaw-free"
-  1. kr/claude-sonnet-4.5      (Claude 4.5 gratuit)
-  2. kr/glm-5                  (GLM-5 gratuit)
-  3. kr/MiniMax-M2.5           (MiniMax gratuit)
-
-Coût mensuel : 0 $
-Accès via : WhatsApp, Telegram, Slack, Discord, iMessage, Signal...
-```
+Votre outil pointe toujours vers l'ancienne adresse. Mettez à jour son endpoint avec le nouveau port — par exemple `http://localhost:8080/v1` — et vérifiez que la clé API est bien celle affichée dans le tableau de bord de l'instance maintenant en cours d'exécution.
 
 ---
 
-## ❓ Questions fréquemment posées
+## Assistance
 
-<details>
-<summary><b>📊 Pourquoi mon tableau de bord affiche-t-il des coûts élevés ?</b></summary>
+Signalez les bugs et demandez des fonctionnalités via [GitHub Issues](https://github.com/mas-ajam/bansur-router/issues) sur le dépôt `mas-ajam/bansur-router`. Indiquez la version que vous exécutez, la façon dont Bansur Router a été démarré (npm, Docker ou sources), ainsi que le journal de requête pertinent lorsqu'un problème de routage est en cause.
 
-Le tableau de bord suit votre utilisation de tokens et affiche des **coûts estimés** comme si vous utilisiez des API payantes directement. Ce n'est **pas une facturation réelle** — c'est une référence pour montrer combien vous économisez en utilisant des modèles gratuits ou des abonnements existants via Bansur Router.
-
-**Exemple :**
-
-- **Le tableau de bord affiche :** "290 $ de coût total"
-- **La réalité :** Vous utilisez iFlow (GRATUIT illimité)
-- **Votre coût réel :** **0,00 $**
-- **Ce que signifie 290 $ :** Le montant que vous avez **économisé** en utilisant des modèles gratuits au lieu d'API payantes !
-
-L'affichage des coûts est un "suivi d'économies" qui vous aide à comprendre vos habitudes d'utilisation et vos opportunités d'optimisation.
-
-</details>
-
-<details>
-<summary><b>💳 Bansur Router me facturera-t-il ?</b></summary>
-
-**Non.** Bansur Router est un logiciel gratuit et open source qui s'exécute sur votre propre ordinateur. Il ne vous facture jamais rien.
-
-**Vous ne payez que :**
-
-- ✅ **Fournisseurs par abonnement** (Claude Code 20 $/mois, Codex 20 à 200 $/mois) → Payez-les directement sur leurs sites web
-- ✅ **Fournisseurs bon marché** (GLM, MiniMax) → Payez-les directement, Bansur Router route simplement vos requêtes
-- ❌ **Bansur Router lui-même** → **Ne facture jamais rien, jamais**
-
-Bansur Router est un proxy/routeur local. Il n'a pas votre carte bancaire, ne peut pas envoyer de factures et ne possède aucun système de facturation. C'est un logiciel entièrement gratuit.
-
-</details>
-
-<details>
-<summary><b>🆓 Les fournisseurs GRATUITS sont-ils vraiment illimités ?</b></summary>
-
-**Oui !** Les fournisseurs GRATUITS actuels (Kiro, OpenCode Free, Vertex) sont réellement gratuits et **sans frais cachés**.
-
-Ce sont des services gratuits offerts par ces entreprises respectives :
-
-- **Kiro AI** : Claude 4.5 + GLM-5 + MiniMax gratuits et illimités via AWS Builder ID / Google / GitHub OAuth
-- **OpenCode Free** : Proxy de passage sans authentification, modèles récupérés automatiquement depuis `opencode.ai/zen/v1/models`
-- **Vertex AI** : 300 $ de crédit gratuit pour les nouveaux comptes Google Cloud (90 jours)
-
-Bansur Router se contente de router vos requêtes vers eux — il n'y a pas de "piège" ni de facturation future. Ce sont de véritables services gratuits, et Bansur Router les rend faciles à utiliser avec le support du repli.
-
-**Niveaux gratuits interrompus (non recommandés) :**
-
-- ❌ **iFlow** : Était gratuit et illimité, désormais payant (2026)
-- ❌ **Qwen Code** : Le niveau gratuit OAuth a été interrompu par Alibaba le 15/04/2026
-- ❌ **Gemini CLI** : Fonctionne toujours, mais l'utiliser avec des outils non-CLI (Claude, Codex, Cursor...) peut entraîner des bannissements de compte — utilisez-le uniquement si vous restez sur le Gemini CLI lui-même
-
-</details>
-
-<details>
-<summary><b>💰 Comment minimiser mes vrais coûts d'IA ?</b></summary>
-
-**Stratégie gratuit-d'abord :**
-
-1. **Commencez avec un combo 100 % gratuit :**
-
-   ```
-   1. gc/gemini-3-flash (180K/mois gratuit de Google)
-   2. if/kimi-k2-thinking (gratuit illimité d'iFlow)
-   3. qw/qwen3-coder-plus (gratuit illimité de Qwen)
-   ```
-
-   **Coût : 0 $/mois**
-
-2. **Ajoutez une sauvegarde économique** uniquement si nécessaire :
-
-   ```
-   4. glm/glm-4.7 (0,6 $/1M de tokens)
-   ```
-
-   **Coût supplémentaire : Vous ne payez que ce que vous utilisez réellement**
-
-3. **Utilisez les fournisseurs par abonnement en dernier :**
-   - Uniquement si vous les possédez déjà
-   - Bansur Router vous aide à maximiser leur valeur grâce au suivi de quota
-
-**Résultat :** La plupart des utilisateurs peuvent fonctionner à 0 $/mois en utilisant uniquement les niveaux gratuits !
-
-</details>
-
-<details>
-<summary><b>📈 Et si mon utilisation explose soudainement ?</b></summary>
-
-Le repli intelligent de Bansur Router évite les frais surprises :
-
-**Scénario :** Vous êtes en sprint de codage et vous épuisez vos quotas
-
-**Sans Bansur Router :**
-
-- ❌ Limite de débit atteinte → Le travail s'arrête → Frustration
-- ❌ Ou : Vous accumulez accidentellement d'énormes factures d'API
-
-**Avec Bansur Router :**
-
-- ✅ L'abonnement atteint sa limite → Repli automatique vers le niveau économique
-- ✅ Le niveau économique devient coûteux → Repli automatique vers le niveau gratuit
-- ✅ N'arrêtez jamais de coder → Coûts prévisibles
-
-**Vous gardez le contrôle :** Définissez des limites de dépenses par fournisseur dans le tableau de bord, et Bansur Router les respecte.
-
-</details>
+La documentation complète se trouve sur [bansur-router.pages.dev](https://bansur-router.pages.dev).
 
 ---
 
-## 📖 Guide d'installation
+## Licence
 
-<details>
-<summary><b>🔐 Fournisseurs par abonnement (maximisez la valeur)</b></summary>
-
-### Claude Code (Pro/Max)
-
-```bash
-Tableau de bord → Providers → Connectez Claude Code
-→ Connexion OAuth → Renouvellement automatique des tokens
-→ Suivi de quota de 5 heures + hebdomadaire
-
-Modèles :
-  cc/claude-opus-4-7
-  cc/claude-opus-4-6
-  cc/claude-sonnet-4-6
-  cc/claude-haiku-4-5-20251001
-```
-
-**Astuce pro :** Utilisez Opus pour les tâches complexes et Sonnet pour la vitesse. Bansur Router suit le quota par modèle !
-
-### OpenAI Codex (Plus/Pro)
-
-```bash
-Tableau de bord → Providers → Connectez Codex
-→ Connexion OAuth (port 1455)
-→ Réinitialisation de 5 heures + hebdomadaire
-
-Modèles :
-  cx/gpt-5.5
-  cx/gpt-5.4
-  cx/gpt-5.3-codex
-  cx/gpt-5.2-codex
-```
-
-### GitHub Copilot
-
-```bash
-Tableau de bord → Providers → Connectez GitHub
-→ OAuth via GitHub
-→ Réinitialisation mensuelle (le 1er du mois)
-
-Modèles :
-  gh/gpt-5.4
-  gh/claude-opus-4.7
-  gh/claude-sonnet-4.6
-  gh/gemini-3.1-pro-preview
-  gh/grok-code-fast-1
-```
-
-### Cursor IDE
-
-```bash
-Tableau de bord → Providers → Connectez Cursor
-→ Connexion OAuth
-→ Abonnement mensuel
-
-Modèles :
-  cu/claude-4.6-opus-max
-  cu/claude-4.5-sonnet-thinking
-  cu/gpt-5.3-codex
-```
-
-</details>
-
-<details>
-<summary><b>💰 Fournisseurs bon marché (sauvegarde)</b></summary>
-
-### GLM-5.1 / GLM-4.7 (réinitialisation quotidienne, 0,6 $/1M)
-
-1. Inscrivez-vous : [Zhipu AI](https://open.bigmodel.cn/)
-2. Obtenez la clé API depuis le Coding Plan
-3. Tableau de bord → Add API Key :
-   - Fournisseur : `glm`
-   - API Key : `votre-clé`
-
-**Utilisation :** `glm/glm-5.1`, `glm/glm-5`, `glm/glm-4.7`
-
-**Astuce pro :** Le Coding Plan offre un quota 3× pour 1/7 du coût ! Réinitialisation quotidienne à 10 h.
-
-### MiniMax M2.7 (réinitialisation 5 h, 0,20 $/1M)
-
-1. Inscrivez-vous : [MiniMax](https://www.minimax.io/)
-2. Obtenez la clé API
-3. Tableau de bord → Add API Key
-
-**Utilisation :** `minimax/MiniMax-M2.7`, `minimax/MiniMax-M2.5`
-
-**Astuce pro :** L'option la moins chère pour les longs contextes (1M de tokens) !
-
-### Kimi K2.5 (9 $/mois forfaitaires)
-
-1. Abonnez-vous : [Moonshot AI](https://platform.moonshot.ai/)
-2. Obtenez la clé API
-3. Tableau de bord → Add API Key
-
-**Utilisation :** `kimi/kimi-k2.5`, `kimi/kimi-k2.5-thinking`
-
-**Astuce pro :** 9 $/mois forfaitaires pour 10M de tokens = coût effectif de 0,90 $/1M !
-
-</details>
-
-<details>
-<summary><b>🆓 Fournisseurs GRATUITS (recommandés)</b></summary>
-
-### Kiro AI (Claude 4.5 + GLM-5 + MiniMax GRATUIT)
-
-```bash
-Tableau de bord → Connectez Kiro
-→ AWS Builder ID, AWS IAM Identity Center, Google ou GitHub
-→ Utilisation illimitée
-
-Modèles :
-  kr/claude-sonnet-4.5
-  kr/claude-haiku-4.5
-  kr/glm-5
-  kr/MiniMax-M2.5
-  kr/qwen3-coder-next
-  kr/deepseek-3.2
-```
-
-**Astuce pro :** La meilleure option gratuite pour Claude. Sans clé API, sans paiement, entièrement illimité.
-
-### OpenCode Free (sans authentification, modèles automatiques)
-
-```bash
-Tableau de bord → Connectez OpenCode Free
-→ Aucune connexion requise (proxy de passage)
-→ Modèles récupérés automatiquement depuis opencode.ai/zen/v1/models
-```
-
-**Astuce pro :** La configuration la plus rapide. Connectez-vous et commencez à coder.
-
-### Vertex AI (300 $ de crédit gratuit pour les nouveaux comptes GCP)
-
-```bash
-Tableau de bord → Connectez Vertex AI
-→ Importez le JSON du compte de service Google Cloud
-→ Activez l'API Vertex AI dans votre projet GCP
-
-Modèles :
-  vertex/gemini-3.1-pro-preview
-  vertex/gemini-3-flash-preview
-  vertex/gemini-2.5-flash
-
-Vertex Partner (Anthropic / DeepSeek / GLM / Qwen via Vertex) :
-  vertex-partner/glm-5-maas
-  vertex-partner/deepseek-v3.2-maas
-  vertex-partner/qwen3-next-80b-a3b-thinking-maas
-```
-
-**Astuce pro :** Les nouveaux comptes Google Cloud reçoivent 300 $ de crédit gratuit pendant 90 jours. Largement suffisant pour coder tous les jours.
-
-</details>
-
-<details>
-<summary><b>🎨 Créez des combos</b></summary>
-
-### Exemple 1 : Maximisez l'abonnement → Sauvegarde économique
-
-```
-Tableau de bord → Combos → Create New
-
-Nom : premium-coding
-Modèles :
-  1. cc/claude-opus-4-7 (Abonnement principal)
-  2. glm/glm-5.1 (Sauvegarde économique, 0,6 $/1M)
-  3. minimax/MiniMax-M2.7 (Repli le moins cher, 0,20 $/1M)
-
-Utilisation en CLI : premium-coding
-
-Exemple de coût mensuel (100M de tokens) :
-  80M via Claude (abonnement) : 0 $ supplémentaire
-  15M via GLM : 9 $
-  5M via MiniMax : 1 $
-  Total : 10 $ + votre abonnement
-```
-
-### Exemple 2 : Gratuit uniquement (coût zéro)
-
-```
-Nom : free-combo
-Modèles :
-  1. kr/claude-sonnet-4.5 (Claude 4.5 gratuit illimité)
-  2. kr/glm-5 (GLM-5 gratuit via Kiro)
-  3. vertex/gemini-3.1-pro-preview (300 $ de crédit gratuit)
-
-Coût : 0 $ pour toujours (+ 20 à 40 % d'économie de tokens via RTK) !
-```
-
-</details>
-
-<details>
-<summary><b>🔧 Intégration CLI</b></summary>
-
-### Cursor IDE
-
-```
-Settings → Models → Advanced :
-  OpenAI API Base URL : http://localhost:667/v1
-  OpenAI API Key : [depuis le tableau de bord bansur-router]
-  Model : cc/claude-opus-4-7
-```
-
-Ou utilisez le combo : `premium-coding`
-
-### Claude Code
-
-Modifiez `~/.claude/config.json` :
-
-```json
-{
-  "anthropic_api_base": "http://localhost:667/v1",
-  "anthropic_api_key": "votre-clé-api-bansur-router"
-}
-```
-
-### Codex CLI
-
-```bash
-export OPENAI_BASE_URL="http://localhost:667"
-export OPENAI_API_KEY="votre-clé-api-bansur-router"
-
-codex "votre prompt"
-```
-
-### OpenClaw
-
-**Option 1 — Tableau de bord (recommandée) :**
-
-```
-Tableau de bord → CLI Tools → OpenClaw → Sélectionnez le modèle → Appliquer
-```
-
-**Option 2 — Manuel :** Modifiez `~/.openclaw/openclaw.json` :
-
-```json
-{
-  "agents": {
-    "defaults": {
-      "model": {
-        "primary": "bansur-router/kr/claude-sonnet-4.5"
-      }
-    }
-  },
-  "models": {
-    "providers": {
-      "bansur-router": {
-        "baseUrl": "http://127.0.0.1:667/v1",
-        "apiKey": "sk_bansur-router",
-        "api": "openai-completions",
-        "models": [
-          {
-            "id": "kr/claude-sonnet-4.5",
-            "name": "Claude Sonnet 4.5 (Kiro Free)"
-          }
-        ]
-      }
-    }
-  }
-}
-```
-
-> **Remarque :** OpenClaw ne fonctionne qu'avec un Bansur Router local. Utilisez `127.0.0.1` au lieu de `localhost` pour éviter les problèmes de résolution IPv6.
-
-### Cline / Continue / RooCode
-
-```
-Provider : OpenAI Compatible
-Base URL : http://localhost:667/v1
-API Key : [depuis le tableau de bord]
-Model : cc/claude-opus-4-7
-```
-
-</details>
-
-<details>
-<summary><b>🚀 Déploiement</b></summary>
-
-### Déploiement VPS
-
-```bash
-# Clonez et installez
-git clone https://github.com/mas-ajam/bansur-router.git
-cd bansur-router
-npm install
-npm run build
-
-# Configuration
-export JWT_SECRET="votre-secret-sécurisé-changez-le"
-export INITIAL_PASSWORD="votre-mot-de-passe"
-export DATA_DIR="/var/lib/bansur-router"
-export PORT="667"
-export HOSTNAME="0.0.0.0"
-export NODE_ENV="production"
-export NEXT_PUBLIC_BASE_URL="http://localhost:667"
-export NEXT_PUBLIC_CLOUD_URL="https://bansur-router.pages.dev"
-export API_KEY_SECRET="endpoint-proxy-api-key-secret"
-export MACHINE_ID_SALT="endpoint-proxy-salt"
-
-# Démarrage
-npm run start
-
-# Ou utilisez PM2
-npm install -g pm2
-pm2 start npm --name bansur-router -- start
-pm2 save
-pm2 startup
-```
-
-### Docker
-
-Images publiées (multi-plateformes `linux/amd64` + `linux/arm64`) :
-
-- Docker Hub : [`bansur/router`](https://hub.docker.com/r/bansur/router)
-- GHCR : [`ghcr.io/mas-ajam/bansur-router`](https://github.com/mas-ajam/bansur-router/pkgs/container/bansur-router)
-
-**Démarrage rapide (utilisez l'image publiée) :**
-
-```bash
-docker run -d \
-  --name bansur-router \
-  -p 667:667 \
-  -v "$HOME/.bansur-router:/app/data" \
-  -e DATA_DIR=/app/data \
-  bansur/router:latest
-```
-
-→ Ouvrez http://localhost:667
-
-**Compiler depuis le code source (dev) :**
-
-```bash
-git clone https://github.com/mas-ajam/bansur-router.git
-cd bansur-router/app
-docker build -t bansur-router .
-docker run -d --name bansur-router -p 667:667 \
-  -v "$HOME/.bansur-router:/app/data" -e DATA_DIR=/app/data bansur-router
-```
-
-**Valeurs par défaut du conteneur :**
-
-- `PORT=667`
-- `HOSTNAME=0.0.0.0`
-
-**Commandes utiles :**
-
-```bash
-docker logs -f bansur-router
-docker restart bansur-router
-docker stop bansur-router && docker rm bansur-router
-docker pull bansur/router:latest   # mise à jour vers la dernière version
-```
-
-**Persistance des données :** `$HOME/.bansur-router/db/data.sqlite` sur l'hôte ↔ `/app/data/db/data.sqlite` dans le conteneur.
-
-### Variables d'environnement
-
-| Variable                                             | Par défaut                                  | Description                                                                                  |
-| ---------------------------------------------------- | ------------------------------------------- | -------------------------------------------------------------------------------------------- |
-| `JWT_SECRET`                                         | Généré automatiquement (`~/.bansur-router/jwt-secret`) | Secret de signature JWT pour le cookie d'authentification du tableau de bord (remplacez-le pour partager entre instances) |
-| `INITIAL_PASSWORD`                                   | `123456`                                    | Mot de passe de première connexion quand aucun hash n'est enregistré                          |
-| `DATA_DIR`                                           | `~/.bansur-router`                                | Emplacement principal des données de l'app (SQLite dans `$DATA_DIR/db/data.sqlite`)          |
-| `PORT`                                               | défaut du framework                         | Port du service (`667` dans les exemples)                                                   |
-| `HOSTNAME`                                           | défaut du framework                         | Hôte de liaison (Docker utilise `0.0.0.0` par défaut)                                         |
-| `NODE_ENV`                                           | défaut du runtime                           | Définissez `production` pour le déploiement                                                   |
-| `BASE_URL`                                           | `http://localhost:667`                    | URL de base interne côté serveur utilisée par les tâches de synchronisation cloud             |
-| `CLOUD_URL`                                          | `https://bansur-router.pages.dev`                       | URL de base de l'endpoint de synchronisation cloud côté serveur                               |
-| `NEXT_PUBLIC_BASE_URL`                               | `http://localhost:3000`                     | URL de base publique/rétrocompatible (préférez `BASE_URL` pour le runtime serveur)            |
-| `NEXT_PUBLIC_CLOUD_URL`                              | `https://bansur-router.pages.dev`                       | URL cloud publique/rétrocompatible (préférez `CLOUD_URL` pour le runtime serveur)             |
-| `API_KEY_SECRET`                                     | `endpoint-proxy-api-key-secret`             | Secret HMAC pour les clés API générées                                                         |
-| `MACHINE_ID_SALT`                                    | `endpoint-proxy-salt`                       | Sel pour le hachage stable de l'ID machine                                                    |
-| `ENABLE_REQUEST_LOGS`                                | `false`                                     | Active les journaux de requêtes/réponses dans `logs/`                                         |
-| `AUTH_COOKIE_SECURE`                                 | `false`                                     | Force le cookie d'authentification `Secure` (mettez `true` derrière un proxy inverse HTTPS)   |
-| `REQUIRE_API_KEY`                                    | `false`                                     | Applique la clé API Bearer sur les routes `/v1/*` (recommandé pour les déploiements exposés à Internet) |
-| `HTTP_PROXY`, `HTTPS_PROXY`, `ALL_PROXY`, `NO_PROXY` | vide                                        | Proxy sortant optionnel pour les appels aux fournisseurs externes                              |
-| `SEARXNG_URL`                                        | `http://localhost:8888/search`              | Endpoint du fournisseur de recherche web SearXNG intégré, sans authentification               |
-
-Remarques :
-
-- Les variables de proxy en minuscules sont également prises en charge : `http_proxy`, `https_proxy`, `all_proxy`, `no_proxy`.
-- `.env` n'est pas intégré à l'image Docker (`.dockerignore`) ; injectez la configuration du runtime avec `--env-file` ou `-e`.
-- Sous Windows, `APPDATA` peut être utilisé pour résoudre le chemin de stockage local.
-- `INSTANCE_NAME` apparaît dans l'ancienne documentation/les anciens modèles d'environnement, mais n'est actuellement pas utilisé au runtime.
-
-### Fichiers d'exécution et stockage
-
-- État principal de l'app : `${DATA_DIR}/db/data.sqlite` (SQLite — fournisseurs, combos, alias, clés, paramètres, historique d'utilisation)
-- Sauvegardes automatiques : `${DATA_DIR}/db/backups/`
-- Journaux optionnels de requêtes/translator : `<repo>/logs/...` quand `ENABLE_REQUEST_LOGS=true`
-- `${DATA_DIR}` et `~/.bansur-router` résolvent tous deux le même emplacement dans un conteneur Docker — le lien symbolique `/root/.bansur-router -> /app/data` est créé au moment de la compilation.
-
-</details>
-
----
-
-## 📊 Modèles disponibles
-
-<details>
-<summary><b>Afficher tous les modèles disponibles</b></summary>
-
-**Claude Code (`cc/`)** - Pro/Max :
-
-- `cc/claude-opus-4-7`
-- `cc/claude-opus-4-6`
-- `cc/claude-sonnet-4-6`
-- `cc/claude-sonnet-4-5-20250929`
-- `cc/claude-haiku-4-5-20251001`
-
-**Codex (`cx/`)** - Plus/Pro :
-
-- `cx/gpt-5.5`
-- `cx/gpt-5.4`
-- `cx/gpt-5.3-codex`
-- `cx/gpt-5.2-codex`
-- `cx/gpt-5.1-codex-max`
-
-**GitHub Copilot (`gh/`)** :
-
-- `gh/gpt-5.4`
-- `gh/claude-opus-4.7`
-- `gh/claude-sonnet-4.6`
-- `gh/gemini-3.1-pro-preview`
-- `gh/grok-code-fast-1`
-
-**Cursor (`cu/`)** - Abonnement :
-
-- `cu/claude-4.6-opus-max`
-- `cu/claude-4.5-sonnet-thinking`
-- `cu/gpt-5.3-codex`
-- `cu/kimi-k2.5`
-
-**GLM (`glm/`)** - 0,6 $/1M :
-
-- `glm/glm-5.1`
-- `glm/glm-5`
-- `glm/glm-4.7`
-
-**MiniMax (`minimax/`)** - 0,2 $/1M :
-
-- `minimax/MiniMax-M2.7`
-- `minimax/MiniMax-M2.5`
-
-**Kimi (`kimi/`)** - 9 $/mois forfaitaires :
-
-- `kimi/kimi-k2.5`
-- `kimi/kimi-k2.5-thinking`
-
-**Kiro (`kr/`)** - GRATUIT illimité :
-
-- `kr/claude-sonnet-4.5`
-- `kr/claude-haiku-4.5`
-- `kr/glm-5`
-- `kr/MiniMax-M2.5`
-- `kr/qwen3-coder-next`
-- `kr/deepseek-3.2`
-
-**OpenCode Free (`oc/`)** - GRATUIT sans authentification :
-
-- Récupérés automatiquement depuis `opencode.ai/zen/v1/models`
-
-**Vertex AI (`vertex/`)** - 300 $ de crédit gratuit :
-
-- `vertex/gemini-3.1-pro-preview`
-- `vertex/gemini-3-flash-preview`
-- `vertex/gemini-2.5-flash`
-- `vertex-partner/glm-5-maas`
-- `vertex-partner/deepseek-v3.2-maas`
-
-</details>
-
----
-
-## 🐛 Dépannage
-
-**"Language model did not provide messages"**
-
-- Quota du fournisseur épuisé → Consultez le suivi de quota du tableau de bord
-- Solution : utilisez le repli du combo ou passez à un niveau moins cher
-
-**Limites de débit**
-
-- Quota d'abonnement épuisé → Repli vers GLM/MiniMax
-- Ajoutez le combo : `cc/claude-opus-4-7 → glm/glm-5.1 → kr/claude-sonnet-4.5`
-
-**Token OAuth expiré**
-
-- Renouvelé automatiquement par Bansur Router
-- Si les problèmes persistent : Tableau de bord → Provider → Reconnecter
-
-**Coûts élevés**
-
-- Activez RTK dans Tableau de bord → Paramètres d'Endpoint (activé par défaut, économise 20 à 40 % de tokens)
-- Consultez les statistiques d'utilisation dans le tableau de bord
-- Changez le modèle principal pour GLM/MiniMax
-- Utilisez le niveau gratuit (Kiro, OpenCode Free, Vertex) pour les tâches non critiques
-
-**Le tableau de bord s'ouvre sur le mauvais port**
-
-- Définissez `PORT=667` et `NEXT_PUBLIC_BASE_URL=http://localhost:667`
-
-**La première connexion ne fonctionne pas**
-
-- Vérifiez `INITIAL_PASSWORD` dans `.env`
-- S'il n'est pas défini, le mot de passe de secours est `123456`
-
-**Pas de journaux de requêtes dans `logs/`**
-
-- Définissez `ENABLE_REQUEST_LOGS=true`
-
----
-
-## 🛠️ Pile technologique
-
-- **Runtime** : Node.js 20+
-- **Framework** : Next.js 16
-- **UI** : React 19 + Tailwind CSS 4
-- **Base de données** : SQLite (better-sqlite3 / node:sqlite / sql.js en secours)
-- **Streaming** : Server-Sent Events (SSE)
-- **Authentification** : OAuth 2.0 (PKCE) + JWT + clés API
-
----
-
-## 📝 Référence de l'API
-
-### Chat Completions
-
-```bash
-POST http://localhost:667/v1/chat/completions
-Authorization: Bearer votre-clé-api
-Content-Type: application/json
-
-{
-  "model": "cc/claude-opus-4-6",
-  "messages": [
-    {"role": "user", "content": "Écrivez une fonction pour..."}
-  ],
-  "stream": true
-}
-```
-
-### Lister les modèles
-
-```bash
-GET http://localhost:667/v1/models
-Authorization: Bearer votre-clé-api
-
-→ Renvoie tous les modèles et combos au format OpenAI
-```
-
-## 📧 Support
-
-- **Site web** : [bansur-router.pages.dev](https://bansur-router.pages.dev)
-- **GitHub** : [github.com/mas-ajam/bansur-router](https://github.com/mas-ajam/bansur-router)
-- **Problèmes** : [github.com/mas-ajam/bansur-router/issues](https://github.com/mas-ajam/bansur-router/issues)
-
----
-
-## 👥 Contributeurs
-
-Merci à tous les contributeurs qui ont contribué à améliorer Bansur Router !
-
-[![Contributors](https://contrib.rocks/image?repo=mas-ajam/bansur-router&max=150&columns=15&anon=1&v=20260309)](https://github.com/mas-ajam/bansur-router/graphs/contributors)
-
----
-
-## 📊 Graphique d'étoiles
-
-[![Star Chart](https://starchart.cc/mas-ajam/bansur-router.svg?variant=adaptive)](https://starchart.cc/mas-ajam/bansur-router)
-
-## 🔀 Forks
-
-**[OmniRoute](https://github.com/diegosouzapw/OmniRoute)** — Un fork TypeScript complet de Bansur Router. Ajoute plus de 36 fournisseurs, un repli automatique à 4 niveaux, des API multimodales (images, embeddings, audio, TTS), un disjoncteur, un cache sémantique, des évaluations de LLM et un tableau de bord soigné. Plus de 368 tests unitaires. Disponible via npm et Docker.
-
----
-
-## 🙏 Remerciements
-
-Construit sur les épaules de géants :
-
-- **[CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI)** — implémentation originale en Go qui a inspiré ce port JavaScript.
-- **[RTK](https://github.com/rtk-ai/rtk)** ![Stars](https://img.shields.io/github/stars/rtk-ai/rtk?style=flat&color=yellow) — économiseur de tokens en Rust. Bansur Router porte son pipeline de compression en JS → **−20 à 40 % de tokens d'entrée** sur chaque requête.
-- **[Caveman](https://github.com/JuliusBrussee/caveman)** ![Stars](https://img.shields.io/github/stars/JuliusBrussee/caveman?style=flat&color=yellow) par **[@JuliusBrussee](https://github.com/JuliusBrussee)** — viral _"why use many token when few token do trick"_. Bansur Router adapte son prompt → **−65 % de tokens de sortie**.
-- **[Ponytail](https://github.com/DietrichGebert/ponytail)** ![Stars](https://img.shields.io/github/stars/DietrichGebert/ponytail?style=flat&color=yellow) par **[@DietrichGebert](https://github.com/DietrichGebert)** — compétence de _"dev sénior fainéant"_. Bansur Router injecte sa hiérarchie YAGNI-d'abord → **moins de tokens, moins de code, des diffs plus courts**.
-
-Un immense merci à ces auteurs — sans leur travail, les fonctionnalités d'économie de tokens de Bansur Router n'existeraient pas. Mettez-leur une ⭐ sur GitHub !
-
----
-
-## 📄 Licence
-
-Licence MIT - voir [LICENSE](LICENSE) pour plus de détails.
-
----
-
-<div align="center">
-  <sub>Conçu avec ❤️ pour les développeurs qui codent 24h/24 et 7j/7</sub>
-</div>
-
+Bansur Router est publié sous la [licence MIT](../LICENSE).

@@ -2,6 +2,11 @@
 
 All notable changes to Bansur Router will be documented in this file.
 
+## 1.0.6 (2026-10-20)
+
+- **Dashboard rebuilt from scratch.** The web dashboard gets the full monochrome mesh design system introduced with the 1.0.5 identity: ink `#101418` palette (the previous orange theme is gone from the interface), IBM Plex Sans/Mono typography, a dark sidebar rail with the mesh logo and BANSUR ROUTER wordmark in both light and dark modes, monochrome status indicators, and a redesigned dark login screen. All screens — providers, combos, usage, quota, token saver, console log, translator, and the rest — were restyled to the new system. Styling only: no behavior, data, or API changes.
+- **Every README rewritten from zero.** The main README is fully new (346 lines: intro, Why, Quick Start, How It Works, features, providers, API reference, setup guide, FAQ, troubleshooting) and the same structure now covers all 11 translations, the CLI package README, and the Docker Hub overview.
+
 ## 1.0.5 (2026-10-20)
 
 - **New visual identity, designed from scratch.** Bansur Router gets its own monochrome mesh logo (a network of nodes in a ring — many providers, one gateway), replacing the placeholder mark. New assets: logo SVGs (ink + light variants), app tile, README banner, social preview image, favicon and PWA icons, and a docs icon.
