@@ -31,7 +31,7 @@ Then ask normally — *"generate an image of a cat"*, *"transcribe this URL"*, e
 ## Configure your shell once
 
 ```bash
-export BANSURROUTER_URL="http://localhost:20128"   # local default, or your VPS / tunnel URL
+export BANSURROUTER_URL="http://localhost:667"   # local default, or your VPS / tunnel URL
 export BANSURROUTER_KEY="sk-..."                   # from Dashboard → Keys (only if requireApiKey=true)
 ```
 

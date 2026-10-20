@@ -49,7 +49,7 @@
 │  ابزار خط   │  (Claude Code, Codex, OpenClaw, Cursor, Cline...)
 │  فرمان شما  │
 └──────┬──────┘
-       │ http://localhost:20128/v1
+       │ http://localhost:667/v1
        ↓
 ┌─────────────────────────────────────────────┐
 │           Bansur Router (مسیریاب هوشمند)          │
@@ -79,7 +79,7 @@ npm install -g bansur-router
 bansur-router
 ```
 
-🎉 داشبورد در آدرس `http://localhost:20128` باز می‌شود
+🎉 داشبورد در آدرس `http://localhost:667` باز می‌شود
 
 **۲. اتصال یک ارائه‌دهنده رایگان (بدون نیاز به ثبت‌نام):**
 
@@ -89,7 +89,7 @@ bansur-router
 
 ```
 تنظیمات Claude Code/Codex/OpenClaw/Cursor/Cline:
-  آدرس端点: http://localhost:20128/v1
+  آدرس端点: http://localhost:667/v1
   کلید API: [کپی از داشبورد]
   مدل: kr/claude-sonnet-4.5
 ```
@@ -103,20 +103,20 @@ bansur-router
 ```bash
 cp .env.example .env
 npm install
-PORT=20128 NEXT_PUBLIC_BASE_URL=http://localhost:20128 npm run dev
+PORT=667 NEXT_PUBLIC_BASE_URL=http://localhost:667 npm run dev
 ```
 
 حالت تولید:
 
 ```bash
 npm run build
-PORT=20128 HOSTNAME=0.0.0.0 NEXT_PUBLIC_BASE_URL=http://localhost:20128 npm run start
+PORT=667 HOSTNAME=0.0.0.0 NEXT_PUBLIC_BASE_URL=http://localhost:667 npm run start
 ```
 
 آدرس‌های پیش‌فرض:
 
-- داشبورد: `http://localhost:20128/dashboard`
-- API سازگار با OpenAI: `http://localhost:20128/v1`
+- داشبورد: `http://localhost:667/dashboard`
+- API سازگار با OpenAI: `http://localhost:667/v1`
 
 ---
 
@@ -1040,7 +1040,7 @@ Vertex Partner (Anthropic / DeepSeek / GLM / Qwen از طریق Vertex):
 
 ```
 تنظیمات → مدل‌ها → پیشرفته:
-  آدرس پایه API OpenAI: http://localhost:20128/v1
+  آدرس پایه API OpenAI: http://localhost:667/v1
   کلید API OpenAI: [از داشبورد bansur-router]
   مدل: cc/claude-opus-4-7
 ```
@@ -1053,7 +1053,7 @@ Vertex Partner (Anthropic / DeepSeek / GLM / Qwen از طریق Vertex):
 
 ```json
 {
-  "anthropic_api_base": "http://localhost:20128/v1",
+  "anthropic_api_base": "http://localhost:667/v1",
   "anthropic_api_key": "your-bansur-router-api-key"
 }
 ```
@@ -1061,7 +1061,7 @@ Vertex Partner (Anthropic / DeepSeek / GLM / Qwen از طریق Vertex):
 ### Codex CLI
 
 ```bash
-export OPENAI_BASE_URL="http://localhost:20128"
+export OPENAI_BASE_URL="http://localhost:667"
 export OPENAI_API_KEY="your-bansur-router-api-key"
 
 codex "your prompt"
@@ -1089,7 +1089,7 @@ codex "your prompt"
   "models": {
     "providers": {
       "bansur-router": {
-        "baseUrl": "http://127.0.0.1:20128/v1",
+        "baseUrl": "http://127.0.0.1:667/v1",
         "apiKey": "sk_bansur-router",
         "api": "openai-completions",
         "models": [
@@ -1110,7 +1110,7 @@ codex "your prompt"
 
 ```
 ارائه‌دهنده: سازگار با OpenAI
-آدرس پایه: http://localhost:20128/v1
+آدرس پایه: http://localhost:667/v1
 کلید API: [از داشبورد]
 مدل: cc/claude-opus-4-7
 ```
@@ -1133,10 +1133,10 @@ npm run build
 export JWT_SECRET="your-secure-secret-change-this"
 export INITIAL_PASSWORD="your-password"
 export DATA_DIR="/var/lib/bansur-router"
-export PORT="20128"
+export PORT="667"
 export HOSTNAME="0.0.0.0"
 export NODE_ENV="production"
-export NEXT_PUBLIC_BASE_URL="http://localhost:20128"
+export NEXT_PUBLIC_BASE_URL="http://localhost:667"
 export NEXT_PUBLIC_CLOUD_URL="https://bansur-router.pages.dev"
 export API_KEY_SECRET="endpoint-proxy-api-key-secret"
 export MACHINE_ID_SALT="endpoint-proxy-salt"
@@ -1163,13 +1163,13 @@ pm2 startup
 ```bash
 docker run -d \
   --name bansur-router \
-  -p 20128:20128 \
+  -p 667:667 \
   -v "$HOME/.bansur-router:/app/data" \
   -e DATA_DIR=/app/data \
   bansur/router:latest
 ```
 
-→ باز کردن http://localhost:20128
+→ باز کردن http://localhost:667
 
 **ساخت از سورس (توسعه):**
 
@@ -1177,13 +1177,13 @@ docker run -d \
 git clone https://github.com/mas-ajam/bansur-router.git
 cd bansur-router/app
 docker build -t bansur-router .
-docker run -d --name bansur-router -p 20128:20128 \
+docker run -d --name bansur-router -p 667:667 \
   -v "$HOME/.bansur-router:/app/data" -e DATA_DIR=/app/data bansur-router
 ```
 
 **پیش‌فرض‌های کانتینر:**
 
-- `PORT=20128`
+- `PORT=667`
 - `HOSTNAME=0.0.0.0`
 
 **دستورات مفید:**
@@ -1207,7 +1207,7 @@ docker pull bansur/router:latest   # به‌روزرسانی به آخرین ن�
 | `PORT`                                               | پیش‌فرض فریم‌ورک                        | پورت سرویس (`۲۰۱۲۸` در مثال‌ها)                                                  |
 | `HOSTNAME`                                           | پیش‌فرض فریم‌ورک                        | هاست بایند (داکر پیش‌فرض `۰.۰.۰.۰` است)                                            |
 | `NODE_ENV`                                           | پیش‌فرض زمان اجرا                          | برای استقرار `production` را تنظیم کنید                                                         |
-| `BASE_URL`                                           | `http://localhost:20128`                 | آدرس پایه داخلی سمت سرور که توسط کارهای همگام‌سازی ابری استفاده می‌شود                               |
+| `BASE_URL`                                           | `http://localhost:667`                 | آدرس پایه داخلی سمت سرور که توسط کارهای همگام‌سازی ابری استفاده می‌شود                               |
 | `CLOUD_URL`                                          | `https://bansur-router.pages.dev`                    | آدرس پایه نقطه پایانی همگام‌سازی ابری سمت سرور                                            |
 | `NEXT_PUBLIC_BASE_URL`                               | `http://localhost:3000`                  | آدرس پایه عمومی/سازگار با گذشته (برای زمان اجرای سرور `BASE_URL` را ترجیح دهید)          |
 | `NEXT_PUBLIC_CLOUD_URL`                              | `https://bansur-router.pages.dev`                    | آدرس ابری عمومی/سازگار با گذشته (برای زمان اجرای سرور `CLOUD_URL` را ترجیح دهید)        |
@@ -1340,7 +1340,7 @@ docker pull bansur/router:latest   # به‌روزرسانی به آخرین ن�
 
 **داشبورد در پورت اشتباه باز می‌شود**
 
-- `PORT=20128` و `NEXT_PUBLIC_BASE_URL=http://localhost:20128` را تنظیم کنید
+- `PORT=667` و `NEXT_PUBLIC_BASE_URL=http://localhost:667` را تنظیم کنید
 
 **اولین ورود کار نمی‌کند**
 
@@ -1369,7 +1369,7 @@ docker pull bansur/router:latest   # به‌روزرسانی به آخرین ن�
 ### تکمیل‌های چت
 
 ```bash
-POST http://localhost:20128/v1/chat/completions
+POST http://localhost:667/v1/chat/completions
 Authorization: Bearer your-api-key
 Content-Type: application/json
 
@@ -1385,7 +1385,7 @@ Content-Type: application/json
 ### لیست مدل‌ها
 
 ```bash
-GET http://localhost:20128/v1/models
+GET http://localhost:667/v1/models
 Authorization: Bearer your-api-key
 
 → همه مدل‌ها + ترکیب‌ها را در قالب OpenAI برمی‌گرداند

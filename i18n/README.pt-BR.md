@@ -49,7 +49,7 @@
 │  Sua CLI   │  (Claude Code, Codex, OpenClaw, Cursor, Cline...)
 │   Ferramenta│
 └──────┬──────┘
-       │ http://localhost:20128/v1
+       │ http://localhost:667/v1
        ↓
 ┌─────────────────────────────────────────────┐
 │           Bansur Router (Roteador inteligente)            │
@@ -79,7 +79,7 @@ npm install -g bansur-router
 bansur-router
 ```
 
-🎉 O painel abre em `http://localhost:20128`
+🎉 O painel abre em `http://localhost:667`
 
 **2. Conecte um provedor GRATUITO (sem necessidade de inscrição):**
 
@@ -89,7 +89,7 @@ Painel → Provedores → Conecte **Kiro AI** (~50 créditos/mês grátis: Claud
 
 ```
 Configurações do Claude Code/Codex/OpenClaw/Cursor/Cline:
-  Endpoint: http://localhost:20128/v1
+  Endpoint: http://localhost:667/v1
   API Key: [copie do painel]
   Model: kr/claude-sonnet-4.5
 ```
@@ -103,20 +103,20 @@ Este pacote de repositório é privado (`bansur-router-app`), portanto, a execu�
 ```bash
 cp .env.example .env
 npm install
-PORT=20128 NEXT_PUBLIC_BASE_URL=http://localhost:20128 npm run dev
+PORT=667 NEXT_PUBLIC_BASE_URL=http://localhost:667 npm run dev
 ```
 
 Modo de produção:
 
 ```bash
 npm run build
-PORT=20128 HOSTNAME=0.0.0.0 NEXT_PUBLIC_BASE_URL=http://localhost:20128 npm run start
+PORT=667 HOSTNAME=0.0.0.0 NEXT_PUBLIC_BASE_URL=http://localhost:667 npm run start
 ```
 
 URLs padrão:
 
-- Painel: `http://localhost:20128/dashboard`
-- API compatível com OpenAI: `http://localhost:20128/v1`
+- Painel: `http://localhost:667/dashboard`
+- API compatível com OpenAI: `http://localhost:667/v1`
 
 ---
 
@@ -1123,7 +1123,7 @@ Custo: $0 (+ economia de 20–40% de tokens com RTK)!
 
 ```
 Configurações → Modelos → Avançado:
-  OpenAI API Base URL: http://localhost:20128/v1
+  OpenAI API Base URL: http://localhost:667/v1
   OpenAI API Key: [copie do painel do Bansur Router]
   Model: cc/claude-opus-4-7
 ```
@@ -1136,7 +1136,7 @@ Editar `~/.claude/config.json`:
 
 ```json
 {
-  "anthropic_api_base": "http://localhost:20128/v1",
+  "anthropic_api_base": "http://localhost:667/v1",
   "anthropic_api_key": "your-bansur-router-api-key"
 }
 ```
@@ -1144,7 +1144,7 @@ Editar `~/.claude/config.json`:
 ### CLI do Codex
 
 ```bash
-export OPENAI_BASE_URL="http://localhost:20128"
+export OPENAI_BASE_URL="http://localhost:667"
 export OPENAI_API_KEY="your-bansur-router-api-key"
 
 codex "seu prompt"
@@ -1172,7 +1172,7 @@ Painel → Ferramentas CLI → OpenClaw → Selecionar modelo → Aplicar
   "models": {
     "providers": {
       "bansur-router": {
-        "baseUrl": "http://127.0.0.1:20128/v1",
+        "baseUrl": "http://127.0.0.1:667/v1",
         "apiKey": "sk_bansur-router",
         "api": "openai-completions",
         "models": [
@@ -1193,7 +1193,7 @@ Painel → Ferramentas CLI → OpenClaw → Selecionar modelo → Aplicar
 
 ```
 Provedor: compatível com OpenAI
-Base URL: http://localhost:20128/v1
+Base URL: http://localhost:667/v1
 API Key: [copie do painel]
 Model: cc/claude-opus-4-7
 ```
@@ -1216,10 +1216,10 @@ npm run build
 export JWT_SECRET="your-secure-secret-change-this"
 export INITIAL_PASSWORD="your-password"
 export DATA_DIR="/var/lib/bansur-router"
-export PORT="20128"
+export PORT="667"
 export HOSTNAME="0.0.0.0"
 export NODE_ENV="production"
-export NEXT_PUBLIC_BASE_URL="http://localhost:20128"
+export NEXT_PUBLIC_BASE_URL="http://localhost:667"
 export NEXT_PUBLIC_CLOUD_URL="https://bansur-router.pages.dev"
 export API_KEY_SECRET="endpoint-proxy-api-key-secret"
 export MACHINE_ID_SALT="endpoint-proxy-salt"
@@ -1246,13 +1246,13 @@ Imagens publicadas (multiplataforma `linux/amd64` + `linux/arm64`):
 ```bash
 docker run -d \
   --name bansur-router \
-  -p 20128:20128 \
+  -p 667:667 \
   -v "$HOME/.bansur-router:/app/data" \
   -e DATA_DIR=/app/data \
   bansur/router:latest
 ```
 
-→ Abra http://localhost:20128
+→ Abra http://localhost:667
 
 **Compilar a partir do código-fonte (desenvolvedor):**
 
@@ -1260,13 +1260,13 @@ docker run -d \
 git clone https://github.com/mas-ajam/bansur-router.git
 cd bansur-router/app
 docker build -t bansur-router .
-docker run -d --name bansur-router -p 20128:20128 \
+docker run -d --name bansur-router -p 667:667 \
   -v "$HOME/.bansur-router:/app/data" -e DATA_DIR=/app/data bansur-router
 ```
 
 **Padrões do contêiner:**
 
-- `PORT=20128`
+- `PORT=667`
 - `HOSTNAME=0.0.0.0`
 
 **Comandos úteis:**
@@ -1287,10 +1287,10 @@ docker pull bansur/router:latest   # atualizar para a versão mais recente
 | `JWT_SECRET` | Gerado automaticamente (`~/.bansur-router/jwt-secret`) | Segredo de assinatura JWT para cookie de autenticação do painel (substituir para compartilhar entre instâncias) |
 | `INITIAL_PASSWORD` | `123456` | Primeira senha de login quando não existe hash salvo |
 | `DATA_DIR` | `~/.bansur-router` | Localização principal dos dados do aplicativo (SQLite em `$DATA_DIR/db/data.sqlite`) |
-| `PORT` | padrão da estrutura | Porta de serviço (`20128` nos exemplos) |
+| `PORT` | padrão da estrutura | Porta de serviço (`667` nos exemplos) |
 | `HOSTNAME` | padrão da estrutura | Host de vinculação (o padrão do Docker é `0.0.0.0`) |
 | `NODE_ENV` | padrão de tempo de execução | Definir `production` para implantação |
-| `BASE_URL` | `http://localhost:20128` | URL base interna do lado do servidor usada por trabalhos de sincronização na nuvem |
+| `BASE_URL` | `http://localhost:667` | URL base interna do lado do servidor usada por trabalhos de sincronização na nuvem |
 | `CLOUD_URL` | `https://bansur-router.pages.dev` | URL base do endpoint de sincronização na nuvem do lado do servidor |
 | `NEXT_PUBLIC_BASE_URL` | `http://localhost:3000` | URL de base pública/compatível com versões anteriores (prefira `BASE_URL` para tempo de execução do servidor) |
 | `NEXT_PUBLIC_CLOUD_URL` | `https://bansur-router.pages.dev` | URL de nuvem pública/compatível com versões anteriores (prefira `CLOUD_URL` para tempo de execução do servidor) |
@@ -1423,7 +1423,7 @@ Notas:
 
 **Painel abre na porta errada**
 
-- Definir `PORT=20128` e `NEXT_PUBLIC_BASE_URL=http://localhost:20128`
+- Definir `PORT=667` e `NEXT_PUBLIC_BASE_URL=http://localhost:667`
 
 **Primeiro login não funciona**
 
@@ -1452,7 +1452,7 @@ Notas:
 ### Chat Completions
 
 ```bash
-POST http://localhost:20128/v1/chat/completions
+POST http://localhost:667/v1/chat/completions
 Authorization: Bearer your-api-key
 Content-Type: application/json
 
@@ -1468,7 +1468,7 @@ Content-Type: application/json
 ### Listar modelos
 
 ```bash
-GET http://localhost:20128/v1/models
+GET http://localhost:667/v1/models
 Authorization: Bearer your-api-key
 
 → Retorna todos os modelos e combos no formato OpenAI

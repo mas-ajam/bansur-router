@@ -10,7 +10,7 @@ Local/remote AI gateway exposing OpenAI-compatible REST. One key, many providers
 ## Setup
 
 ```bash
-export BANSURROUTER_URL="http://localhost:20128"      # or VPS / tunnel URL
+export BANSURROUTER_URL="http://localhost:667"      # or VPS / tunnel URL
 export BANSURROUTER_KEY="sk-..."                      # from Dashboard → Keys (only if requireApiKey=true)
 ```
 

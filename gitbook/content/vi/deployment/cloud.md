@@ -130,7 +130,7 @@ COPY . .
 RUN npm run build
 
 # Expose ports
-EXPOSE 3000 20128
+EXPOSE 3000 667
 
 # Set environment variables
 ENV NODE_ENV=production
@@ -153,7 +153,7 @@ docker build -t bansur-router .
 docker run -d \
   --name bansur-router \
   -p 3000:3000 \
-  -p 20128:20128 \
+  -p 667:667 \
   -e JWT_SECRET="your-secure-secret-change-this" \
   -e INITIAL_PASSWORD="your-secure-password" \
   -v bansur-router-data:/app/data \
@@ -173,7 +173,7 @@ services:
     container_name: bansur-router
     ports:
       - "3000:3000"
-      - "20128:20128"
+      - "667:667"
     environment:
       - NODE_ENV=production
       - JWT_SECRET=your-secure-secret-change-this
@@ -266,7 +266,7 @@ server {
 
     # API endpoint
     location /v1 {
-        proxy_pass http://localhost:20128;
+        proxy_pass http://localhost:667;
         proxy_http_version 1.1;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
@@ -335,7 +335,7 @@ sudo ufw allow 443/tcp
 
 # If NOT using reverse proxy, allow Bansur Router ports
 sudo ufw allow 3000/tcp
-sudo ufw allow 20128/tcp
+sudo ufw allow 667/tcp
 
 # Enable firewall
 sudo ufw enable
@@ -418,7 +418,7 @@ htop
 df -h
 
 # Network connections
-netstat -tulpn | grep -E '3000|20128'
+netstat -tulpn | grep -E '3000|667'
 ```
 
 ---
@@ -433,7 +433,7 @@ pm2 logs bansur-router
 
 # Check if ports are in use
 sudo lsof -i :3000
-sudo lsof -i :20128
+sudo lsof -i :667
 
 # Check environment variables
 pm2 env bansur-router

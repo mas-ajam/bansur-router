@@ -106,7 +106,7 @@ try { ensureTrayRuntime({ silent: true }); } catch {}
 const APP_NAME = pkg.name; // Use from package.json
 const INSTALL_CMD_LATEST = `npm i -g ${APP_NAME}@latest --prefer-online`;
 
-const DEFAULT_PORT = 20128;
+const DEFAULT_PORT = 667;
 const DEFAULT_HOST = "0.0.0.0";
 
 // First non-internal IPv4 — the address remote peers actually reach when bound to 0.0.0.0.
@@ -169,7 +169,7 @@ Options:
 
 Commands:
   connect <server-url> Configure Claude Code for a remote bansur-router server
-                      (npx bansur-router connect http://host:20128 — no install needed)
+                      (npx bansur-router connect http://host:667 — no install needed)
   show [tool…]        Show each CLI tool's current bansur-router config and models
                       (e.g. bansur-router show claude)
   xai video --prompt "..." --output video.mp4

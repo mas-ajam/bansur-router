@@ -53,14 +53,14 @@ npx bansur-router
 **Option 2 — Docker (server/VPS):**
 
 ```bash
-docker run -d --name bansur-router -p 20128:20128 \
+docker run -d --name bansur-router -p 667:667 \
   -v "$HOME/.bansur-router:/app/data" -e DATA_DIR=/app/data \
   bansur/router:latest
 ```
 
 Published images: [Docker Hub](https://hub.docker.com/r/bansur/router) • [GHCR](https://github.com/mas-ajam/bansur-router/pkgs/container/bansur-router) (multi-platform amd64/arm64).
 
-🎉 Dashboard opens at `http://localhost:20128`
+🎉 Dashboard opens at `http://localhost:667`
 
 **2. Connect a FREE provider (no signup needed):**
 
@@ -70,7 +70,7 @@ Dashboard → Providers → Connect **Kiro AI** (free Claude unlimited) or **Ope
 
 ```
 Claude Code/Codex/OpenClaw/Cursor/Cline Settings:
-  Endpoint: http://localhost:20128/v1
+  Endpoint: http://localhost:667/v1
   API Key:  [copy from dashboard]
   Model:    kr/claude-sonnet-4.5
 ```
@@ -89,7 +89,7 @@ bansur-router --skip-update      # Skip auto-update check
 bansur-router --help             # Show all options
 ```
 
-**Dashboard**: `http://localhost:20128/dashboard`
+**Dashboard**: `http://localhost:667/dashboard`
 
 ---
 
@@ -98,8 +98,8 @@ bansur-router --help             # Show all options
 Already running Bansur Router on another machine (e.g. a team server on your LAN)? Point this machine's CLI tools at it — no local server is started:
 
 ```bash
-npx bansur-router connect http://<server-host>:20128                       # pick tools interactively
-npx bansur-router connect http://<server-host>:20128 --tools claude,codex  # or choose up front
+npx bansur-router connect http://<server-host>:667                       # pick tools interactively
+npx bansur-router connect http://<server-host>:667 --tools claude,codex  # or choose up front
 npx bansur-router connect --reset --tools claude,codex                     # undo
 ```
 
@@ -122,25 +122,25 @@ Models come from the **server's own CLI-tools configuration**, so a client gets 
 
 ```bash
 # One Claude tier; the other tiers still come from the server
-npx bansur-router connect http://<server-host>:20128 --tools claude --sonnet cc/claude-sonnet-5-5
+npx bansur-router connect http://<server-host>:667 --tools claude --sonnet cc/claude-sonnet-5-5
 
 # Every Claude tier
-npx bansur-router connect http://<server-host>:20128 --tools claude \
+npx bansur-router connect http://<server-host>:667 --tools claude \
   --fable cc/claude-fable-5-1 --opus cc/claude-opus-5-5 \
   --sonnet cc/claude-sonnet-5-5 --haiku cc/claude-haiku-4-5-20251001
 
 # All non-Claude tools at once
-npx bansur-router connect http://<server-host>:20128 --tools codex,opencode,kilo --model ocg/deepseek-flash
+npx bansur-router connect http://<server-host>:667 --tools codex,opencode,kilo --model ocg/deepseek-flash
 
 # Claude and other tools in one run
-npx bansur-router connect http://<server-host>:20128 --tools claude,codex --opus cc/claude-opus-5-5 --model gpt-6
+npx bansur-router connect http://<server-host>:667 --tools claude,codex --opus cc/claude-opus-5-5 --model gpt-6
 
 # A different model per tool: --model covers every non-Claude tool in a run, so run once per tool
-npx bansur-router connect http://<server-host>:20128 --tools codex --model gpt-6
-npx bansur-router connect http://<server-host>:20128 --tools opencode --model ocg/glm-5.3
+npx bansur-router connect http://<server-host>:667 --tools codex --model gpt-6
+npx bansur-router connect http://<server-host>:667 --tools opencode --model ocg/glm-5.3
 ```
 
-A model the server doesn't list is still written, with a `not listed by server` warning. To see the ids it serves: `curl http://<server-host>:20128/v1/models -H "Authorization: Bearer <your key>"`.
+A model the server doesn't list is still written, with a `not listed by server` warning. To see the ids it serves: `curl http://<server-host>:667/v1/models -H "Authorization: Bearer <your key>"`.
 
 ### Checking the current config
 
@@ -156,7 +156,7 @@ npx bansur-router show claude --json   # machine-readable (key still masked)
 ```
 ✅ Claude Code
    File:     ~/.claude/settings.json
-   Base URL: http://<server-host>:20128/v1
+   Base URL: http://<server-host>:667/v1
    API key:  sk-a1b…9f3c
    Models:
      fable   cc/claude-fable-5-1

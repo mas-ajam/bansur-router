@@ -38,7 +38,7 @@ const hasBansurRouterConfig = (settings) => {
   const p = settings.providers["bansur-router"];
   if (p && p.base_url) return true;
   for (const prov of Object.values(settings.providers)) {
-    if (prov.base_url && prov.base_url.includes("20128")) return true;
+    if (prov.base_url && prov.base_url.includes("667")) return true;
   }
   return false;
 };

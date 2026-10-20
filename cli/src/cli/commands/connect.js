@@ -18,8 +18,8 @@ Usage: bansur-router connect <server-url> [options]
 Configure CLI tools on THIS machine to use a remote bansur-router server.
 No local server is started. Run without installing:
 
-  npx bansur-router connect http://<server-host>:20128
-  npx bansur-router connect http://<server-host>:20128 --tools claude,codex,opencode
+  npx bansur-router connect http://<server-host>:667
+  npx bansur-router connect http://<server-host>:667 --tools claude,codex,opencode
 
 Options:
   --tools <list>         Comma-separated tools to configure (prompted if omitted
@@ -45,8 +45,8 @@ Models come from the server's own CLI-tools config (set on its dashboard).
 Nothing is hardcoded: a Claude tier the server leaves unset is left unset,
 and a non-Claude tool with no model anywhere is skipped. Flags override:
 
-  npx bansur-router connect http://<server-host>:20128 --tools claude --sonnet cc/claude-sonnet-5-5
-  npx bansur-router connect http://<server-host>:20128 --tools codex,opencode --model ocg/deepseek-flash
+  npx bansur-router connect http://<server-host>:667 --tools claude --sonnet cc/claude-sonnet-5-5
+  npx bansur-router connect http://<server-host>:667 --tools codex,opencode --model ocg/deepseek-flash
 `;
 
 function parseArgs(argv) {

@@ -29,7 +29,7 @@ Set the base URL to your Bansur Router endpoint:
 
 **For Local Bansur Router:**
 ```
-http://localhost:20128/v1
+http://localhost:667/v1
 ```
 
 **For Cloud Bansur Router:**
@@ -70,7 +70,7 @@ Your Cline settings should look like this:
 
 ```
 API Provider: Ollama
-Base URL: http://localhost:20128/v1
+Base URL: http://localhost:667/v1
 API Key: sk-bansur-router-xxxxxxxxxxxxx
 Model: gpt-4
 ```
@@ -118,9 +118,9 @@ You can use any model configured in your Bansur Router dashboard. Common example
 
 ### "Connection Failed" Error
 
-1. Verify Bansur Router is running: `curl http://localhost:20128/health`
+1. Verify Bansur Router is running: `curl http://localhost:667/health`
 2. Check that the base URL is correct and includes `/v1`
-3. Ensure no firewall is blocking port 20128
+3. Ensure no firewall is blocking port 667
 4. Try restarting VSCode
 
 ### "Invalid API Key" Error

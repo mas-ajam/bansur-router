@@ -2,6 +2,11 @@
 
 All notable changes to Bansur Router will be documented in this file.
 
+## 1.0.4 (2026-10-20)
+
+- **Default port changed from 20128 to 667.** The old port was inherited from the upstream project; 667 is Bansur Router's own. This applies everywhere: the CLI (`bansur-router` now serves on http://localhost:667), the dashboard/API base URLs, OAuth callback, Docker image (`EXPOSE 667`), and docker-compose (`667:667`). Existing setups can keep any port with `--port` / `-p` or the `PORT` env var.
+- ⚠️ Linux/macOS note: 667 is a privileged port (<1024) — start the CLI with `sudo bansur-router` there, or pick an unprivileged port via `--port`. Windows and Docker are unaffected.
+
 ## 1.0.3 (2026-10-20)
 
 - **Fix: Antigravity, Gemini, and iFlow connections failing with "client_secret is missing".** The providers' OAuth client values — the same public values the upstream open-source project bundles — are embedded in the source again, so these providers connect out of the box. The `BANSUR_ROUTER_*_CLIENT_SECRET` / `BANSUR_ROUTER_WINDSURF_FIREBASE_API_KEY` environment variables remain available as optional overrides. Windsurf's Firebase API key is restored the same way.

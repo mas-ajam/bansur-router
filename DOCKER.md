@@ -10,14 +10,14 @@ Run Bansur Router in a container. Published image: [`bansur/router`](https://hub
 
 ```bash
 docker run -d \
-  -p 20128:20128 \
+  -p 667:667 \
   -v "$HOME/.bansur-router:/app/data" \
   -e DATA_DIR=/app/data \
   --name bansur-router \
   bansur/router:latest
 ```
 
-App listens on port `20128`. Open: http://localhost:20128
+App listens on port `667`. Open: http://localhost:667
 
 ## Manage container
 
@@ -54,10 +54,10 @@ Container path: `/app/data/db/data.sqlite`
 
 ```bash
 docker run -d \
-  -p 20128:20128 \
+  -p 667:667 \
   -v "$HOME/.bansur-router:/app/data" \
   -e DATA_DIR=/app/data \
-  -e PORT=20128 \
+  -e PORT=667 \
   -e HOSTNAME=0.0.0.0 \
   -e DEBUG=true \
   --name bansur-router \
@@ -73,7 +73,7 @@ services:
   bansur-router:
     image: bansur/router:latest
     ports:
-      - "20128:20128"
+      - "667:667"
     volumes:
       - "$HOME/.bansur-router:/app/data"
     environment:
@@ -115,7 +115,7 @@ docker pull bansur/router:0.5.81
 ```bash
 docker build -t bansur-router .
 
-docker run --rm -p 20128:20128 \
+docker run --rm -p 667:667 \
   -v "$HOME/.bansur-router:/app/data" \
   -e DATA_DIR=/app/data \
   bansur-router

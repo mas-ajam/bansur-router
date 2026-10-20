@@ -97,7 +97,7 @@ bansur-router
 ```
 
 **Qué sucede:**
-1. El servidor inicia en `http://localhost:20128`
+1. El servidor inicia en `http://localhost:667`
 2. El dashboard se abre automáticamente en el navegador
 3. Se crea el directorio de datos en `~/.bansur-router`
 4. API key generada automáticamente
@@ -132,7 +132,7 @@ Dashboard → Settings → API Keys
 ### Verifica el estado del servidor
 
 ```bash
-curl http://localhost:20128/health
+curl http://localhost:667/health
 ```
 
 **Respuesta esperada:**
@@ -146,7 +146,7 @@ curl http://localhost:20128/health
 ### Lista los modelos disponibles
 
 ```bash
-curl http://localhost:20128/v1/models \
+curl http://localhost:667/v1/models \
   -H "Authorization: Bearer your-api-key"
 ```
 
@@ -168,7 +168,7 @@ curl http://localhost:20128/v1/models \
 ### Prueba el chat completion
 
 ```bash
-curl http://localhost:20128/v1/chat/completions \
+curl http://localhost:667/v1/chat/completions \
   -H "Authorization: Bearer your-api-key" \
   -H "Content-Type: application/json" \
   -d '{
@@ -196,7 +196,7 @@ export INITIAL_PASSWORD="your-password"
 export DATA_DIR="~/.bansur-router"
 
 # Server
-export PORT="20128"
+export PORT="667"
 export NODE_ENV="production"
 
 # Logging
@@ -224,7 +224,7 @@ bansur-router
 
 ### Configuración de puerto
 
-**Puerto por defecto:** `20128`
+**Puerto por defecto:** `667`
 
 **Cambiar puerto:**
 
@@ -247,14 +247,14 @@ bansur-router --port 3000
 
 **Error:**
 ```
-Error: listen EADDRINUSE: address already in use :::20128
+Error: listen EADDRINUSE: address already in use :::667
 ```
 
 **Solución 1: Mata el proceso existente**
 
 ```bash
-# Encuentra proceso usando el puerto 20128
-lsof -i :20128
+# Encuentra proceso usando el puerto 667
+lsof -i :667
 
 # Mata el proceso
 kill -9 <PID>
@@ -310,7 +310,7 @@ nvm use 20
 **Solución 1: Abrir manualmente**
 
 ```
-http://localhost:20128
+http://localhost:667
 ```
 
 **Solución 2: Verifica el firewall**
@@ -404,7 +404,7 @@ pm2 startup
 docker pull bansur-router/bansur-router:latest
 
 docker run -d \
-  -p 20128:20128 \
+  -p 667:667 \
   -e JWT_SECRET="your-secure-secret" \
   -e INITIAL_PASSWORD="your-password" \
   -v bansur-router-data:/root/.bansur-router \
@@ -422,7 +422,7 @@ server {
     server_name your-domain.com;
 
     location / {
-        proxy_pass http://localhost:20128;
+        proxy_pass http://localhost:667;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection 'upgrade';

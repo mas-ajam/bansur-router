@@ -13,13 +13,13 @@ Connect all your AI coding tools (Claude Code, Cursor, Antigravity, Copilot, Cod
 ```bash
 docker run -d \
   --name bansur-router \
-  -p 20128:20128 \
+  -p 667:667 \
   -v "$HOME/.bansur-router:/app/data" \
   -e DATA_DIR=/app/data \
   bansur/router:latest
 ```
 
-Then open the dashboard at **http://localhost:20128** and point your tools at `http://localhost:20128/v1`.
+Then open the dashboard at **http://localhost:667** and point your tools at `http://localhost:667/v1`.
 
 Multi-platform image: `linux/amd64` + `linux/arm64`.
 

@@ -32,7 +32,7 @@ const checkCodewhaleInstalled = async () => {
 
 const hasBansurRouterConfig = (content) => {
   if (!content) return false;
-  return content.includes("managed by Bansur Router") || content.includes("localhost:20128");
+  return content.includes("managed by Bansur Router") || content.includes("localhost:667");
 };
 
 const readConfig = async () => {

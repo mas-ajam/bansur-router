@@ -46,7 +46,7 @@ const readModelsYml = async () => {
 
 const hasBansurRouterInYml = (content) => {
   if (!content) return false;
-  return content.includes("bansur-router:") || content.includes("localhost:20128");
+  return content.includes("bansur-router:") || content.includes("localhost:667");
 };
 
 // Build standard Bansur Router provider block for models.yml
