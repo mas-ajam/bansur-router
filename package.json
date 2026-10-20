@@ -1,6 +1,6 @@
 {
   "name": "bansur-router-app",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "Bansur Router web dashboard",
   "private": true,
   "scripts": {
