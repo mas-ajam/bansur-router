@@ -16,7 +16,7 @@
 ### 步骤 1:克隆仓库
 
 ```bash
-git clone https://github.com/bansur/router.git
+git clone https://github.com/mas-ajam/bansur-router.git
 cd bansur-router/app
 ```
 

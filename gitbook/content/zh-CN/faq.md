@@ -172,7 +172,7 @@ Cursor Settings → Models → Advanced:
 **替代方案:** 在 VPS 上自托管,使用公开域名:
 ```bash
 # 部署到 VPS
-git clone https://github.com/bansur/router.git
+git clone https://github.com/mas-ajam/bansur-router.git
 cd bansur-router/app
 npm install && npm run build
 npm start
@@ -206,7 +206,7 @@ bansur-router
 
 ### VPS/云
 ```bash
-git clone https://github.com/bansur/router.git
+git clone https://github.com/mas-ajam/bansur-router.git
 cd bansur-router/app
 npm install && npm run build
 
@@ -316,7 +316,7 @@ bansur-router --version
 ```
 
 **破坏性变更:**
-- 查看 [CHANGELOG.md](https://github.com/bansur/router/blob/main/CHANGELOG.md)
+- 查看 [CHANGELOG.md](https://github.com/mas-ajam/bansur-router/blob/main/CHANGELOG.md)
 - 大版本更新前备份 `~/.bansur-router`
 - 阅读大版本的迁移指南
 
@@ -329,11 +329,11 @@ bansur-router --version
 ### 贡献方式:
 
 1. **报告 bug:**
-   - [GitHub Issues](https://github.com/bansur/router/issues)
+   - [GitHub Issues](https://github.com/mas-ajam/bansur-router/issues)
    - 附上错误日志、复现步骤
 
 2. **功能请求:**
-   - [GitHub Discussions](https://github.com/bansur/router/discussions)
+   - [GitHub Discussions](https://github.com/mas-ajam/bansur-router/discussions)
    - 描述使用场景和价值
 
 3. **提交代码:**
@@ -375,13 +375,13 @@ bansur-router --version
 - 更新文档
 - 提交保持原子化、描述清晰
 
-详情见 [CONTRIBUTING.md](https://github.com/bansur/router/blob/main/CONTRIBUTING.md)。
+详情见 [CONTRIBUTING.md](https://github.com/mas-ajam/bansur-router/blob/main/CONTRIBUTING.md)。
 
 ---
 
 ## 需要更多帮助?
 
 - **文档:** [bansur-router.pages.dev/docs](https://bansur-router.pages.dev/docs)
-- **GitHub:** [github.com/bansur/router](https://github.com/bansur/router)
-- **Issues:** [github.com/bansur/router/issues](https://github.com/bansur/router/issues)
+- **GitHub:** [github.com/mas-ajam/bansur-router](https://github.com/mas-ajam/bansur-router)
+- **Issues:** [github.com/mas-ajam/bansur-router/issues](https://github.com/mas-ajam/bansur-router/issues)
 - **故障排除:** [troubleshooting.md](troubleshooting.md)

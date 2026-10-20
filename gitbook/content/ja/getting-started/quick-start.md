@@ -243,5 +243,5 @@ CLIで使用: premium-coding
 ## ヘルプが必要?
 
 - **ウェブサイト**: [bansur-router.pages.dev](https://bansur-router.pages.dev)
-- **GitHub**: [github.com/bansur/router](https://github.com/bansur/router)
-- **Issues**: [github.com/bansur/router/issues](https://github.com/bansur/router/issues)
+- **GitHub**: [github.com/mas-ajam/bansur-router](https://github.com/mas-ajam/bansur-router)
+- **Issues**: [github.com/mas-ajam/bansur-router/issues](https://github.com/mas-ajam/bansur-router/issues)

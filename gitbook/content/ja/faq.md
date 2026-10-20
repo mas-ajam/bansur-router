@@ -172,7 +172,7 @@ Cursor Settings → Models → Advanced:
 **代替案:** パブリックドメインでVPSにセルフホスト:
 ```bash
 # VPSへデプロイ
-git clone https://github.com/bansur/router.git
+git clone https://github.com/mas-ajam/bansur-router.git
 cd bansur-router/app
 npm install && npm run build
 npm start
@@ -206,7 +206,7 @@ bansur-router
 
 ### VPS/クラウド
 ```bash
-git clone https://github.com/bansur/router.git
+git clone https://github.com/mas-ajam/bansur-router.git
 cd bansur-router/app
 npm install && npm run build
 
@@ -316,7 +316,7 @@ bansur-router --version
 ```
 
 **破壊的変更:**
-- [CHANGELOG.md](https://github.com/bansur/router/blob/main/CHANGELOG.md)を確認
+- [CHANGELOG.md](https://github.com/mas-ajam/bansur-router/blob/main/CHANGELOG.md)を確認
 - メジャー更新前に`~/.bansur-router`をバックアップ
 - メジャーバージョンの移行ガイドを確認
 
@@ -329,11 +329,11 @@ bansur-router --version
 ### 貢献方法:
 
 1. **バグを報告:**
-   - [GitHub Issues](https://github.com/bansur/router/issues)
+   - [GitHub Issues](https://github.com/mas-ajam/bansur-router/issues)
    - エラーログ、再現手順を含める
 
 2. **機能をリクエスト:**
-   - [GitHub Discussions](https://github.com/bansur/router/discussions)
+   - [GitHub Discussions](https://github.com/mas-ajam/bansur-router/discussions)
    - ユースケースと利点を説明
 
 3. **コードを提出:**
@@ -375,13 +375,13 @@ bansur-router --version
 - ドキュメントを更新
 - コミットは小さく、わかりやすく
 
-詳細は[CONTRIBUTING.md](https://github.com/bansur/router/blob/main/CONTRIBUTING.md)を参照。
+詳細は[CONTRIBUTING.md](https://github.com/mas-ajam/bansur-router/blob/main/CONTRIBUTING.md)を参照。
 
 ---
 
 ## さらにヘルプが必要?
 
 - **ドキュメント:** [bansur-router.pages.dev/docs](https://bansur-router.pages.dev/docs)
-- **GitHub:** [github.com/bansur/router](https://github.com/bansur/router)
-- **Issues:** [github.com/bansur/router/issues](https://github.com/bansur/router/issues)
+- **GitHub:** [github.com/mas-ajam/bansur-router](https://github.com/mas-ajam/bansur-router)
+- **Issues:** [github.com/mas-ajam/bansur-router/issues](https://github.com/mas-ajam/bansur-router/issues)
 - **トラブルシューティング:** [troubleshooting.md](troubleshooting.md)

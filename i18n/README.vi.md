@@ -9,7 +9,7 @@
   
   [![npm](https://img.shields.io/npm/v/bansur-router.svg)](https://www.npmjs.com/package/bansur-router)
   [![Downloads](https://img.shields.io/npm/dm/bansur-router.svg)](https://www.npmjs.com/package/bansur-router)
-  [![License](https://github.com/bansur/router/blob/main/LICENSE)](https://github.com/bansur/router/blob/main/LICENSE)
+  [![License](https://github.com/mas-ajam/bansur-router/blob/main/LICENSE)](https://github.com/mas-ajam/bansur-router/blob/main/LICENSE)
   
   [🚀 Bắt đầu nhanh](#-quick-start) • [💡 Tính năng](#-key-features) • [📖 Cài đặt](#-setup-guide) • [🌐 Website](https://bansur-router.pages.dev)
 </div>
@@ -945,7 +945,7 @@ Model: cc/claude-opus-4-6
 
 ```bash
 # Clone và cài đặt
-git clone https://github.com/bansur/router.git
+git clone https://github.com/mas-ajam/bansur-router.git
 cd bansur-router
 npm install
 npm run build
@@ -1256,8 +1256,8 @@ Tài liệu tham khảo kiến trúc đầy đủ: [`docs/ARCHITECTURE.md`](../d
 ## 📧 Hỗ trợ
 
 - **Website**: [bansur-router.pages.dev](https://bansur-router.pages.dev)
-- **GitHub**: [github.com/bansur/router](https://github.com/bansur/router)
-- **Issues**: [github.com/bansur/router/issues](https://github.com/bansur/router/issues)
+- **GitHub**: [github.com/mas-ajam/bansur-router](https://github.com/mas-ajam/bansur-router)
+- **Issues**: [github.com/mas-ajam/bansur-router/issues](https://github.com/mas-ajam/bansur-router/issues)
 
 ---
 
@@ -1265,13 +1265,13 @@ Tài liệu tham khảo kiến trúc đầy đủ: [`docs/ARCHITECTURE.md`](../d
 
 Cảm ơn tất cả những người đã đóng góp giúp Bansur Router tốt hơn!
 
-[![Contributors](https://contrib.rocks/image?repo=bansur/router&max=100&columns=20&anon=1)](https://github.com/bansur/router/graphs/contributors)
+[![Contributors](https://contrib.rocks/image?repo=mas-ajam/bansur-router&max=100&columns=20&anon=1)](https://github.com/mas-ajam/bansur-router/graphs/contributors)
 
 ---
 
 ## 📊 Star Chart
 
-[![ Chart](https://starchart.cc/bansur/router.svg?variant=adaptive)](https://starchart.cc/bansur/router)
+[![ Chart](https://starchart.cc/mas-ajam/bansur-router.svg?variant=adaptive)](https://starchart.cc/mas-ajam/bansur-router)
 
 ### Cách Đóng góp
 
@@ -1281,7 +1281,7 @@ Cảm ơn tất cả những người đã đóng góp giúp Bansur Router tốt
 4. Push lên nhánh (`git push origin feature/amazing-feature`)
 5. Mở một Pull Request
 
-Xem [Pull Requests](https://github.com/bansur/router/pulls) để biết hướng dẫn chi tiết.
+Xem [Pull Requests](https://github.com/mas-ajam/bansur-router/pulls) để biết hướng dẫn chi tiết.
 
 ---
 

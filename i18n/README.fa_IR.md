@@ -10,8 +10,8 @@
   [![npm](https://img.shields.io/npm/v/bansur-router.svg)](https://www.npmjs.com/package/bansur-router)
   [![Downloads](https://img.shields.io/npm/dm/bansur-router.svg)](https://www.npmjs.com/package/bansur-router)
   [![Docker Pulls](https://img.shields.io/docker/pulls/bansur/router.svg?logo=docker&label=Docker%20pulls)](https://hub.docker.com/r/bansur/router)
-  [![GHCR](https://img.shields.io/badge/GHCR-bansur%2Frouter-blue?logo=github)](https://github.com/bansur/router/pkgs/container/router)
-  [![License](https://img.shields.io/npm/l/bansur-router.svg)](https://github.com/bansur/router/blob/main/LICENSE)
+  [![GHCR](https://img.shields.io/badge/GHCR-mas-ajam%2Fbansur-router-blue?logo=github)](https://github.com/mas-ajam/bansur-router/pkgs/container/bansur-router)
+  [![License](https://img.shields.io/npm/l/bansur-router.svg)](https://github.com/mas-ajam/bansur-router/blob/main/LICENSE)
 
 
 [🚀 شروع سریع](#-شروع-سریع) • [💡 ویژگی‌ها](#-ویژگی‌های-کلیدی) • [📖 راه‌اندازی](#-راهنمای-راه‌اندازی) • [🌐 وب‌سایت](https://bansur-router.pages.dev)
@@ -212,7 +212,7 @@ PORT=20128 HOSTNAME=0.0.0.0 NEXT_PUBLIC_BASE_URL=http://localhost:20128 npm run 
 
 </div>
 
-> 🎬 **درباره Bansur Router ویدیو ساخته‌اید؟** یک [درخواست Pull](https://github.com/bansur/router/pulls) برای افزودن ویدیوی خود به این بخش ارسال کنید — ما آن را ادغام خواهیم کرد!
+> 🎬 **درباره Bansur Router ویدیو ساخته‌اید؟** یک [درخواست Pull](https://github.com/mas-ajam/bansur-router/pulls) برای افزودن ویدیوی خود به این بخش ارسال کنید — ما آن را ادغام خواهیم کرد!
 
 ---
 
@@ -1124,7 +1124,7 @@ codex "your prompt"
 
 ```bash
 # کلون و نصب
-git clone https://github.com/bansur/router.git
+git clone https://github.com/mas-ajam/bansur-router.git
 cd bansur-router
 npm install
 npm run build
@@ -1156,7 +1156,7 @@ pm2 startup
 تصاویر منتشر شده (چند پلتفرم `linux/amd64` + `linux/arm64`):
 
 - Docker Hub: [`bansur/router`](https://hub.docker.com/r/bansur/router)
-- GHCR: [`ghcr.io/bansur/router`](https://github.com/bansur/router/pkgs/container/router)
+- GHCR: [`ghcr.io/mas-ajam/bansur-router`](https://github.com/mas-ajam/bansur-router/pkgs/container/bansur-router)
 
 **شروع سریع (استفاده از تصویر منتشر شده):**
 
@@ -1174,7 +1174,7 @@ docker run -d \
 **ساخت از سورس (توسعه):**
 
 ```bash
-git clone https://github.com/bansur/router.git
+git clone https://github.com/mas-ajam/bansur-router.git
 cd bansur-router/app
 docker build -t bansur-router .
 docker run -d --name bansur-router -p 20128:20128 \
@@ -1394,8 +1394,8 @@ Authorization: Bearer your-api-key
 ## 📧 پشتیبانی
 
 - **وب‌سایت**: [bansur-router.pages.dev](https://bansur-router.pages.dev)
-- **GitHub**: [github.com/bansur/router](https://github.com/bansur/router)
-- **مسائل**: [github.com/bansur/router/issues](https://github.com/bansur/router/issues)
+- **GitHub**: [github.com/mas-ajam/bansur-router](https://github.com/mas-ajam/bansur-router)
+- **مسائل**: [github.com/mas-ajam/bansur-router/issues](https://github.com/mas-ajam/bansur-router/issues)
 
 ---
 
@@ -1403,13 +1403,13 @@ Authorization: Bearer your-api-key
 
 با تشکر از همه مشارکت‌کنندگانی که به بهتر شدن Bansur Router کمک کردند!
 
-[![Contributors](https://contrib.rocks/image?repo=bansur/router&max=150&columns=15&anon=1&v=20260309)](https://github.com/bansur/router/graphs/contributors)
+[![Contributors](https://contrib.rocks/image?repo=mas-ajam/bansur-router&max=150&columns=15&anon=1&v=20260309)](https://github.com/mas-ajam/bansur-router/graphs/contributors)
 
 ---
 
 ## 📊 نمودار ستاره
 
-[![Star Chart](https://starchart.cc/bansur/router.svg?variant=adaptive)](https://starchart.cc/bansur/router)
+[![Star Chart](https://starchart.cc/mas-ajam/bansur-router.svg?variant=adaptive)](https://starchart.cc/mas-ajam/bansur-router)
 
 ## 🔀 فورک‌ها
 

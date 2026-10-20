@@ -9,7 +9,7 @@ export const APP_CONFIG = {
 
 // GitHub configuration
 export const GITHUB_CONFIG = {
-  changelogUrl: "https://raw.githubusercontent.com/bansur/router/refs/heads/master/CHANGELOG.md",
+  changelogUrl: "https://raw.githubusercontent.com/mas-ajam/bansur-router/refs/heads/master/CHANGELOG.md",
   donateUrl: "https://bansur-router.pages.dev/api/donate",
 };
 

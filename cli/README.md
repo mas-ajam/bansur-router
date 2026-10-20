@@ -7,11 +7,11 @@
 [![npm](https://img.shields.io/npm/v/bansur-router.svg)](https://www.npmjs.com/package/bansur-router)
 [![Downloads](https://img.shields.io/npm/dm/bansur-router.svg)](https://www.npmjs.com/package/bansur-router)
 [![Docker Pulls](https://img.shields.io/docker/pulls/bansur/router.svg?logo=docker&label=Docker%20pulls)](https://hub.docker.com/r/bansur/router)
-[![GHCR](https://img.shields.io/badge/GHCR-bansur%2Frouter-blue?logo=github)](https://github.com/bansur/router/pkgs/container/router)
-[![License](https://img.shields.io/npm/l/bansur-router.svg)](https://github.com/bansur/router/blob/main/LICENSE)
+[![GHCR](https://img.shields.io/badge/GHCR-mas-ajam%2Fbansur-router-blue?logo=github)](https://github.com/mas-ajam/bansur-router/pkgs/container/bansur-router)
+[![License](https://img.shields.io/npm/l/bansur-router.svg)](https://github.com/mas-ajam/bansur-router/blob/main/LICENSE)
 
 
-[🌐 Website](https://bansur-router.pages.dev) • [📖 Full Docs](https://github.com/bansur/router)
+[🌐 Website](https://bansur-router.pages.dev) • [📖 Full Docs](https://github.com/mas-ajam/bansur-router)
 
 ---
 
@@ -54,7 +54,7 @@ docker run -d --name bansur-router -p 20128:20128 \
   bansur/router:latest
 ```
 
-Published images: [Docker Hub](https://hub.docker.com/r/bansur/router) • [GHCR](https://github.com/bansur/router/pkgs/container/router) (multi-platform amd64/arm64).
+Published images: [Docker Hub](https://hub.docker.com/r/bansur/router) • [GHCR](https://github.com/mas-ajam/bansur-router/pkgs/container/bansur-router) (multi-platform amd64/arm64).
 
 🎉 Dashboard opens at `http://localhost:20128`
 
@@ -199,8 +199,8 @@ Any tool supporting OpenAI/Claude-compatible API works.
 
 Full docs, advanced setup, video tutorials & development guide:
 
-- **GitHub**: https://github.com/bansur/router
-- **Full README**: https://github.com/bansur/router/blob/master/README.md
+- **GitHub**: https://github.com/mas-ajam/bansur-router
+- **Full README**: https://github.com/mas-ajam/bansur-router/blob/master/README.md
 - **Website**: https://bansur-router.pages.dev
 
 ---

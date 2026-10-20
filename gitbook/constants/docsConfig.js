@@ -237,6 +237,6 @@ export const DOCS_CONFIG = {
   description: "Smart AI model router - Maximize subscriptions, minimize costs",
   logo: "Bansur Router",
   appUrl: "https://bansur-router.pages.dev",
-  githubUrl: "https://github.com/bansur/router",
+  githubUrl: "https://github.com/mas-ajam/bansur-router",
   navigation: getNavigation(DEFAULT_LANG)
 };

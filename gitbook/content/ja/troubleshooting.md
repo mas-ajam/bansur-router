@@ -346,6 +346,6 @@ Bansur Router利用時の一般的な問題と解決策。
 
 ## さらにヘルプが必要?
 
-- **GitHub Issues:** [github.com/bansur/router/issues](https://github.com/bansur/router/issues)
+- **GitHub Issues:** [github.com/mas-ajam/bansur-router/issues](https://github.com/mas-ajam/bansur-router/issues)
 - **ドキュメント:** [bansur-router.pages.dev/docs](https://bansur-router.pages.dev/docs)
 - **FAQ:** [faq.md](faq.md)

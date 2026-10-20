@@ -346,6 +346,6 @@
 
 ## 需要更多帮助?
 
-- **GitHub Issues:** [github.com/bansur/router/issues](https://github.com/bansur/router/issues)
+- **GitHub Issues:** [github.com/mas-ajam/bansur-router/issues](https://github.com/mas-ajam/bansur-router/issues)
 - **文档:** [bansur-router.pages.dev/docs](https://bansur-router.pages.dev/docs)
 - **常见问题:** [faq.md](faq.md)

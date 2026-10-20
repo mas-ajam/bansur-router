@@ -16,7 +16,7 @@
 ### ステップ1: リポジトリをクローン
 
 ```bash
-git clone https://github.com/bansur/router.git
+git clone https://github.com/mas-ajam/bansur-router.git
 cd bansur-router/app
 ```
 

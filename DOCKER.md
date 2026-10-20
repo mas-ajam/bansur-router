@@ -134,7 +134,7 @@ docker build \
 
 Push a Docker-safe semver git tag `vX.Y.Z` (or a prerelease such as `vX.Y.Z-rc.1`) → GitHub Actions builds `linux/amd64` and `linux/arm64` on native runners, health-checks each platform image, verifies the resulting manifest and `/api/health`, then publishes:
 
-- `ghcr.io/bansur/router:X.Y.Z` + `:latest`
+- `ghcr.io/mas-ajam/bansur-router:X.Y.Z` + `:latest`
 - `bansur/router:X.Y.Z` + `:latest`
 
 The `v` prefix is used only for the git tag; image tags omit it. A stable tag push promotes `latest`, but a prerelease tag such as `vX.Y.Z-rc.1` publishes only its numbered image by default. Prereleases require an explicit manual `promote_latest` opt-in. Promotion happens only after both native platform builds, both platform health checks, manifest inspection, and the resolved-manifest smoke test succeed. A failed or timed-out platform build therefore cannot move `latest`.

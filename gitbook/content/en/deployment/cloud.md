@@ -16,7 +16,7 @@ Deploy Bansur Router on VPS or Docker for remote access and production use.
 ### Step 1: Clone Repository
 
 ```bash
-git clone https://github.com/bansur/router.git
+git clone https://github.com/mas-ajam/bansur-router.git
 cd bansur-router/app
 ```
 

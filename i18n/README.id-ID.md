@@ -9,7 +9,7 @@
 
   [![npm](https://img.shields.io/npm/v/bansur-router.svg)](https://www.npmjs.com/package/bansur-router)
   [![Downloads](https://img.shields.io/npm/dm/bansur-router.svg)](https://www.npmjs.com/package/bansur-router)
-  [![License](https://img.shields.io/npm/l/bansur-router.svg)](https://github.com/bansur/router/blob/main/LICENSE)
+  [![License](https://img.shields.io/npm/l/bansur-router.svg)](https://github.com/mas-ajam/bansur-router/blob/main/LICENSE)
 
   [🚀 Mulai Cepat](#-mulai-cepat) • [💡 Fitur](#-fitur-utama) • [📖 Setup](#-panduan-setup) • [🌐 Website](https://bansur-router.pages.dev)
 
@@ -876,7 +876,7 @@ docker run -d \
   -v bansur-router-data:/app/data \
   -e PORT=20128 \
   -e BASE_URL=http://localhost:20128 \
-  ghcr.io/bansur/router:latest
+  ghcr.io/mas-ajam/bansur-router:latest
 ```
 
 Dashboard: `http://localhost:20128/dashboard`
@@ -938,14 +938,14 @@ Kontribusi sangat diterima!
 
 ## 📄 Lisensi
 
-MIT License — lihat [LICENSE](https://github.com/bansur/router/blob/main/LICENSE) untuk detailnya.
+MIT License — lihat [LICENSE](https://github.com/mas-ajam/bansur-router/blob/main/LICENSE) untuk detailnya.
 
 ---
 
 <div align="center">
 
-**Kalau Bansur Router membantumu, kasih ⭐ di [GitHub](https://github.com/bansur/router)!**
+**Kalau Bansur Router membantumu, kasih ⭐ di [GitHub](https://github.com/mas-ajam/bansur-router)!**
 
-[🌐 Website](https://bansur-router.pages.dev) • [📦 npm](https://www.npmjs.com/package/bansur-router) • [🐛 Laporkan Bug](https://github.com/bansur/router/issues)
+[🌐 Website](https://bansur-router.pages.dev) • [📦 npm](https://www.npmjs.com/package/bansur-router) • [🐛 Laporkan Bug](https://github.com/mas-ajam/bansur-router/issues)
 
 </div>

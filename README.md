@@ -10,8 +10,8 @@
   [![npm](https://img.shields.io/npm/v/bansur-router.svg)](https://www.npmjs.com/package/bansur-router)
   [![Downloads](https://img.shields.io/npm/dm/bansur-router.svg)](https://www.npmjs.com/package/bansur-router)
   [![Docker Pulls](https://img.shields.io/docker/pulls/bansur/router.svg?logo=docker&label=Docker%20pulls)](https://hub.docker.com/r/bansur/router)
-  [![GHCR](https://img.shields.io/badge/GHCR-bansur%2Frouter-blue?logo=github)](https://github.com/bansur/router/pkgs/container/router)
-  [![License](https://img.shields.io/npm/l/bansur-router.svg)](https://github.com/bansur/router/blob/main/LICENSE)
+  [![GHCR](https://img.shields.io/badge/GHCR-mas-ajam%2Fbansur-router-blue?logo=github)](https://github.com/mas-ajam/bansur-router/pkgs/container/bansur-router)
+  [![License](https://img.shields.io/npm/l/bansur-router.svg)](https://github.com/mas-ajam/bansur-router/blob/main/LICENSE)
 
 
 [🚀 Quick Start](#-quick-start) • [💡 Features](#-key-features) • [📖 Setup](#-setup-guide) • [🌐 Website](https://bansur-router.pages.dev)
@@ -244,7 +244,7 @@ Default URLs:
 
 </div>
 
-> 🎬 **Made a video about Bansur Router?** Submit a [Pull Request](https://github.com/bansur/router/pulls) adding your video to this section — we'll merge it!
+> 🎬 **Made a video about Bansur Router?** Submit a [Pull Request](https://github.com/mas-ajam/bansur-router/pulls) adding your video to this section — we'll merge it!
 
 ---
 
@@ -1248,7 +1248,7 @@ Model: cc/claude-opus-4-7
 
 ```bash
 # Clone and install
-git clone https://github.com/bansur/router.git
+git clone https://github.com/mas-ajam/bansur-router.git
 cd bansur-router
 npm install
 npm run build
@@ -1280,7 +1280,7 @@ pm2 startup
 Published images (multi-platform `linux/amd64` + `linux/arm64`):
 
 - Docker Hub: [`bansur/router`](https://hub.docker.com/r/bansur/router)
-- GHCR: [`ghcr.io/bansur/router`](https://github.com/bansur/router/pkgs/container/router)
+- GHCR: [`ghcr.io/mas-ajam/bansur-router`](https://github.com/mas-ajam/bansur-router/pkgs/container/bansur-router)
 
 **Quick start (use published image):**
 
@@ -1298,7 +1298,7 @@ docker run -d \
 **Build from source (dev):**
 
 ```bash
-git clone https://github.com/bansur/router.git
+git clone https://github.com/mas-ajam/bansur-router.git
 cd bansur-router/app
 docker build -t bansur-router .
 docker run -d --name bansur-router -p 20128:20128 \
@@ -1518,8 +1518,8 @@ Authorization: Bearer your-api-key
 ## 📧 Support
 
 - **Website**: [bansur-router.pages.dev](https://bansur-router.pages.dev)
-- **GitHub**: [github.com/bansur/router](https://github.com/bansur/router)
-- **Issues**: [github.com/bansur/router/issues](https://github.com/bansur/router/issues)
+- **GitHub**: [github.com/mas-ajam/bansur-router](https://github.com/mas-ajam/bansur-router)
+- **Issues**: [github.com/mas-ajam/bansur-router/issues](https://github.com/mas-ajam/bansur-router/issues)
 
 ---
 
@@ -1527,13 +1527,13 @@ Authorization: Bearer your-api-key
 
 Thanks to all contributors who helped make Bansur Router better!
 
-[![Contributors](https://contrib.rocks/image?repo=bansur/router&max=150&columns=15&anon=1&v=20260309)](https://github.com/bansur/router/graphs/contributors)
+[![Contributors](https://contrib.rocks/image?repo=mas-ajam/bansur-router&max=150&columns=15&anon=1&v=20260309)](https://github.com/mas-ajam/bansur-router/graphs/contributors)
 
 ---
 
 ## 📊 Star Chart
 
-[![Star Chart](https://starchart.cc/bansur/router.svg?variant=adaptive)](https://starchart.cc/bansur/router)
+[![Star Chart](https://starchart.cc/mas-ajam/bansur-router.svg?variant=adaptive)](https://starchart.cc/mas-ajam/bansur-router)
 
 ## 🔀 Forks
 

@@ -46,13 +46,13 @@ When the user needs a specific capability, fetch that skill's `SKILL.md` from it
 
 | Capability | Raw URL |
 |---|---|
-| Chat / code-gen | https://raw.githubusercontent.com/bansur/router/refs/heads/master/skills/bansur-router-chat/SKILL.md |
-| Image generation | https://raw.githubusercontent.com/bansur/router/refs/heads/master/skills/bansur-router-image/SKILL.md |
-| Text-to-speech | https://raw.githubusercontent.com/bansur/router/refs/heads/master/skills/bansur-router-tts/SKILL.md |
-| Speech-to-text | https://raw.githubusercontent.com/bansur/router/refs/heads/master/skills/bansur-router-stt/SKILL.md |
-| Embeddings | https://raw.githubusercontent.com/bansur/router/refs/heads/master/skills/bansur-router-embeddings/SKILL.md |
-| Web search | https://raw.githubusercontent.com/bansur/router/refs/heads/master/skills/bansur-router-web-search/SKILL.md |
-| Web fetch (URL → markdown) | https://raw.githubusercontent.com/bansur/router/refs/heads/master/skills/bansur-router-web-fetch/SKILL.md |
+| Chat / code-gen | https://raw.githubusercontent.com/mas-ajam/bansur-router/refs/heads/master/skills/bansur-router-chat/SKILL.md |
+| Image generation | https://raw.githubusercontent.com/mas-ajam/bansur-router/refs/heads/master/skills/bansur-router-image/SKILL.md |
+| Text-to-speech | https://raw.githubusercontent.com/mas-ajam/bansur-router/refs/heads/master/skills/bansur-router-tts/SKILL.md |
+| Speech-to-text | https://raw.githubusercontent.com/mas-ajam/bansur-router/refs/heads/master/skills/bansur-router-stt/SKILL.md |
+| Embeddings | https://raw.githubusercontent.com/mas-ajam/bansur-router/refs/heads/master/skills/bansur-router-embeddings/SKILL.md |
+| Web search | https://raw.githubusercontent.com/mas-ajam/bansur-router/refs/heads/master/skills/bansur-router-web-search/SKILL.md |
+| Web fetch (URL → markdown) | https://raw.githubusercontent.com/mas-ajam/bansur-router/refs/heads/master/skills/bansur-router-web-fetch/SKILL.md |
 
 ## Errors
 

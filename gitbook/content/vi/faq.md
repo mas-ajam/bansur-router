@@ -172,7 +172,7 @@ Cursor Settings → Models → Advanced:
 **Thay thế:** Self-host trên VPS với domain công khai:
 ```bash
 # Deploy to VPS
-git clone https://github.com/bansur/router.git
+git clone https://github.com/mas-ajam/bansur-router.git
 cd bansur-router/app
 npm install && npm run build
 npm start
@@ -206,7 +206,7 @@ bansur-router
 
 ### VPS/Cloud
 ```bash
-git clone https://github.com/bansur/router.git
+git clone https://github.com/mas-ajam/bansur-router.git
 cd bansur-router/app
 npm install && npm run build
 
@@ -316,7 +316,7 @@ bansur-router --version
 ```
 
 **Breaking changes:**
-- Xem [CHANGELOG.md](https://github.com/bansur/router/blob/main/CHANGELOG.md)
+- Xem [CHANGELOG.md](https://github.com/mas-ajam/bansur-router/blob/main/CHANGELOG.md)
 - Backup `~/.bansur-router` trước khi update lớn
 - Xem hướng dẫn migration cho major version
 
@@ -329,11 +329,11 @@ bansur-router --version
 ### Các cách đóng góp:
 
 1. **Report bugs:**
-   - [GitHub Issues](https://github.com/bansur/router/issues)
+   - [GitHub Issues](https://github.com/mas-ajam/bansur-router/issues)
    - Bao gồm error logs, các bước reproduce
 
 2. **Request features:**
-   - [GitHub Discussions](https://github.com/bansur/router/discussions)
+   - [GitHub Discussions](https://github.com/mas-ajam/bansur-router/discussions)
    - Mô tả use case và lợi ích
 
 3. **Submit code:**
@@ -375,13 +375,13 @@ bansur-router --version
 - Cập nhật tài liệu
 - Giữ commit nhỏ gọn và mô tả rõ ràng
 
-Xem [CONTRIBUTING.md](https://github.com/bansur/router/blob/main/CONTRIBUTING.md) để biết chi tiết.
+Xem [CONTRIBUTING.md](https://github.com/mas-ajam/bansur-router/blob/main/CONTRIBUTING.md) để biết chi tiết.
 
 ---
 
 ## Cần trợ giúp thêm?
 
 - **Documentation:** [bansur-router.pages.dev/docs](https://bansur-router.pages.dev/docs)
-- **GitHub:** [github.com/bansur/router](https://github.com/bansur/router)
-- **Issues:** [github.com/bansur/router/issues](https://github.com/bansur/router/issues)
+- **GitHub:** [github.com/mas-ajam/bansur-router](https://github.com/mas-ajam/bansur-router)
+- **Issues:** [github.com/mas-ajam/bansur-router/issues](https://github.com/mas-ajam/bansur-router/issues)
 - **Troubleshooting:** [troubleshooting.md](troubleshooting.md)

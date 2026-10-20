@@ -74,7 +74,7 @@ npx bansur-router
 Clona y compila desde GitHub:
 
 ```bash
-git clone https://github.com/bansur/router.git
+git clone https://github.com/mas-ajam/bansur-router.git
 cd bansur-router/app
 npm install
 npm run build
@@ -474,5 +474,5 @@ nano ~/.bashrc  # o ~/.zshrc
 ## ¿Necesitas ayuda?
 
 - **Sitio web**: [bansur-router.pages.dev](https://bansur-router.pages.dev)
-- **GitHub**: [github.com/bansur/router](https://github.com/bansur/router)
-- **Issues**: [github.com/bansur/router/issues](https://github.com/bansur/router/issues)
+- **GitHub**: [github.com/mas-ajam/bansur-router](https://github.com/mas-ajam/bansur-router)
+- **Issues**: [github.com/mas-ajam/bansur-router/issues](https://github.com/mas-ajam/bansur-router/issues)

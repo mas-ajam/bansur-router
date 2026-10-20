@@ -10,7 +10,7 @@
   
   [![npm](https://img.shields.io/npm/v/bansur-router.svg)](https://www.npmjs.com/package/bansur-router)
   [![Downloads](https://img.shields.io/npm/dm/bansur-router.svg)](https://www.npmjs.com/package/bansur-router)
-  [![License](https://img.shields.io/npm/l/bansur-router.svg)](https://github.com/bansur/router/blob/main/LICENSE)
+  [![License](https://img.shields.io/npm/l/bansur-router.svg)](https://github.com/mas-ajam/bansur-router/blob/main/LICENSE)
 
   
   [🚀 快速开始](#-快速开始) • [💡 功能特点](#-主要功能) • [📖 设置指南](#-设置指南) • [🌐 网站](https://bansur-router.pages.dev)
@@ -172,7 +172,7 @@ PORT=20128 HOSTNAME=0.0.0.0 NEXT_PUBLIC_BASE_URL=http://localhost:20128 npm run 
 
 </div>
 
-> 🎬 **制作了关于 Bansur Router 的视频？** 提交 [Pull Request](https://github.com/bansur/router/pulls)，将你的视频添加到此部分 — 我们会合并它！
+> 🎬 **制作了关于 Bansur Router 的视频？** 提交 [Pull Request](https://github.com/mas-ajam/bansur-router/pulls)，将你的视频添加到此部分 — 我们会合并它！
 
 ---
 
@@ -1021,7 +1021,7 @@ Model：cc/claude-opus-4-7
 
 ```bash
 # 克隆并安装
-git clone https://github.com/bansur/router.git
+git clone https://github.com/mas-ajam/bansur-router.git
 cd bansur-router
 npm install
 npm run build
@@ -1266,8 +1266,8 @@ Authorization: Bearer your-api-key
 ## 📧 支持
 
 - **网站**：[bansur-router.pages.dev](https://bansur-router.pages.dev)
-- **GitHub**：[github.com/bansur/router](https://github.com/bansur/router)
-- **问题**：[github.com/bansur/router/issues](https://github.com/bansur/router/issues)
+- **GitHub**：[github.com/mas-ajam/bansur-router](https://github.com/mas-ajam/bansur-router)
+- **问题**：[github.com/mas-ajam/bansur-router/issues](https://github.com/mas-ajam/bansur-router/issues)
 
 ---
 
@@ -1275,13 +1275,13 @@ Authorization: Bearer your-api-key
 
 感谢所有帮助改进 Bansur Router 的贡献者！
 
-[![Contributors](https://contrib.rocks/image?repo=bansur/router&max=150&columns=15&anon=1&v=20260309)](https://github.com/bansur/router/graphs/contributors)
+[![Contributors](https://contrib.rocks/image?repo=mas-ajam/bansur-router&max=150&columns=15&anon=1&v=20260309)](https://github.com/mas-ajam/bansur-router/graphs/contributors)
 
 ---
 
 ## 📊 Star 图表
 
-[![Star Chart](https://starchart.cc/bansur/router.svg?variant=adaptive)](https://starchart.cc/bansur/router)
+[![Star Chart](https://starchart.cc/mas-ajam/bansur-router.svg?variant=adaptive)](https://starchart.cc/mas-ajam/bansur-router)
 
 
 
