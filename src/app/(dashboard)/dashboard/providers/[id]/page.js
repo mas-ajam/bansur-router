@@ -1826,7 +1826,7 @@ export default function ProviderDetailPage() {
                 className="flex justify-between gap-3.5 py-2 border-b border-dashed border-border text-[13px] last:border-b-0"
               >
                 <span className="text-text-muted">{row.name}</span>
-                <span className="font-mono text-[12.5px] text-right">kr/{row.id}</span>
+                <span className="font-mono text-[12.5px] text-right">{providerDisplayAlias}/{row.id}</span>
               </div>
             ))
           ) : (
