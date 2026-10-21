@@ -35,6 +35,10 @@ const APP_PREFIXES = [
 ];
 const APP_FILES = new Set([
   "/favicon.svg", "/favicon.ico", "/sw.js", "/robots.txt", "/manifest.webmanifest",
+  // Next.js template assets (upstream parity): the files no longer ship in
+  // public/, but the paths stay app-owned — during a login session they must
+  // 404 locally, never be proxied to the MiMo upstream.
+  "/file.svg", "/globe.svg", "/next.svg", "/vercel.svg", "/window.svg",
 ]);
 
 const APP_PATH_MATCHES = (pathname) =>

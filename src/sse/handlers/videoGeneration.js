@@ -101,6 +101,9 @@ function withConnectionHeader(response, connectionId) {
   // Video jobs are account-bound upstream — clients echo this back as
   // `x-connection-id` on GET polls so the same account is used.
   headers.set("x-bansur-router-connection-id", String(connectionId));
+  // Legacy alias: clients written against upstream pin their polls with the
+  // pre-rebrand header name; emit it alongside so they keep working.
+  headers.set("x-9router-connection-id", String(connectionId));
   return new Response(response.body, { status: response.status, headers });
 }
 

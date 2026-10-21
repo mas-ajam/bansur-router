@@ -43,9 +43,9 @@ export function unloadPxpipe() {
 
 // --- PXPIPE transform result cache (PX-04) ---------------------------------
 // Real result cache around the raw transform: requests whose encoded body,
-// model and minCompressChars are identical within the TTL reuse the previous
-// transform result instead of re-rendering images. In-memory only; counters
-// back getPxpipeCacheStats() for the status payload.
+// model and full transform options are identical within the TTL reuse the
+// previous transform result instead of re-rendering images. In-memory only;
+// counters back getPxpipeCacheStats() for the status payload.
 const DEFAULT_CACHE_TTL_SEC = 300;
 const DEFAULT_MAX_PAYLOAD_MB = 32;
 
@@ -108,13 +108,24 @@ function wrapTransformWithCache(transformFn) {
     const bodyJson = body instanceof Uint8Array
       ? Buffer.from(body).toString("utf8")
       : JSON.stringify(body);
+    // Key on the FULL options object, not just minCompressChars: any other
+    // option the transform reads must also partition the cache, or a result
+    // produced under different options could be served as fresh.
+    const optionsJson = (() => {
+      if (!options || typeof options !== "object") return "";
+      try {
+        return JSON.stringify(options, Object.keys(options).sort());
+      } catch {
+        return String(options?.minCompressChars ?? "");
+      }
+    })();
     const key = crypto
       .createHash("sha256")
       .update(bodyJson || "")
       .update("\0")
       .update(String(model || ""))
       .update("\0")
-      .update(String(options?.minCompressChars ?? ""))
+      .update(optionsJson)
       .digest("hex");
 
     const entry = transformCache.get(key);
