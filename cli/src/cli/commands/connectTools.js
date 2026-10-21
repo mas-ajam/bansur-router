@@ -238,7 +238,7 @@ const opencode = {
 
 // ── Factory Droid ───────────────────────────────────────────────────────────
 const droidPath = () => path.join(home(), ".factory", "settings.json");
-const isDroid9r = (m) => m.id?.startsWith("custom:Bansur Router");
+const isDroidBansur = (m) => m.id?.startsWith("custom:Bansur Router");
 
 const droid = {
   id: "droid",
@@ -246,13 +246,13 @@ const droid = {
   paths: () => [droidPath()],
   route: "droid-settings",
   serverModel(data) {
-    const m = (data?.settings?.customModels || []).find(isDroid9r)?.model;
+    const m = (data?.settings?.customModels || []).find(isDroidBansur)?.model;
     return isStr(m) ? m : null;
   },
   async apply({ baseUrl, apiKey, model }) {
     const file = droidPath();
     const cfg = readJson(file) || {};
-    const others = (cfg.customModels || []).filter((m) => !isDroid9r(m));
+    const others = (cfg.customModels || []).filter((m) => !isDroidBansur(m));
     cfg.customModels = [
       {
         model,
@@ -272,7 +272,7 @@ const droid = {
     return [file];
   },
   async show() {
-    const ours = (readJson(droidPath())?.customModels || []).filter(isDroid9r);
+    const ours = (readJson(droidPath())?.customModels || []).filter(isDroidBansur);
     return {
       baseUrl: ours[0]?.baseUrl,
       apiKey: ours[0]?.apiKey,
@@ -284,7 +284,7 @@ const droid = {
     const cfg = readJson(file);
     if (!cfg) return [];
     if (cfg.customModels) {
-      cfg.customModels = cfg.customModels.filter((m) => !isDroid9r(m));
+      cfg.customModels = cfg.customModels.filter((m) => !isDroidBansur(m));
       if (cfg.customModels.length === 0) delete cfg.customModels;
     }
     rewriteFile(file, JSON.stringify(cfg, null, 2));

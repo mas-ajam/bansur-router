@@ -21,7 +21,7 @@ describe("bansur-router show", () => {
   let home;
   let out;
   beforeEach(() => {
-    home = fs.mkdtempSync(path.join(os.tmpdir(), "9r-show-"));
+    home = fs.mkdtempSync(path.join(os.tmpdir(), "bansur-show-"));
     vi.spyOn(os, "homedir").mockReturnValue(home);
     vi.stubEnv("XDG_CONFIG_HOME", "");
     out = [];

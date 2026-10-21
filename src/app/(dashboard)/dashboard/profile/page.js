@@ -64,7 +64,7 @@ export default function ProfilePage() {
 
   // DB backup/restore — restored (Option 2 batch 5, PF-03). Endpoints are
   // the pre-removal ones: GET /api/settings/database with the dashboard
-  // password in the x-9r-password header (download), POST the parsed
+  // password in the x-bansur-password header (download), POST the parsed
   // backup JSON back to the same route with `password` in the body.
   const [dbLoading, setDbLoading] = useState(false);
   const [dbStatus, setDbStatus] = useState({ type: "", message: "" });
@@ -590,7 +590,7 @@ export default function ProfilePage() {
     setDbStatus({ type: "", message: "" });
     try {
       const res = await fetch("/api/settings/database", {
-        headers: { "x-9r-password": password },
+        headers: { "x-bansur-password": password },
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));

@@ -200,7 +200,7 @@ describe.skipIf(!RUN_REAL)(`BANSUR_ROUTER: responses-format → ${PROVIDER} tran
     // back to the client's source format (Responses SSE shape).
     const isResponsesShape = /event: response\.|"type"\s*:\s*"response|"type":"response/.test(out.raw || "");
     const isChatShape = /chat\.completion\.chunk|"delta"/.test(out.raw || "");
-    console.log(`[9r single] status=${out.status} bytes=${out.raw?.length} responsesShape=${isResponsesShape} chatShape=${isChatShape}`);
+    console.log(`[bansur single] status=${out.status} bytes=${out.raw?.length} responsesShape=${isResponsesShape} chatShape=${isChatShape}`);
     expect(out.ok).toBe(true);
     expect(isResponsesShape || isChatShape).toBe(true);
   }, TIMEOUT_MS);
@@ -216,7 +216,7 @@ describe.skipIf(!RUN_REAL)(`BANSUR_ROUTER: responses-format → ${PROVIDER} tran
       ],
     });
     if (out.skip) return expect(true).toBe(true);
-    console.log(`[9r multi with-reasoning] status=${out.status} bytes=${out.raw?.length}`);
+    console.log(`[bansur multi with-reasoning] status=${out.status} bytes=${out.raw?.length}`);
     expect(out.ok).toBe(true);
   }, TIMEOUT_MS);
 
@@ -230,7 +230,7 @@ describe.skipIf(!RUN_REAL)(`BANSUR_ROUTER: responses-format → ${PROVIDER} tran
       ],
     });
     if (out.skip) return expect(true).toBe(true);
-    console.log(`[9r multi no-reasoning] status=${out.status} raw=${out.raw?.slice?.(0, 200)}`);
+    console.log(`[bansur multi no-reasoning] status=${out.status} raw=${out.raw?.slice?.(0, 200)}`);
     // Diagnostic: the official chat endpoint requires reasoning_content pass-back;
     // a 400 here proves the translation path needs the reasoning item to survive.
     expect(out.skip).not.toBe(true);

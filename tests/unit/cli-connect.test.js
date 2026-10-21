@@ -69,7 +69,7 @@ describe("connect helpers", () => {
 describe("connect tool writers", () => {
   let home;
   beforeEach(() => {
-    home = fs.mkdtempSync(path.join(os.tmpdir(), "9r-connect-"));
+    home = fs.mkdtempSync(path.join(os.tmpdir(), "bansur-connect-"));
     vi.spyOn(os, "homedir").mockReturnValue(home);
     vi.stubEnv("XDG_CONFIG_HOME", "");
   });
@@ -192,7 +192,7 @@ describe("connect tool writers", () => {
 describe("connect run()", () => {
   let home;
   beforeEach(() => {
-    home = fs.mkdtempSync(path.join(os.tmpdir(), "9r-connect-run-"));
+    home = fs.mkdtempSync(path.join(os.tmpdir(), "bansur-connect-run-"));
     vi.spyOn(os, "homedir").mockReturnValue(home);
     vi.spyOn(console, "log").mockImplementation(() => {});
   });

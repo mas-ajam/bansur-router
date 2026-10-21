@@ -7,7 +7,7 @@
  *   3. Browser (via the src/proxy.js reverse proxy) completes login on the REAL
  *      page (password / whatever the page offers) — every account.xiaomi.com
  *      request passes through the proxy; Set-Cookie lands in OUR jar (which
- *      travels in the httpOnly 9r_mimo_login cookie between hops).
+ *      travels in the httpOnly bansur_mimo_login cookie between hops).
  *   4. SPA navigates to the sts callback -> rewritten to /__mimo_login/mimo/*,
  *      middleware takes over and follows the chain server-side:
  *      sts -> Set-Cookie serviceToken -> me (200 JSON = logged in).
@@ -17,7 +17,7 @@
  */
 
 const ACCOUNT_HOST = "account.xiaomi.com";
-export const SESSION_COOKIE = "9r_mimo_login";
+export const SESSION_COOKIE = "bansur_mimo_login";
 const SESSION_TTL_MS = 15 * 60 * 1000;
 const API_UA =
   "miNative PC/Normal Windows_NT/10.0.19045 SDKV/1.0.0 DEVT/PC DEVS/Windows APP/miaccount_desktop APPV/0.1.0";
@@ -549,7 +549,7 @@ const STRIP_UPSTREAM_HEADERS = new Set([
  */
 export async function proxyAccountRequest(sess, req, origin) {
   const u = new URL(req.url);
-  u.searchParams.delete("__9r_sess"); // never forward our session to upstream
+  u.searchParams.delete("__bansur_sess"); // never forward our session to upstream
   const upstream = new URL(u.pathname + u.search, `https://${ACCOUNT_HOST}`);
 
   // The SPA's callback params were rewritten to our proxy — undo before upstream
