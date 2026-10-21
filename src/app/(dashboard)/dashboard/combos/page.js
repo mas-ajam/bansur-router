@@ -5,11 +5,16 @@ import { Card, Button, Input, Select, CardSkeleton, ConfirmModal } from "@/share
 import SpecIcon from "@/shared/components/SpecIcon";
 import { useModelCaps } from "@/shared/hooks/useModelCaps";
 import { useNotificationStore } from "@/store/notificationStore";
-import { getModelsByProviderId } from "@/shared/constants/models";
-import { AI_PROVIDERS, getProviderAlias } from "@/shared/constants/providers";
+import { getModelsByProviderId, getModelKind } from "@/shared/constants/models";
+import { AI_PROVIDERS, FREE_PROVIDERS, getProviderAlias, isAnthropicCompatibleProvider, isOpenAICompatibleProvider } from "@/shared/constants/providers";
+import { getDeactivatedProviderIds } from "@/shared/utils/connectionStatus";
 
 // Validate combo name: only a-z, A-Z, 0-9, -, _
 const VALID_NAME_REGEX = /^[a-zA-Z0-9_.\-]+$/;
+
+// Providers that need no account — always offered in the model picker unless
+// deactivated (same derivation as ModelSelectModal's NO_AUTH_PROVIDER_IDS).
+const NO_AUTH_PROVIDER_IDS = Object.keys(FREE_PROVIDERS).filter((id) => FREE_PROVIDERS[id].noAuth);
 
 // Vision Adapter (C-08, Phase 4): the select in the combo form is bound
 // to the combo being edited — combo.visionAdapter (null = Off/none) — and
@@ -68,6 +73,9 @@ export default function CombosPage() {
   const [combos, setCombos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeProviders, setActiveProviders] = useState([]);
+  const [allConnections, setAllConnections] = useState([]);
+  const [providerNodes, setProviderNodes] = useState([]);
+  const [customModels, setCustomModels] = useState([]);
   const [comboStrategies, setComboStrategies] = useState({});
   const [capacityAdapter, setCapacityAdapter] = useState(EMPTY_CAPACITY_ADAPTER);
   const { getCaps } = useModelCaps();
@@ -90,10 +98,12 @@ export default function CombosPage() {
 
   const fetchData = async () => {
     try {
-      const [combosRes, providersRes, settingsRes] = await Promise.all([
+      const [combosRes, providersRes, settingsRes, nodesRes, customModelsRes] = await Promise.all([
         fetch("/api/combos"),
         fetch("/api/providers"),
         fetch("/api/settings"),
+        fetch("/api/provider-nodes"),
+        fetch("/api/models/custom"),
       ]);
       const combosData = await combosRes.json();
       const providersData = await providersRes.json();
@@ -103,7 +113,17 @@ export default function CombosPage() {
       const llmCombos = combosRes.ok ? (combosData.combos || []).filter((c) => !c.kind || c.kind === "llm") : [];
       if (combosRes.ok) setCombos(llmCombos);
       if (providersRes.ok) {
-        setActiveProviders((providersData.connections || []).filter((c) => c.isActive !== false));
+        const connections = providersData.connections || [];
+        setAllConnections(connections);
+        setActiveProviders(connections.filter((c) => c.isActive !== false));
+      }
+      if (nodesRes.ok) {
+        const nodesData = await nodesRes.json();
+        setProviderNodes(nodesData.nodes || []);
+      }
+      if (customModelsRes.ok) {
+        const customData = await customModelsRes.json();
+        setCustomModels(customData.models || []);
       }
       setComboStrategies(settingsData.comboStrategies || {});
       const rawAdapter = settingsData.capacityAdapter || {};
@@ -166,10 +186,18 @@ export default function CombosPage() {
     });
   };
 
-  // Models list for the inline form's selects: same sources the old
-  // ModelSelectModal used (connected providers + the static catalog), labelled
-  // `{Provider} · {model}`. Combos themselves are valid chain members, and any
-  // model already referenced by a combo stays selectable.
+  // Providers whose connections are ALL deactivated — hidden from the picker
+  // entirely (mirrors ModelSelectModal's use of getDeactivatedProviderIds).
+  const deactivatedProviderIds = useMemo(() => getDeactivatedProviderIds(allConnections), [allConnections]);
+
+  // Models list for the inline form's selects, labelled `{Provider} · {model}`.
+  // Provider set = the same three sources ModelSelectModal uses:
+  // (1) providers with active connections, (2) no-auth providers — always
+  // offered unless deactivated, since they need no account (e.g. OpenCode
+  // Free) and the gateway serves their models with zero connections,
+  // (3) compatible provider nodes that have user-added custom models, even
+  // without a stored key connection. Combos themselves are valid chain
+  // members, and any model already referenced by a combo stays selectable.
   const modelOptions = useMemo(() => {
     const seen = new Set();
     const opts = [];
@@ -180,12 +208,65 @@ export default function CombosPage() {
       }
     };
     for (const combo of combos) push(combo.name, `Combo · ${combo.name}`);
-    const providerIds = [...new Set(activeProviders.map((c) => c.provider || c.id).filter(Boolean))];
+
+    const connectedIds = new Set(activeProviders.map((c) => c.provider || c.id).filter(Boolean));
+    const providerIds = new Set(connectedIds);
+    for (const id of NO_AUTH_PROVIDER_IDS) {
+      if (!deactivatedProviderIds.has(id)) providerIds.add(id);
+    }
+    const existingNodeIds = new Set(providerNodes.map((n) => n?.id).filter(Boolean));
+    const nodeIdsWithCustomModels = new Set();
+    for (const m of customModels) {
+      const alias = m?.providerAlias;
+      if (
+        alias &&
+        (isOpenAICompatibleProvider(alias) || isAnthropicCompatibleProvider(alias)) &&
+        existingNodeIds.has(alias) &&
+        !deactivatedProviderIds.has(alias)
+      ) {
+        nodeIdsWithCustomModels.add(alias);
+        providerIds.add(alias);
+      }
+    }
+
+    // This page is LLM-only: for the widened sources, models with an explicit
+    // non-LLM kind (tts, webSearch, … — several no-auth providers are media
+    // providers) are not combo targets. Untyped models count as LLM, as in
+    // ModelSelectModal's kind filtering.
+    const isLlmModel = (m) => {
+      const kind = getModelKind(m);
+      return !kind || kind === "llm";
+    };
+
     for (const providerId of providerIds) {
+      // Compatible nodes carry no static catalog: their options are exactly
+      // the user-added custom models, addressed by the node's own prefix and
+      // labelled with the node's name (as in ModelSelectModal).
+      if (nodeIdsWithCustomModels.has(providerId)) {
+        const node = providerNodes.find((n) => n.id === providerId);
+        const prefix = node?.prefix || providerId;
+        const nodeName = node?.name || providerId;
+        for (const m of customModels.filter((cm) => cm.providerAlias === providerId)) {
+          if (isLlmModel(m)) push(`${prefix}/${m.id}`, `${nodeName} · ${m.name || m.id}`);
+        }
+        continue;
+      }
       const alias = getProviderAlias(providerId);
       const providerName = AI_PROVIDERS[providerId]?.name || providerId;
+      // Connected providers keep their existing unfiltered catalog behavior;
+      // the kind filter applies to the widened (connection-less) sources.
+      const isConnected = connectedIds.has(providerId);
       for (const model of getModelsByProviderId(providerId)) {
+        if (!isConnected && !isLlmModel(model)) continue;
         push(`${alias}/${model.id}`, `${providerName} · ${model.id}`);
+      }
+      // User-added custom models on a connection-less no-auth provider
+      // (ModelSelectModal merges registered custom models for every shown
+      // provider; keyed by alias there).
+      if (!isConnected) {
+        for (const m of customModels.filter((cm) => cm.providerAlias === alias)) {
+          if (isLlmModel(m)) push(`${alias}/${m.id}`, `${providerName} · ${m.name || m.id}`);
+        }
       }
     }
     for (const combo of combos) {
@@ -193,7 +274,7 @@ export default function CombosPage() {
     }
     for (const model of formModels) push(model, model);
     return opts;
-  }, [combos, activeProviders, formModels]);
+  }, [combos, activeProviders, formModels, deactivatedProviderIds, providerNodes, customModels]);
 
   // Vision Adapter options: vision-capable models (per useModelCaps) + Off last.
   const visionOptions = useMemo(() => {
