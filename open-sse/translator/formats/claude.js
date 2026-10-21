@@ -14,7 +14,7 @@ const CACHE_CONTROL_5M = { type: "ephemeral" };
 const CACHE_CONTROL_1H = { type: "ephemeral", ttl: "1h" };
 
 // Anthropic rejects a tool carrying BOTH defer_loading:true and cache_control
-// ("Tools defer_loading cannot use prompt caching", #3567). MCP clients put
+// ("Tools defer_loading cannot use prompt caching"). MCP clients put
 // deferred tools at the tail, which is exactly where the cache anchor lands.
 // Anchor on the last tool that CAN be cached instead of dropping caching.
 export function lastCacheableToolIndex(tools) {
@@ -30,7 +30,7 @@ export function lastCacheableToolIndex(tools) {
 // dropped by prepareClaudeRequest — so anything the caller can legitimately
 // send alone must be listed. container_upload (Files API) is one of those:
 // a user turn whose only block is a file reference is valid Anthropic input
-// (#4316), and dropping it forwarded `messages: []` to the provider.
+// Dropping it forwarded `messages: []` to the provider.
 const CONTENTFUL_BLOCKS = new Set([
   CLAUDE_BLOCK.TOOL_USE,
   CLAUDE_BLOCK.TOOL_RESULT,
@@ -392,7 +392,7 @@ export function anchorClaudeCache(body) {
     for (const msg of body.messages) normalizeMessageContent(msg);
   }
   // Invalid markers first, whatever the budget: Anthropic rejects a tool that
-  // carries BOTH defer_loading and cache_control (#3567). The re-anchor path
+  // carries BOTH defer_loading and cache_control. The re-anchor path
   // below strips them anyway; the over-budget early return used to forward
   // them untouched.
   if (Array.isArray(body.tools)) {
@@ -590,7 +590,7 @@ export function prepareClaudeRequest(body, provider = null, apiKey = null, conne
 
     // DeepSeek models also arrive behind OpenCode Go's /messages transport.
     // They carry the same thinking pass-back constraint as the official
-    // DeepSeek provider (verified live 2026-08-15, PR #3332 discussion), so
+    // DeepSeek provider (verified live 2026-08-15, an earlier change discussion), so
     // they get the identical keep/placeholder handling below.
     const deepSeekServed =
       provider === "deepseek" ||

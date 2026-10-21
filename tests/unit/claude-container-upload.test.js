@@ -1,4 +1,4 @@
-// #4316: a user message whose only content block is `container_upload`
+// a user message whose only content block is `container_upload`
 // (Anthropic Files API) was dropped whole, so the provider received
 // `messages: []` and the request still returned 200 with no indication that
 // the user turn had vanished.
@@ -14,7 +14,7 @@ import { hasValidContent, prepareClaudeRequest } from "../../open-sse/translator
 
 const uploadBlock = { type: "container_upload", file_id: "file_abc123" };
 
-describe("container_upload keeps the user turn alive (#4316)", () => {
+describe("container_upload keeps the user turn alive", () => {
   it("counts a lone container_upload block as content", () => {
     expect(hasValidContent({ role: "user", content: [uploadBlock] })).toBe(true);
   });

@@ -1,5 +1,5 @@
 /**
- * Tests for #4399 — CLI Tools Apply writes placeholder "sk_bansur-router" key.
+ * Tests: CLI Tools Apply writes placeholder "sk_bansur-router" key.
  *
  * When requireApiKey=true, the written "sk_bansur-router" caused 401 on every
  * CLI tool request. The fix: replace the literal fallback with
@@ -22,7 +22,7 @@ function resolveCliApiKeyLogic(callerKey, activeKeys = []) {
   return active?.key || "";
 }
 
-describe("resolveCliApiKey logic (#4399)", () => {
+describe("resolveCliApiKey logic", () => {
   it("returns the caller key when non-empty and not the placeholder", () => {
     expect(resolveCliApiKeyLogic("sk-real-key-123", [])).toBe("sk-real-key-123");
   });
@@ -74,7 +74,7 @@ describe("resolveCliApiKey logic (#4399)", () => {
   });
 });
 
-describe("resolveApiKey.js source checks (#4399)", () => {
+describe("resolveApiKey.js source checks", () => {
   const src = fs.readFileSync(
     new URL("../../src/app/api/cli-tools/resolveApiKey.js", import.meta.url),
     "utf-8"

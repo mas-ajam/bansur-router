@@ -3,7 +3,7 @@ import fs from "fs";
 import path from "path";
 
 // ============================================================
-// AUDIT-002 (#1962): API key masking in usage stats
+// AUDIT-002: API key masking in usage stats
 // ============================================================
 describe("AUDIT-002: API key masking", () => {
   it("source should contain maskApiKey function", () => {
@@ -61,7 +61,7 @@ describe("AUDIT-002: API key masking", () => {
 });
 
 // ============================================================
-// AUDIT-003 (#1961): Proxy URL validation
+// AUDIT-003: Proxy URL validation
 // ============================================================
 describe("AUDIT-003: Proxy URL validation", () => {
   beforeEach(() => {
@@ -168,7 +168,7 @@ describe("AUDIT-003: Proxy URL validation", () => {
 });
 
 // ============================================================
-// AUDIT-018 (#1972): XSS escaping in OAuth callback
+// AUDIT-018: XSS escaping in OAuth callback
 // ============================================================
 describe("AUDIT-018: XSS escaping in OAuth callback", () => {
   it("source should contain escapeHtml function", () => {
@@ -204,7 +204,7 @@ describe("AUDIT-018: XSS escaping in OAuth callback", () => {
 });
 
 // ============================================================
-// AUDIT-004 (#1963): TOCTOU race - atomic lock file
+// AUDIT-004: TOCTOU race - atomic lock file
 // ============================================================
 describe("AUDIT-004: Atomic lock file for MITM startup", () => {
   it("manager.js should define LOCK_FILE constant", () => {
@@ -237,7 +237,7 @@ describe("AUDIT-004: Atomic lock file for MITM startup", () => {
 });
 
 // ============================================================
-// AUDIT-001 (#1965): Race condition in retry tracking
+// AUDIT-001: Race condition in retry tracking
 // ============================================================
 describe("AUDIT-001: Synchronous restart guard", () => {
   it("mitmIsRestarting should be set before first await expression", () => {

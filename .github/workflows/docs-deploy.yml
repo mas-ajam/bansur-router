@@ -3,8 +3,7 @@ name: Deploy Docs to Cloudflare Pages
 # Deploy the Bansur Router website (site/, a static site designed from
 # scratch — it replaced the old gitbook app on 2026-10-20) to Cloudflare
 # Pages (project: bansur-router, production: https://bansur-router.pages.dev).
-# The gitbook/ directory is no longer deployed; it remains in the repo as
-# an archive of the previous documentation.
+# The old gitbook-based documentation was removed from the repo entirely.
 # Requires repo secrets CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID.
 # Skips gracefully when they are not configured yet.
 

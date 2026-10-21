@@ -61,7 +61,7 @@ export class CodeBuddyExecutor extends DefaultExecutor {
     }
     // No reasoning requested: leave both unset. Forcing reasoning_effort:"medium"
     // + reasoning_summary on plain requests makes CodeBuddy trip its content
-    // filter and return an error (#2071).
+    // filter and return an error.
     return transformed;
   }
   parseError(response, bodyText) {

@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { parseQuotaData } from "@/app/(dashboard)/dashboard/usage/components/ProviderLimits/utils.js";
 
-describe("Codex Spark Quota Tracking (#3431)", () => {
+describe("Codex Spark Quota Tracking", () => {
   it("correctly normalizes spark_session and spark_weekly quotas with display labels", () => {
     const mockCodexUsage = {
       plan: "team",

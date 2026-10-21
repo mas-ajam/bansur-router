@@ -79,7 +79,7 @@ function normalizeCodexTools(body) {
   if (!Array.isArray(body.tools)) return;
   const validNames = new Set();
   // Codex's schema validator has no Unicode property escapes; a `pattern`
-  // carrying `\p{...}` 400s the whole request on every account (#3922).
+  // carrying `\p{...}` 400s the whole request on every account.
   const patternStats = { removed: 0 };
   body.tools = body.tools.filter((tool) => {
     if (!tool || typeof tool !== "object" || Array.isArray(tool)) return false;

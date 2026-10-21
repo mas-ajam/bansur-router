@@ -114,7 +114,7 @@ export class GithubExecutor extends BaseExecutor {
   // Gemini and Claude models are not available there and reject with a 400
   // "does not support Responses API" (unsupported_api_for_model). They must
   // therefore never be escalated to /responses, even if /chat/completions
-  // returned a "not supported" error for an unrelated reason. Fixes #1062.
+  // returned a "not supported" error for an unrelated reason.
   supportsResponsesEndpoint(model) {
     const m = (model || "").toLowerCase();
     return !(m.includes("gemini") || m.includes("claude"));
@@ -133,7 +133,7 @@ export class GithubExecutor extends BaseExecutor {
     }
 
     // Only use /responses for models that are explicitly known to need it (e.g. gpt codex models)
-    // and that the /responses endpoint actually serves (excludes Gemini/Claude, see #1062).
+    // and that the /responses endpoint actually serves (excludes Gemini/Claude).
     if (this.knownCodexModels.has(model) && this.supportsResponsesEndpoint(model)) {
       log?.debug("GITHUB", `Using cached /responses route for ${model}`);
       return this.executeWithResponsesEndpoint(options);
@@ -150,7 +150,7 @@ export class GithubExecutor extends BaseExecutor {
 
     // Only escalate to /responses for models that endpoint can actually serve.
     // Gemini/Claude would otherwise loop into a misleading "does not support
-    // Responses API" 400 instead of surfacing the real /chat/completions error (#1062).
+    // Responses API" 400 instead of surfacing the real /chat/completions error.
     if (result.response.status === HTTP_STATUS.BAD_REQUEST && this.supportsResponsesEndpoint(model)) {
       const errorBody = await result.response.clone().text();
 

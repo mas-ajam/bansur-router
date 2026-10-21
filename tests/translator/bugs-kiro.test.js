@@ -33,7 +33,7 @@ describe("OpenAI → Kiro", () => {
     expect(out.systemPrompt || "").not.toContain("<max_thinking_length>");
   });
 
-  // openai-to-kiro.js — safeJSONParse guards bad tool-call JSON (fixed in PR #1582)
+  // openai-to-kiro.js — safeJSONParse guards bad tool-call JSON (fixed in an earlier change)
   it("malformed tool arguments do not throw the whole request", () => {
     expect(() =>
       O2K({

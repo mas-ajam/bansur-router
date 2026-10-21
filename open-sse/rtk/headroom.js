@@ -281,7 +281,7 @@ export async function compressWithHeadroom(body, { enabled, url, model, format, 
 
     // OpenAI Responses shape (Codex): body.input holds Responses items, NOT OpenAI
     // messages. Translate input -> OpenAI -> compress -> translate back to input so
-    // body.input keeps the Responses contract (the proxy only understands OpenAI). (#1998)
+    // body.input keeps the Responses contract (the proxy only understands OpenAI).
     if (format === "openai-responses") {
       if (hasUnsafeResponsesInputForCompression(body)) {
         setDiagnostic(diagnostics, "skipped: openai-responses tool/reasoning input is not safe to compress");

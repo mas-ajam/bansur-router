@@ -1,5 +1,5 @@
 /**
- * SSRF guard on POST /api/cli-tools/cowork-mcp-tools (#3782).
+ * SSRF guard on POST /api/cli-tools/cowork-mcp-tools.
  *
  * Remote callers must not be able to force server-side fetches to
  * internal URLs; local-host use (self-hosted MCP servers) keeps working.

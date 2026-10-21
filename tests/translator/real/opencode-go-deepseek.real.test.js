@@ -9,7 +9,7 @@
 //
 // This is the live counterpart of tests/unit/opencode-go-transport-routing.test.js
 // (which proves the routing decision offline). A cell here fails when the upstream
-// rejects the routed endpoint+model combination — exactly the 400 that #3332 reported
+// rejects the routed endpoint+model combination — exactly the 400 that was reported
 // for Claude→deepseek-v4-flash on /messages.
 //
 //   RUN_REAL=1 npx vitest run --config tests/vitest.config.js tests/translator/real/opencode-go-deepseek.real.test.js

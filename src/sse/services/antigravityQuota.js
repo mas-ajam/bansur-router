@@ -17,7 +17,7 @@ const inflightRefresh = new Map();
 
 const MIN_REFRESH_INTERVAL_MS = 30_000; // 30s between refreshes per connection
 
-// Strike-based circuit breaker (#3681): Google's quota API can report remaining
+// Strike-based circuit breaker: Google's quota API can report remaining
 // quota while generation endpoints keep returning 429 (sprint/weekly dual-pool
 // mismatch). After STRIKE_THRESHOLD 429s within the window for the same
 // connection+model, treat the optimistic quota reading as untrusted and
@@ -254,7 +254,7 @@ export async function handleAntigravityQuotaError(connectionId, status, model, a
   // (remaining > 0) or unavailable (quota API 403/error). 3 within the window
   // => the pair is unhealthy regardless of what the API claims; block 15m.
   // 409 counts too by design: Antigravity signals pool exhaustion with 409 as
-  // well (see #3561 — "skip exhausted account/model quota before upstream
+  // well (the "skip exhausted account/model quota before upstream
   // retry" was motivated by 409/429 pairs), and poisoning by transient 409s
   // requires 3 of them inside 60 seconds on the same pair.
   if (!quota || quota.remainingPercentage > 0) {

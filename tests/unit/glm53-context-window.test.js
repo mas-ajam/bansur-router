@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { getCapabilitiesForModel } from "../../open-sse/providers/capabilities.js";
 
-// #4544: GLM-5.3 advertised a 200k context. The `*glm-5.3*` pattern pinned
+// GLM-5.3 advertised a 200k context. The `*glm-5.3*` pattern pinned
 // contextWindow to 200000 (inherited from the pre-5.2 era when z.ai's whole
 // line was 200k), and it runs ABOVE the `*glm-5*` catch-all — so it, not the
 // catch-all, was what every 5.3 id actually resolved to.
@@ -14,7 +14,7 @@ import { getCapabilitiesForModel } from "../../open-sse/providers/capabilities.j
 
 const caps = (id, provider = "zai") => getCapabilitiesForModel(provider, id);
 
-describe("GLM 5.2/5.3 are 1M (#4544)", () => {
+describe("GLM 5.2/5.3 are 1M", () => {
   it.each([
     "glm-5.3",
     "glm-5.3-flash",

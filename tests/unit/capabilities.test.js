@@ -293,7 +293,7 @@ describe("getCapabilitiesForModel — codebuddy-cn provider overrides", () => {
 
 describe("OpenCode Free ids newer than the capability tables", () => {
   // ids missing here fall through to DEFAULT_CAPABILITIES (reasoning: false),
-  // and applyThinking() then deletes the client's reasoning_effort — see #2690.
+  // and applyThinking() then deletes the client's reasoning_effort.
   // Modalities/limits are taken verbatim from models.dev.
   it("reports reasoning and the models.dev limits for space-bunny", () => {
     expect(getCapabilitiesForModel(undefined, "space-bunny-free")).toMatchObject({

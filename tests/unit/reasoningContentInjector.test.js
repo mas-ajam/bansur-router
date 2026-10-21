@@ -1,5 +1,5 @@
 /**
- * Unit tests for reasoningContentInjector (issue #1543).
+ * Unit tests for reasoningContentInjector.
  *
  * DeepSeek V4 thinking mode rejects follow-up requests whose assistant
  * messages omit `reasoning_content` ("The `reasoning_content` in the thinking
@@ -54,7 +54,7 @@ describe("injectReasoningContent — DeepSeek thinking round-trip", () => {
     expect(out.messages[0].reasoning_content).toBeDefined();
   });
 
-  it("matches deepseek model id case-insensitively for custom providers (#1543)", () => {
+  it("matches deepseek model id case-insensitively for custom providers", () => {
     const out = injectReasoningContent({
       provider: "openai-compatible-custom",
       model: "DeepSeek-V4-Flash",
@@ -147,7 +147,7 @@ describe("injectReasoningContent — MiniMax thinking round-trip", () => {
   });
 });
 
-describe("OpenCodeExecutor — issue #1543 regression", () => {
+describe("OpenCodeExecutor — regression", () => {
   it("runs the injector so deepseek-v4-flash-free round-trips reasoning_content", () => {
     const executor = new OpenCodeExecutor();
     const out = executor.transformRequest(

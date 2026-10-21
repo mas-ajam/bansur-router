@@ -240,7 +240,7 @@ describe("applyThinking per provider format", () => {
     expect(out.generationConfig).toBeUndefined();
     expect(out.thinkingConfig).toBeUndefined();
   });
-  it("Gemini 2.5 model (gemini-budget) over a custom OpenAI-compatible provider → reasoning_effort, not generationConfig (regression: #3718)", () => {
+  it("Gemini 2.5 model (gemini-budget) over a custom OpenAI-compatible provider → reasoning_effort, not generationConfig", () => {
     const out = apply("openai", "gemini-2.5-flash", { reasoning_effort: "high" }, "my-custom-gemini-openai");
     expect(out.reasoning_effort).toBe("high");
     expect(out.generationConfig).toBeUndefined();
@@ -290,7 +290,7 @@ describe("extractReasoningText (response shapes)", () => {
   });
 });
 
-describe("OpenCode Free ids with no capabilities entry (#2690)", () => {
+describe("OpenCode Free ids with no capabilities entry", () => {
   const bunny = (effort) => ({
     model: "oc/space-bunny-free",
     messages: [{ role: "user", content: "hi" }],

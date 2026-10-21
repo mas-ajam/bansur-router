@@ -43,7 +43,7 @@ function sanitizeGeminiFunctionName(name) {
  * Gemini validates functionCall id uniqueness across the WHOLE history and
  * answers 400 INVALID_ARGUMENT otherwise, but an OpenAI tool_call_id is only
  * unique within its own assistant turn — a long agent session can replay the
- * same id in a later turn (#4532).
+ * same id in a later turn.
  *
  * Uniqueness is per OCCURRENCE, not per id: two different calls that share an id
  * must end up with different emitted ids, so the mapping is consumed in
@@ -112,13 +112,12 @@ function openaiToGeminiBase(model, body, stream, signature = DEFAULT_THINKING_AG
   }
 
   // Build tool responses cache.
-  //
   // Queued per id rather than a single value: an OpenAI tool_call_id is only
   // unique within its own assistant turn, so a long agent session can reuse one
   // id for two different tool results. A plain id->content map keeps only the
   // LAST one, and the earlier turn would then be answered with the later
   // turn's output. Each functionCall consumes the oldest unconsumed result for
-  // its id instead. #4273
+  // its id instead.
   const toolResponses = {};
   if (body.messages && Array.isArray(body.messages)) {
     for (const msg of body.messages) {
@@ -133,9 +132,8 @@ function openaiToGeminiBase(model, body, stream, signature = DEFAULT_THINKING_AG
   // and rejects the entire request with 400 INVALID_ARGUMENT when one repeats.
   // tool_call_id is only unique within a single assistant turn, so a long agent
   // session can legitimately emit call_51859 at turn 14 and again at turn 22.
-  //
   // Each functionCall takes the next free id here and passes it down to its
-  // matching functionResponse, so the pair always agrees. #4532
+  // matching functionResponse, so the pair always agrees.
   const toolCallIdUniquifier = createToolCallIdUniquifier();
 
   // Convert messages
@@ -190,7 +188,7 @@ function openaiToGeminiBase(model, body, stream, signature = DEFAULT_THINKING_AG
             firstFunctionCallSeen = true;
 
             // Emitted id is uniquified; the thought-signature lookup above stays
-            // on the ORIGINAL id so a cached signature is still found. #4532
+            // on the ORIGINAL id so a cached signature is still found.
             const emitId = toolCallIdUniquifier.next(tc.id);
 
             const part = {
@@ -207,7 +205,6 @@ function openaiToGeminiBase(model, body, stream, signature = DEFAULT_THINKING_AG
             // The NAME travels with the pair for the same reason the id does:
             // tcID2Name is a conversation-wide id->name map, so a later call
             // reusing the id would otherwise rename this turn's response.
-            // #4273
             toolCallIds.push({ origId: tc.id, emitId, name: tc.function?.name });
           }
 
@@ -225,7 +222,7 @@ function openaiToGeminiBase(model, body, stream, signature = DEFAULT_THINKING_AG
             const toolParts = [];
             for (const { origId, emitId, name: callName } of toolCallIds) {
               // Content resolves on the ORIGINAL id, consuming the oldest
-              // unconsumed result; only the emitted id is uniquified. #4273 #4532
+              // unconsumed result; only the emitted id is uniquified.
               const queue = toolResponses[origId];
               const cursor = toolResponseCursor[origId] || 0;
               let resp;
@@ -258,7 +255,7 @@ function openaiToGeminiBase(model, body, stream, signature = DEFAULT_THINKING_AG
               toolParts.push({
                 functionResponse: {
                   // Matches the functionCall id emitted above, so a response
-                  // never points at an id the call does not carry. #4532
+                  // never points at an id the call does not carry.
                   id: emitId,
                   name: sanitizeGeminiFunctionName(name),
                   response: { result: parsedResp }

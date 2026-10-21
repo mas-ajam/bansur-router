@@ -1,4 +1,4 @@
-// #4333: "Strict Proxy" did not hold. With a strict pool assigned and every
+// "Strict Proxy" did not hold. With a strict pool assigned and every
 // proxy in it dead, requests still went out over the direct IP — the exact
 // leak the setting exists to prevent.
 //
@@ -23,7 +23,7 @@ const { getProxyPoolById } = await import("@/models");
 const { resolveConnectionProxyConfig } = await import("../../src/lib/network/connectionProxy.js");
 const { proxyAwareFetch } = await import("../../open-sse/utils/proxyFetch.js");
 
-describe("strict pool keeps strictProxy when the pool is unusable (#4333)", () => {
+describe("strict pool keeps strictProxy when the pool is unusable", () => {
   it("keeps strictProxy for an inactive strict pool", async () => {
     getProxyPoolById.mockResolvedValue({
       id: "p1", isActive: false, proxyUrl: "http://127.0.0.1:7890", strictProxy: true,
@@ -54,7 +54,7 @@ describe("strict pool keeps strictProxy when the pool is unusable (#4333)", () =
   });
 });
 
-describe("strictProxy refuses a direct connection (#4333)", () => {
+describe("strictProxy refuses a direct connection", () => {
   it("throws when a pool is assigned but no proxy url resolved", async () => {
     await expect(
       proxyAwareFetch("https://api.example.com/v1/chat", {}, { proxyPoolId: "p1", strictProxy: true }),

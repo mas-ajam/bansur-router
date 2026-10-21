@@ -4,7 +4,7 @@ import { FORMATS } from "../../open-sse/translator/formats.js";
 import { createSSETransformStreamWithLogger } from "../../open-sse/utils/stream.js";
 
 // A chat->responses stream defers response.completed when finish_reason arrives
-// without usage (PR #4476). If the upstream then stalls — no usage trailer, no
+// without usage (an earlier change). If the upstream then stalls — no usage trailer, no
 // [DONE], connection held open — that deferral must not wait forever: the
 // watchdog flushes the terminal event after PENDING_COMPLETION_FLUSH_MS.
 const encoder = new TextEncoder();

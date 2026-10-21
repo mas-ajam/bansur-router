@@ -88,7 +88,7 @@ export function capabilitiesFromServiceKind(kind) {
 export const MODEL_CAPABILITIES = {
   // Claude Fable 5.1, Opus 5.5/5, 4.6/4.7/4.8, and Kiro Sonnet 5 have 1M context + adaptive thinking (override generic claude pattern)
   "claude-fable-5-1": { vision: true, pdf: true, reasoning: true, search: true, thinkingFormat: "claude-adaptive", thinkingCanDisable: false, contextWindow: 1000000, maxOutput: 128000 },
-  // Claude Opus 5.5 — experimental preview on Kiro (rateMultiplier: 2.0, 1M context) (#4410)
+  // Claude Opus 5.5 — experimental preview on Kiro (rateMultiplier: 2.0, 1M context)
   "claude-opus-5.5":                   { vision: true, pdf: true, reasoning: true, search: true, thinkingFormat: "claude-adaptive", contextWindow: 1000000, maxOutput: 128000 },
   "claude-opus-5.5-thinking":          { vision: true, pdf: true, reasoning: true, search: true, thinkingFormat: "claude-adaptive", contextWindow: 1000000, maxOutput: 128000 },
   "claude-opus-5.5-agentic":           { vision: true, pdf: true, reasoning: true, search: true, thinkingFormat: "claude-adaptive", contextWindow: 1000000, maxOutput: 128000 },
@@ -135,7 +135,7 @@ export const MODEL_CAPABILITIES = {
   // (an error will occur if the thinking.type parameter is set to disabled)."
   // With it left true, applyThinking emitted enable_thinking:false whenever a
   // turn asked for no reasoning, and z.ai answered 400 code 1210 "Invalid API
-  // parameter" — intermittently, because only some turns ask. #4409
+  // parameter" — intermittently, because only some turns ask.
   "glm-5.3-flash":     { vision: true, videoInput: true, pdf: true, reasoning: true, thinkingFormat: "zai", thinkingCanDisable: false, contextWindow: 1000000, maxOutput: 131072 },
   "glm-4.6v":          { vision: true, videoInput: true, reasoning: true, thinkingFormat: "zai", contextWindow: 128000, maxOutput: 32768 },
   "glm-4.5v":          { vision: true, videoInput: true, reasoning: true, thinkingFormat: "zai", contextWindow: 64000, maxOutput: 16384 },
@@ -153,7 +153,7 @@ export const MODEL_CAPABILITIES = {
   // 128K/64K limits are kept here. The repeated fields are deliberate: an exact entry
   // short-circuits the pattern table, so a vision-only delta would drop them.
   // Some providers (e.g. Kenari) expose this model under the hyphenated ID
-  // "deepseek-v4-1-flash" (dash instead of dot); add it as an alias (#4293).
+  // "deepseek-v4-1-flash" (dash instead of dot); add it as an alias.
   "deepseek-v4.1-flash": { vision: true, reasoning: true, thinkingFormat: "deepseek", contextWindow: 1000000, maxOutput: 384000 },
   "deepseek-v4-1-flash": { vision: true, reasoning: true, thinkingFormat: "deepseek", contextWindow: 1000000, maxOutput: 384000 },
   "deepseek-flash":      { vision: true, reasoning: true, thinkingFormat: "deepseek", contextWindow: 128000, maxOutput: 64000 },
@@ -178,7 +178,7 @@ export const MODEL_CAPABILITIES = {
   // ── OpenCode Free (reasoning: true in models.dev, ids newer than the tables above) ──
   // Without these entries getCapabilitiesForModel() falls through to
   // DEFAULT_CAPABILITIES (reasoning: false) and applyThinking() strips the client's
-  // reasoning_effort before it reaches the upstream — see #2690.
+  // reasoning_effort before it reaches the upstream.
   // Modalities and limits below are taken verbatim from models.dev.
   "space-bunny-free":  { vision: true, videoInput: true, reasoning: true, thinkingFormat: "openai", contextWindow: 1048576, maxOutput: 524288 },
   "space-bunny":       { vision: true, videoInput: true, reasoning: true, thinkingFormat: "openai", contextWindow: 1048576, maxOutput: 524288 },
@@ -196,7 +196,7 @@ export const MODEL_CAPABILITIES = {
 const KIRO_GPT_5_6_CAPABILITIES = { vision: true, reasoning: true, search: true, thinkingFormat: "openai", contextWindow: 272000, maxOutput: 128000 };
 
 // Codex OAuth (ChatGPT backend) — per-model context window reported by upstream
-// (lower than OpenAI API's 1.05M). Sol differs from Terra/Luna. #2720
+// (lower than OpenAI API's 1.05M). Sol differs from Terra/Luna.
 const CODEX_GPT_56_SOL_CAPS  = { vision: true, reasoning: true, search: true, thinkingFormat: "openai", contextWindow: 372000, maxOutput: 128000 };
 const CODEX_GPT_56_DEFAULT_CAPS = { vision: true, reasoning: true, search: true, thinkingFormat: "openai", contextWindow: 272000, maxOutput: 128000 };
 const CODEX_EXTENDED_CAPS = { ...CODEX_GPT_56_DEFAULT_CAPS, contextWindow: 872000 };
@@ -489,13 +489,13 @@ export const PATTERN_CAPABILITIES = [
   // "GLM-5.3 and GLM-5.3-FLASH no longer support disabling thinking (an error
   // will occur if the thinking.type parameter is set to disabled)." Set on the
   // pattern rather than an exact entry so both glm-5.3 and glm-5.3-flash get it
-  // while keeping thinkingEffortSupported:true, which the pattern owns. #4409
+  // while keeping thinkingEffortSupported:true, which the pattern owns.
   { pattern: "*glm-5.3*",       caps: { reasoning: true, thinkingFormat: "zai", thinkingEffortSupported: true, thinkingCanDisable: false, contextWindow: 1000000, maxOutput: 128000 } },
   // 5.2 keeps its 1M window. thinkingCanDisable is deliberately NOT set here:
   // the exact MODEL_CAPABILITIES entry for glm-5.2 (added Sep 2026) already
   // declares it false, and that predates this fix — z.ai's docs suggest 5.2 can
   // in fact disable thinking, so that entry looks wrong, but changing it is
-  // outside the scope of #4409 and is worth its own issue.
+  // outside the scope of this fix and is worth its own issue.
   { pattern: "*glm-5.2*",       caps: { reasoning: true, thinkingFormat: "zai", thinkingEffortSupported: true, contextWindow: 1000000, maxOutput: 128000 } },
   { pattern: "*glm-5*",         caps: { reasoning: true, thinkingFormat: "zai", contextWindow: 200000, maxOutput: 128000 } },
   { pattern: "*glm-4.7*",       caps: { reasoning: true, thinkingFormat: "zai", contextWindow: 200000, maxOutput: 128000 } },

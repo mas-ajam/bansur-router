@@ -1,5 +1,5 @@
 /**
- * Regression test for #4232
+ * Regression test.
  *
  * codebuddy-intl was missing from OAUTH_TEST_CONFIG. The test route handler
  * returned {"valid":false,"error":"Provider test not supported"} for every
@@ -23,7 +23,7 @@ const src = fs.readFileSync(
   "utf-8"
 );
 
-describe("OAUTH_TEST_CONFIG — codebuddy-intl (#4232)", () => {
+describe("OAUTH_TEST_CONFIG — codebuddy-intl", () => {
   it('contains "codebuddy-intl" entry', () => {
     expect(src).toContain('"codebuddy-intl"');
   });

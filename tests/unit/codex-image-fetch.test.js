@@ -2,7 +2,7 @@
  * Codex executor: verify remote image URLs are fetched and inlined as
  * base64 data URIs BEFORE the request body reaches the upstream API.
  *
- * Covers bug #575:
+ * Covers the bug:
  *  - prefetchImages must await async image fetches
  *  - execute() must run prefetchImages before super.execute so the body
  *    sent to upstream contains base64 data, not remote URLs

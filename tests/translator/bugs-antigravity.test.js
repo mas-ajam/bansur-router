@@ -12,7 +12,7 @@ const AG2O = (req) =>
 
 describe("Antigravity → OpenAI", () => {
   // antigravity-to-openai.js — content with BOTH functionResponse and functionCall/text
-  // previously returned toolResults early → dropped tool calls / text (fixed in #2225)
+  // previously returned toolResults early → dropped tool calls / text
   it("functionResponse + functionCall in same content keeps both", () => {
     const out = AG2O({
       contents: [{

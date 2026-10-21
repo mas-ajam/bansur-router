@@ -1,6 +1,6 @@
 // SSRF guard: block internal/private/metadata targets for server-side fetch.
 //
-// Three layers, each closing a distinct bypass class documented in #3714:
+// Three layers, each closing a distinct bypass class documented in:
 //   1. assertPublicUrl        - synchronous literal-IP/hostname checks (cheap, for
 //                                immediate rejection of obviously-bad input at request-build time).
 //   2. assertPublicUrlResolved - adds DNS resolution so a hostname that merely

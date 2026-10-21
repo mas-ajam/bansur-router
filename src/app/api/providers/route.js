@@ -200,7 +200,7 @@ export async function POST(request) {
       isActive: true,
       testStatus: testStatus || "unknown",
       // POST with an id is an explicit edit of that connection; without one, a
-      // name collision is refused rather than silently overwriting a key. #4311
+      // name collision is refused rather than silently overwriting a key.
       allowOverwrite: body.id ? true : (body.allowOverwrite === true || body.overwrite === true),
     });
 

@@ -34,7 +34,7 @@ export const UNSUPPORTED_SCHEMA_CONSTRAINTS = [
   // UI/Styling properties (from Cursor tools - NOT JSON Schema standard)
   "cornerRadius", "fillColor", "fontFamily", "fontSize", "fontWeight",
   "gap", "padding", "strokeColor", "strokeThickness", "textColor",
-  // Non-standard annotation/error keywords used by some MCP tool schemas (#4283).
+  // Non-standard annotation/error keywords used by some MCP tool schemas.
   // Gemini's schema proto has no field for these and rejects the whole request with
   // "Unknown name X: Cannot find field" if any nested schema node carries them.
   "errorMessage", "errorMessages", "x-errorMessage", "x-errorMessages",
@@ -472,7 +472,7 @@ function sanitizeFunctionResponsePart(part) {
   return { ...part, functionResponse: { ...part.functionResponse, response: sanitizeFunctionResponsePayload(response) } };
 }
 
-// Gemini 4 rejects a merged user turn whose last part is not a functionResponse (#4802)
+// Gemini 4 rejects a merged user turn whose last part is not a functionResponse
 function moveFunctionResponsesLast(parts) {
   const responses = parts.filter(p => p.functionResponse);
   if (!responses.length) return parts;

@@ -1,11 +1,11 @@
 /**
- * Tests for #4202 and #4405
+ * Tests for the Codex registry and bare-slug routing.
  *
- * #4202 — Codex registry has ghost models (always HTTP 400) and is missing
+ * Codex registry has ghost models (always HTTP 400) and is missing
  *   gpt-daybreak-blue-latest / gpt-reserve.
  *   Fix: remove gpt-5.4/mini/spark entries + gpt-5.4-image; add gpt-daybreak-blue-latest and gpt-reserve.
  *
- * #4405 — Bare Codex model slugs (e.g. gpt-5.6-terra from the CLI /model picker)
+ * Bare Codex model slugs (e.g. gpt-5.6-terra from the CLI /model picker)
  *   routed to provider "openai" instead of "codex", causing 404 for users without
  *   an OpenAI API key connection.
  *   Fix: add codex-specific gpt-5.x / gpt-6.x / gpt-daybreak-* / gpt-reserve* rules
@@ -16,14 +16,14 @@ import { describe, it, expect } from "vitest";
 import fs from "fs";
 import path from "path";
 
-// ── #4202 Registry checks ────────────────────────────────────────────────────
+// ── Registry checks ────────────────────────────────────────────────────
 
 const codexSrc = fs.readFileSync(
   path.resolve("../open-sse/providers/registry/codex.js"),
   "utf-8"
 );
 
-describe("Codex registry — ghost models removed (#4202)", () => {
+describe("Codex registry — ghost models removed", () => {
   it("gpt-5.4 is removed", () => {
     // Match only a standalone entry, not inside gpt-5.4-mini or gpt-5.45 etc.
     expect(codexSrc).not.toMatch(/id:\s*"gpt-5\.4"/);
@@ -54,7 +54,7 @@ describe("Codex registry — ghost models removed (#4202)", () => {
   });
 });
 
-describe("Codex registry — new models added (#4202)", () => {
+describe("Codex registry — new models added", () => {
   it("gpt-daybreak-blue-latest is present", () => {
     expect(codexSrc).toContain('"gpt-daybreak-blue-latest"');
   });
@@ -64,7 +64,7 @@ describe("Codex registry — new models added (#4202)", () => {
   });
 });
 
-describe("Codex registry — still-live models kept (#4202 regression guard)", () => {
+describe("Codex registry — still-live models kept (regression guard)", () => {
   it("gpt-5.6-sol still present", () => {
     expect(codexSrc).toContain('"gpt-5.6-sol"');
   });
@@ -78,7 +78,7 @@ describe("Codex registry — still-live models kept (#4202 regression guard)", (
   });
 });
 
-// ── #4405 Model prefix routing ───────────────────────────────────────────────
+// ── Model prefix routing ───────────────────────────────────────────────
 // Replicate MODEL_PREFIX_PROVIDERS logic from open-sse/services/model.js
 
 const MODEL_PREFIX_PROVIDERS = [
@@ -100,7 +100,7 @@ function inferProvider(modelName) {
   return MODEL_PREFIX_PROVIDERS.find(([re]) => re.test(m))?.[1] || "openai";
 }
 
-describe("inferProviderFromModelName — Codex gpt-* models route to codex (#4405)", () => {
+describe("inferProviderFromModelName — Codex gpt-* models route to codex", () => {
   it("gpt-5.6-terra → codex", () => {
     expect(inferProvider("gpt-5.6-terra")).toBe("codex");
   });

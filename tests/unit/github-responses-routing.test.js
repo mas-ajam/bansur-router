@@ -1,5 +1,5 @@
 /**
- * Regression test for #1062:
+ * Regression test for:
  * GitHub Copilot's /responses endpoint only serves OpenAI (gpt/codex) models.
  * Gemini/Claude models must never be routed/escalated there, otherwise they
  * fail with a misleading 400 "does not support Responses API".
@@ -33,7 +33,7 @@ describe("GithubExecutor.supportsResponsesEndpoint", () => {
   });
 });
 
-describe("GithubExecutor.execute cached-route guard (#1062)", () => {
+describe("GithubExecutor.execute cached-route guard", () => {
   it("does NOT use /responses for a Gemini model even if it was wrongly cached as codex", async () => {
     const exec = new GithubExecutor();
     // Simulate a prior misclassification that cached the Gemini model.

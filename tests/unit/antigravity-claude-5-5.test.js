@@ -9,7 +9,7 @@ import { MITM_TOOLS } from "../../src/shared/constants/cliTools.js";
 const require = createRequire(import.meta.url);
 const { MODEL_SYNONYMS, MODEL_PATTERNS } = require("../../src/mitm/config.js");
 
-describe("Antigravity Claude 5.5 models (#4555, #4548)", () => {
+describe("Antigravity Claude 5.5 models", () => {
   it("includes Claude 5.5 models in Antigravity provider registry", () => {
     const agModels = getModelsByProviderId("ag");
     const ids = agModels.map((m) => m.id);

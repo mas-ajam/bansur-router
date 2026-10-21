@@ -111,7 +111,7 @@ export function openaiResponsesToOpenAIRequest(model, body, stream, credentials)
         };
         attachPendingReasoning(currentAssistantMsg);
       }
-      // Skip items with empty/missing name — Codex/OpenAI reject nameless tool calls (#444)
+      // Skip items with empty/missing name — Codex/OpenAI reject nameless tool calls
       if (!item.name || typeof item.name !== "string" || item.name.trim() === "") continue;
       if (itemType === RESPONSES_ITEM.CUSTOM_TOOL_CALL) customToolNames.add(item.name);
       const toolInput = itemType === RESPONSES_ITEM.CUSTOM_TOOL_CALL
@@ -398,7 +398,7 @@ export function openaiToOpenAIResponsesRequest(model, body, stream, credentials)
     // Convert tool calls
     if (msg.role === ROLE.ASSISTANT && msg.tool_calls) {
       for (const tc of msg.tool_calls) {
-        // Skip nameless calls — strict Responses upstreams reject them (#444)
+        // Skip nameless calls — strict Responses upstreams reject them
         const name = typeof tc.function?.name === "string" ? tc.function.name.trim() : "";
         if (!name) continue;
         result.input.push({

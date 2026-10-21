@@ -1,5 +1,5 @@
 /**
- * Regression test for #4283
+ * Regression test.
  *
  * Gemini Antigravity rejects tool schemas that contain unknown JSON Schema
  * keywords with: "Unknown name X: Cannot find field."
@@ -16,7 +16,7 @@
 import { describe, it, expect } from "vitest";
 import { cleanJSONSchemaForAntigravity, UNSUPPORTED_SCHEMA_CONSTRAINTS } from "../../open-sse/translator/formats/gemini.js";
 
-describe("UNSUPPORTED_SCHEMA_CONSTRAINTS includes non-standard annotation keywords (#4283)", () => {
+describe("UNSUPPORTED_SCHEMA_CONSTRAINTS includes non-standard annotation keywords", () => {
   it("includes errorMessage", () => {
     expect(UNSUPPORTED_SCHEMA_CONSTRAINTS).toContain("errorMessage");
   });
@@ -34,7 +34,7 @@ describe("UNSUPPORTED_SCHEMA_CONSTRAINTS includes non-standard annotation keywor
   });
 });
 
-describe("cleanJSONSchemaForAntigravity strips errorMessage recursively (#4283)", () => {
+describe("cleanJSONSchemaForAntigravity strips errorMessage recursively", () => {
   it("strips top-level errorMessage", () => {
     const schema = {
       type: "object",

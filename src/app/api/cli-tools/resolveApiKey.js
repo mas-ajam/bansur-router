@@ -5,7 +5,7 @@
  * (e.g. the existing config already has a provider block but the frontend
  * can't read the stored Authorization header back). The routes previously
  * fell back to the literal placeholder "sk_bansur-router", which causes 401
- * "Invalid API key" for any deployment with requireApiKey=true (#4399).
+ * "Invalid API key" for any deployment with requireApiKey=true.
  *
  * Resolution order:
  *   1. The key supplied by the caller (non-empty string).

@@ -1,4 +1,4 @@
-// Adversarial / edge-case tests for PR #1175
+// Adversarial / edge-case tests for an earlier change
 // Goals: find corruption, boundary bugs, false positives, integration regressions
 import { describe, it, expect } from "vitest";
 import { autoDetectFilter } from "../../open-sse/rtk/autodetect.js";
@@ -13,7 +13,7 @@ import { DETECT_WINDOW, MIN_COMPRESS_SIZE } from "../../open-sse/rtk/constants.j
 // ============================================================
 // 1. PRIORITY / OVERLAPPING PATTERNS
 // ============================================================
-describe("PR #1175 - priority with overlapping patterns", () => {
+describe("an earlier change - priority with overlapping patterns", () => {
   it("git-diff wins over buildOutput when both present", () => {
     const input = [
       "diff --git a/Cargo.toml b/Cargo.toml",
@@ -42,7 +42,7 @@ describe("PR #1175 - priority with overlapping patterns", () => {
 // ============================================================
 // 2. BOUNDARY: DETECT_WINDOW
 // ============================================================
-describe("PR #1175 - DETECT_WINDOW boundary", () => {
+describe("an earlier change - DETECT_WINDOW boundary", () => {
   it("build pattern beyond DETECT_WINDOW chars: NOT detected", () => {
     const padding = "x".repeat(DETECT_WINDOW + 100);
     const input = `${padding}\n   Compiling foo v0.1.0\n    Finished release in 1.2s`;
@@ -60,7 +60,7 @@ describe("PR #1175 - DETECT_WINDOW boundary", () => {
 // ============================================================
 // 3. LINE ENDINGS / WHITESPACE QUIRKS
 // ============================================================
-describe("PR #1175 - line endings & whitespace", () => {
+describe("an earlier change - line endings & whitespace", () => {
   it("CRLF line endings still detect", () => {
     const input = "npm warn deprecated foo@1.0.0\r\nadded 5 packages in 2s\r\n";
     expect(autoDetectFilter(input)).toBe(buildOutput);
@@ -82,7 +82,7 @@ describe("PR #1175 - line endings & whitespace", () => {
 // ============================================================
 // 4. ADVERSARIAL: USER CODE / STRING LITERALS
 // ============================================================
-describe("PR #1175 - adversarial: user code containing build strings", () => {
+describe("an earlier change - adversarial: user code containing build strings", () => {
   it("user JS code with console.log('npm warn ...') triggers buildOutput", () => {
     // This is a realistic case: LLM is reading a file with this code
     const input = [
@@ -146,7 +146,7 @@ describe("PR #1175 - adversarial: user code containing build strings", () => {
 // ============================================================
 // 5. CORRUPTION / SAFETY: NO EMPTY OUTPUT
 // ============================================================
-describe("PR #1175 - corruption safety", () => {
+describe("an earlier change - corruption safety", () => {
   it("input with only progress lines (no errors/warnings/summary) returns input fallback", () => {
     const input = [
       "   Compiling a v0.1.0",
@@ -215,7 +215,7 @@ describe("PR #1175 - corruption safety", () => {
 // ============================================================
 // 6. INTEGRATION: compressMessages pipeline
 // ============================================================
-describe("PR #1175 - integration with compressMessages", () => {
+describe("an earlier change - integration with compressMessages", () => {
   function buildBody(toolResultText) {
     return {
       messages: [
@@ -318,7 +318,7 @@ describe("git-log priority", () => {
 // ============================================================
 // 7. PORCELAIN REGRESSION DEEPER TESTS
 // ============================================================
-describe("PR #1175 - porcelain regression deeper", () => {
+describe("an earlier change - porcelain regression deeper", () => {
   it("mixed staged + workdir + untracked porcelain → detected (has status code first char)", () => {
     const input = [
       "M  src/staged.js",   // staged modified
@@ -357,7 +357,7 @@ describe("PR #1175 - porcelain regression deeper", () => {
 // ============================================================
 // 8. PATHOLOGICAL INPUTS
 // ============================================================
-describe("PR #1175 - pathological", () => {
+describe("an earlier change - pathological", () => {
   it("very long single line (no newlines) with build pattern", () => {
     const input = "npm warn deprecated foo@1.0.0: " + "x".repeat(5000);
     const filter = autoDetectFilter(input);

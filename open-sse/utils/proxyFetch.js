@@ -390,7 +390,7 @@ export async function proxyAwareFetch(url, options = {}, proxyOptions = null) {
   // Strict mode means "never leave over the direct IP". Reaching here with a
   // proxy configured but unresolved is exactly that case — an inactive or
   // empty pool, or every proxy removed — so refuse instead of silently
-  // exposing the real address (#4333). The catch blocks above only cover a
+  // exposing the real address. The catch blocks above only cover a
   // proxy that was actually tried.
   //
   // Gate on a proxy being *intended*: callers like the Qoder executor set

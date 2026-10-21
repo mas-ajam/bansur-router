@@ -13,9 +13,9 @@
 //
 // The request is deterministically malformed for this provider, so every
 // account fails identically and the combo pays a full failover before landing
-// somewhere that accepts it (#3922).
+// somewhere that accepts it.
 //
-// Scope guardrail (#3667): this is NOT a global schema sanitizer. Providers
+// Scope guardrail: this is NOT a global schema sanitizer. Providers
 // that do support `\p{...}` keep the constraint untouched — the strip runs only
 // on the Codex dispatch path, and only on `pattern` strings that actually
 // contain a property escape. Everything else in the schema (including valid

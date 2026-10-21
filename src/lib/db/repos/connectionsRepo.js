@@ -140,7 +140,7 @@ export async function createProviderConnection(data) {
   db.transaction(() => {
     // apikey connections are deduped by name and need only the current max
     // priority, so query for those directly instead of loading the whole pool
-    // (O(pool) per key — the other half of the import cost in #4311). The oauth
+    // (O(pool) per key — the other half of the import cost in). The oauth
     // branch below still scans, because its identity rules compare fields
     // inside providerSpecificData and have no single-column equivalent.
     const isApikey = data.authType === "apikey" && !!data.name;
@@ -198,7 +198,7 @@ export async function createProviderConnection(data) {
       // stored apiKey, so a script that reused names ("Key 1", "Key 2", …)
       // destroyed existing pool entries with no 409 and no warning. Callers that
       // genuinely mean "update this one" pass allowOverwrite; everyone else gets
-      // a typed error naming the row that would have been replaced. #4311
+      // a typed error naming the row that would have been replaced.
       if (data.allowOverwrite === false) {
         const err = new Error(
           `A connection named "${existing.name}" already exists for provider "${data.provider}". ` +
@@ -224,7 +224,7 @@ export async function createProviderConnection(data) {
     if (!connectionPriority) {
       // MAX(priority)+1 in SQL rather than a reduce over the loaded pool: the
       // apikey path no longer has the whole pool in memory, and the aggregate
-      // is served by the index instead of a row scan. #4311
+      // is served by the index instead of a row scan.
       const maxRow = db.get(`SELECT MAX(priority) AS m FROM providerConnections WHERE provider = ?`, [data.provider]);
       connectionPriority = (maxRow?.m || 0) + 1;
     }
@@ -252,7 +252,7 @@ export async function createProviderConnection(data) {
     // row sorts last and the resulting order is what reorderInTx would have
     // produced anyway. The rewrite cost ~2N statements per insert — O(pool) —
     // which made a 5k-key import O(n*m): ~25M statements at a 5k pool, and it
-    // serialized every parallel writer on the same transaction. #4311
+    // serialized every parallel writer on the same transaction.
     result = conn;
   });
 

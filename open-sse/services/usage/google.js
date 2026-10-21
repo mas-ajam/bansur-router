@@ -26,7 +26,7 @@ export async function getGeminiUsage(accessToken, providerSpecificData, proxyOpt
 
   try {
     // Resolve project id: prefer connection-stored id, else loadCodeAssist lookup.
-    // #1271: OAuth save stores projectId on the connection, not providerSpecificData.
+    // OAuth save stores projectId on the connection, not providerSpecificData.
     let projectId = normalizeCloudCodeProjectId(providerSpecificData?.projectId);
     let plan = "Free";
 

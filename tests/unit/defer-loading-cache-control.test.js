@@ -13,7 +13,7 @@
  * The fix anchors on the last tool that is NOT deferred, so prompt caching is
  * kept for the tools that can use it instead of being dropped wholesale.
  *
- * See: #3567.
+ * See:.
  */
 
 import { describe, it, expect } from "vitest";
@@ -27,7 +27,7 @@ const tool = (name, extra = {}) => ({
   ...extra,
 });
 
-describe("defer_loading tools never carry cache_control (#3567)", () => {
+describe("defer_loading tools never carry cache_control", () => {
   it("anchorClaudeCache: anchor moves to the last non-deferred tool", () => {
     const body = anchorClaudeCache({
       messages: [{ role: "user", content: "hi" }],

@@ -1,4 +1,4 @@
-// #4362: parseQuotaData had a dedicated `case "codebuddy-cn"` that forwards
+// parseQuotaData had a dedicated `case "codebuddy-cn"` that forwards
 // `recurring`, but no case for "codebuddy-intl" — which returns the exact same
 // quota shape (open-sse/services/usage/codebuddy-cn.js → getCodeBuddyIntlUsage).
 // Falling through to `default` dropped `recurring`, so one-shot bonus packs
@@ -17,7 +17,7 @@ function byName(parsed, name) {
   return parsed.find((q) => q.name === name);
 }
 
-describe("parseQuotaData forwards `recurring` for codebuddy-intl (#4362)", () => {
+describe("parseQuotaData forwards `recurring` for codebuddy-intl", () => {
   it("marks a bonus pack as non-recurring, like codebuddy-cn does", () => {
     const intl = parseQuotaData("codebuddy-intl", { quotas });
     expect(byName(intl, "Bonus Pack 1").recurring).toBe(false);

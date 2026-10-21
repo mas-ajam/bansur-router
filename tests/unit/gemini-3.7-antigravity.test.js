@@ -4,7 +4,7 @@ import antigravityRegistry from "../../open-sse/providers/registry/antigravity.j
 import geminiRegistry from "../../open-sse/providers/registry/gemini.js";
 import { MODEL_PRICING } from "../../open-sse/providers/pricing.js";
 
-describe("Gemini 3.7 Flash Support & Config (#3286, #3281)", () => {
+describe("Gemini 3.7 Flash Support & Config", () => {
   it("registers gemini-3.7-flash tiered models in antigravity provider registry", () => {
     const agIds = antigravityRegistry.models.map(m => m.id);
     expect(agIds).toContain("gemini-3.7-flash-high");

@@ -24,7 +24,7 @@ const NO_AUTH_PROVIDER_IDS = Object.keys(FREE_PROVIDERS).filter(id => FREE_PROVI
 
 // Providers with per-account live catalogs via /api/providers/[id]/models.
 // Static registry stays as fallback when live fetch fails or is empty.
-// zed added in #4244: its backend customResolver already returns live models
+// zed added in: its backend customResolver already returns live models
 // but the frontend omitted it, hiding Zed entirely from the Combo picker.
 const LIVE_CATALOG_PROVIDERS = ["cursor", "cline", "clinepass", "zed"];
 
@@ -257,7 +257,7 @@ export default function ModelSelectModal({
     // self-hosted endpoints (Ollama, internal relays, etc.) don't always need a stored
     // key, so gating on connections hides models the user already added. These nodes
     // are LLM-only, so only surface them when no kind filter is active.
-    // See #4177, #2113, #2119, #1988.
+    // See,,,.
     const existingNodeIds = new Set((providerNodes || []).map((n) => n?.id).filter(Boolean));
     const compatibleNodeIds = kindFilter
       ? []

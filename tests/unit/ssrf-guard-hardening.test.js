@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
-// Regression coverage for #3714: the SSRF guard's literal-hostname/IP checks
+// Regression coverage for: the SSRF guard's literal-hostname/IP checks
 // matched specific textual representations rather than the underlying address,
 // so a different (but equivalent) representation slipped through. Each case
 // below is a bypass the issue reported, or one found while fixing it.
@@ -13,7 +13,7 @@ vi.mock("node:dns", () => ({
 
 const { assertPublicUrl, assertPublicUrlResolved, fetchPublic } = await import("../../src/shared/utils/ssrfGuard.js");
 
-describe("assertPublicUrl: literal hostname/IP bypasses from #3714", () => {
+describe("assertPublicUrl: literal hostname/IP bypasses", () => {
   it("blocks a trailing-dot FQDN the same as the bare hostname", () => {
     expect(() => assertPublicUrl("http://localhost/")).toThrow();
     expect(() => assertPublicUrl("http://localhost./")).toThrow();
@@ -59,7 +59,7 @@ describe("assertPublicUrl: literal hostname/IP bypasses from #3714", () => {
   });
 });
 
-describe("assertPublicUrlResolved: DNS-resolving hostname bypass from #3714", () => {
+describe("assertPublicUrlResolved: DNS-resolving hostname bypass", () => {
   beforeEach(() => lookupMock.mockReset());
 
   it("blocks a hostname that resolves to a loopback address (nip.io-style wildcard DNS)", async () => {
@@ -97,7 +97,7 @@ describe("assertPublicUrlResolved: DNS-resolving hostname bypass from #3714", ()
   });
 });
 
-describe("fetchPublic: redirect-target re-validation from #3714", () => {
+describe("fetchPublic: redirect-target re-validation", () => {
   const originalFetch = global.fetch;
   afterEach(() => { global.fetch = originalFetch; });
   beforeEach(() => {

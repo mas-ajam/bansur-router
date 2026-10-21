@@ -14,7 +14,7 @@ export function normalizeResponsesInput(input) {
     return [{ type: RESPONSES_ITEM.MESSAGE, role: ROLE.USER, content: [{ type: RESPONSES_ITEM.INPUT_TEXT, text }] }];
   }
   if (Array.isArray(input)) {
-    // Empty input[] would produce messages:[] which all providers reject (#389)
+    // Empty input[] would produce messages:[] which all providers reject
     if (input.length === 0) {
       return [{ type: RESPONSES_ITEM.MESSAGE, role: ROLE.USER, content: [{ type: RESPONSES_ITEM.INPUT_TEXT, text: "..." }] }];
     }
@@ -23,7 +23,7 @@ export function normalizeResponsesInput(input) {
   return null;
 }
 
-// Strict Responses upstreams reject overlong call_ids with InputValidationError (#393).
+// Strict Responses upstreams reject overlong call_ids with InputValidationError.
 export const MAX_RESPONSES_CALL_ID_LEN = 64;
 
 // Fallback ids share one Date.now() when a batch of items is sanitized in a tight
@@ -142,7 +142,7 @@ export function convertResponsesApiFormat(body) {
           tool_calls: []
         };
       }
-      // Skip items with empty/missing name — upstream APIs reject nameless tool calls (#444)
+      // Skip items with empty/missing name — upstream APIs reject nameless tool calls
       if (!item.name || typeof item.name !== "string" || item.name.trim() === "") continue;
       currentAssistantMsg.tool_calls.push({
         id: item.call_id,

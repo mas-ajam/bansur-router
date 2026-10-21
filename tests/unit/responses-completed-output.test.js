@@ -44,7 +44,7 @@ function doneItems(events) {
     .map((event) => event.data.item);
 }
 
-describe("response.completed output (issue #4307)", () => {
+describe("response.completed output", () => {
   // The regression: sendCompleted() built the response object without an `output`
   // key at all, so response.completed arrived with no output even though the
   // message had already been streamed. Clients that build the final result from

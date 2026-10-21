@@ -160,7 +160,7 @@ Respond ONLY with the JSON object, no other text.`);
       // as a function tool too — Anthropic-compatible gateways (notably
       // MiniMax M3 at api.minimaxi.com) reject payloads where this branch
       // falls through with `toolData.name === undefined`, returning their
-      // upstream code (2013) "invalid tool type". See #2435.
+      // upstream code (2013) "invalid tool type".
       const toolData = tool.function ?? tool;
       const originalName = toolData.name;
 

@@ -1,5 +1,5 @@
-// #3795 — a proxy must not dispatch more cache_control blocks than Anthropic
-// accepts, and must not lose turns that use single-object content (#3567 interplay).
+// a proxy must not dispatch more cache_control blocks than Anthropic
+// accepts, and must not lose turns that use single-object content.
 import { describe, it, expect } from "vitest";
 import {
   anchorClaudeCache,

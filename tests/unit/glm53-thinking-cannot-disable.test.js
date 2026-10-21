@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { applyThinking } from "../../open-sse/translator/concerns/thinkingUnified.js";
 import { getCapabilitiesForModel } from "../../open-sse/providers/capabilities.js";
 
-// #4409: intermittent 400 code 1210 "Invalid API parameter" on GLM-5.3-Flash via
+// intermittent 400 code 1210 "Invalid API parameter" on GLM-5.3-Flash via
 // https://api.z.ai/api/anthropic/v1/messages, starting in v0.5.91.
 //
 // z.ai's docs are explicit: "GLM-5.3 and GLM-5.3-FLASH no longer support
@@ -16,7 +16,7 @@ import { getCapabilitiesForModel } from "../../open-sse/providers/capabilities.j
 
 const models = ["glm-5.3-flash", "glm-5.3"];
 
-describe("GLM 5.3 must never be sent thinking=disabled (#4409)", () => {
+describe("GLM 5.3 must never be sent thinking=disabled", () => {
   it.each(models)("%s is marked as unable to disable thinking", (id) => {
     expect(getCapabilitiesForModel("glm", id).thinkingCanDisable).toBe(false);
   });
@@ -49,7 +49,7 @@ describe("GLM 5.3 must never be sent thinking=disabled (#4409)", () => {
     // 5.1 and older still accept thinking.type=disabled, and this fix must not
     // change that. (glm-5.2 is deliberately NOT asserted here: a pre-existing
     // exact MODEL_CAPABILITIES entry sets canDisable:false for it, which is
-    // separate from #4409.)
+    // separate from.)
     for (const id of ["glm-5.1", "glm-5-turbo", "glm-5"]) {
       expect(getCapabilitiesForModel("glm", id).thinkingCanDisable, id).toBe(true);
       const b = { reasoning_effort: "none" };

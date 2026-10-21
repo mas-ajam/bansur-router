@@ -17,7 +17,7 @@ import { ROLE, OPENAI_BLOCK, RESPONSES_ITEM, OPENAI_FINISH, MODEL_FALLBACK } fro
 // Upstream Chat Completions usage -> Responses API usage shape.
 // Without this, /v1/responses never reports usage: Responses clients (Codex CLI)
 // keep their "context used" gauge pinned at 0 and never auto-compact, so a long
-// session grows until the upstream context limit rejects it (bansur-router issue #3432).
+// session grows until the upstream context limit rejects it.
 //
 // Note this is stored under state.responsesUsage, NOT state.usage: state.usage is
 // owned by the stream layer, which fills it with normalizeUsage()-shaped counts
@@ -438,7 +438,7 @@ function closeToolCall(state, emit, idx) {
 // to repeat the items already delivered in response.output_item.done. Clients that
 // build their final result from the terminal event (GitHub Copilot CLI, the OpenAI
 // SDK "final response" helpers) otherwise treat the turn as empty even though the
-// text was streamed - see issue #4307.
+// text was streamed - see the issue.
 //
 // Keyed by output_index so a repeated close overwrites rather than duplicating the
 // item, and ordered by output_index so response.output matches the order the items

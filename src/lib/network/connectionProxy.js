@@ -116,7 +116,7 @@ export async function resolveConnectionProxyConfig(
     // A strict pool must keep its guarantee even when the pool itself is not
     // usable (inactive, or saved without a url). Otherwise the unusable-pool
     // path below reports strictProxy:false and the request silently leaves
-    // over the direct IP — the leak strict mode exists to prevent (#4333).
+    // over the direct IP — the leak strict mode exists to prevent.
     let poolStrictProxy = false;
 
     /**
@@ -140,7 +140,7 @@ export async function resolveConnectionProxyConfig(
       // was upstream (testStatus never gated routing there): when every
       // endpoint is error-marked, a non-strict pool still routes through
       // its endpoints rather than silently dropping to direct — only a
-      // strict pool fails closed in that state (#4333).
+      // strict pool fails closed in that state.
       const isRelayPool = proxyPool && ["vercel", "cloudflare", "deno", "netlify"].includes(proxyPool.type);
       if (isValidPool && !isRelayPool) {
         const endpoints = Array.isArray(proxyPool.endpoints) ? proxyPool.endpoints : [];

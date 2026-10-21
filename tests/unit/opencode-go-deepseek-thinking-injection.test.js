@@ -1,6 +1,6 @@
 /**
  * opencode-go DeepSeek models on the claude→claude /messages passthrough need
- * the same thinking-block handling as the official deepseek provider (#3332):
+ * the same thinking-block handling as the official deepseek provider:
  * keep existing thinking blocks verbatim, and inject an UNSIGNED placeholder
  * on tool_use turns that carry none while thinking is enabled — upstream 400s
  * with "The content[].thinking in the thinking mode must be passed back to the
@@ -97,6 +97,6 @@ describe("prepareClaudeRequest — opencode-go DeepSeek thinking pass-back", () 
     "inject a reasoning placeholder into Responses `input` items for DeepSeek models — " +
       "injectReasoningContent only rewrites body.messages, so responses-format clients " +
       "replaying reasoning-bearing sessions on the openai-responses transport are " +
-      "uncovered (#3332 restore gate: Codex-shaped payload must stay 200)",
+      "uncovered (restore gate: Codex-shaped payload must stay 200)",
   );
 });

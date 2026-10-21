@@ -8,10 +8,10 @@ import {
 } from "../../open-sse/config/providerModels.js";
 import { getModelInfoCore } from "../../open-sse/services/model.js";
 
-// Codex CLI's auto-review sends the bare model id "codex-auto-review". Before #1398 it fell
+// Codex CLI's auto-review sends the bare model id "codex-auto-review". Previously it fell
 // through prefix inference to the "openai" default and failed with
 // "No active credentials for provider: openai".
-describe("codex auto-review routing (#1398)", () => {
+describe("codex auto-review routing", () => {
   it("routes the bare Codex auto-review model to the OAuth Codex provider", async () => {
     await expect(getModelInfoCore("codex-auto-review", {})).resolves.toEqual({
       provider: "codex",

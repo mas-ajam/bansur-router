@@ -272,7 +272,7 @@ export async function handleChatCore({ body, modelInfo, credentials, log, onCred
   // Provider-scoped via quirks (shouldDefaultClaudeToolType): only gateways that declare
   // requireClaudeToolType get the explicit type. Applying it unconditionally breaks
   // Claude-format endpoints that only accept the legacy typeless tool shape — DeepSeek's
-  // Anthropic-compatible endpoint 400s with "unknown variant `custom`" (#3905).
+  // Anthropic-compatible endpoint 400s with "unknown variant `custom`".
   if (shouldDefaultClaudeToolType(provider, finalFormat, translatedBody.tools, PROVIDERS)) {
     translatedBody.tools = defaultClaudeToolType(translatedBody.tools);
   }
@@ -381,7 +381,7 @@ export async function handleChatCore({ body, modelInfo, credentials, log, onCred
     connectionNoProxy: credentials?.providerSpecificData?.connectionNoProxy || "",
     vercelRelayUrl: credentials?.providerSpecificData?.vercelRelayUrl || "",
     // Strict pools must never silently fall back to a direct connection —
-    // honored on the Cursor AgentService h2 path and in proxyFetch (#4333).
+    // honored on the Cursor AgentService h2 path and in proxyFetch.
     proxyPoolId: credentials?.providerSpecificData?.connectionProxyPoolId || null,
     strictProxy: credentials?.providerSpecificData?.strictProxy === true,
   };

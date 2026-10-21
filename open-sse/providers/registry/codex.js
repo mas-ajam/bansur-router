@@ -70,12 +70,12 @@ export default {
     { id: "gpt-5.6-luna[1m]", name: "GPT 5.6 Luna (extended context)", upstreamModelId: "gpt-5.6-luna" },
     { id: "gpt-5.6-luna-review", name: "GPT 5.6 Luna Review", upstreamModelId: "gpt-5.6-luna", quotaFamily: "review" },
     // gpt-5.5 / gpt-5.5-review / gpt-5.4 / gpt-5.4-mini / gpt-5.3-codex-spark removed:
-    // absent from backend-api/codex/models for ChatGPT accounts and return HTTP 400 (#4202, #4848).
-    // gpt-daybreak-blue-latest and gpt-reserve added: confirmed live via backend-api/codex/models (#4202).
+    // absent from backend-api/codex/models for ChatGPT accounts and return HTTP 400.
+    // gpt-daybreak-blue-latest and gpt-reserve added: confirmed live via backend-api/codex/models.
     { id: "gpt-daybreak-blue-latest", name: "GPT Daybreak Blue" },
     { id: "gpt-reserve", name: "GPT Reserve" },
     // Codex CLI's auto-review virtual model. Unlike the "-review" variants above it is not derived
-    // from a base model, so it is forwarded verbatim instead of having "-review" stripped (#1398).
+    // from a base model, so it is forwarded verbatim instead of having "-review" stripped.
     { id: "codex-auto-review", name: "Codex Auto Review", upstreamModelId: "codex-auto-review", quotaFamily: "review" },
     { id: "gpt-image-2.5", name: "GPT Image 2.5", capabilities: ["text2img","edit","multiImage"], params: ["size","quality","background","image_detail","output_format"], kind: "image" },
     { id: "gpt-image-2.5-flare", name: "GPT Image 2.5 Flare", capabilities: ["text2img","edit","multiImage"], params: ["size","quality","background","image_detail","output_format"], kind: "image" },

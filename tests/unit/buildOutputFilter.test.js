@@ -1,11 +1,11 @@
-// Tests for PR #1175: build output filter + porcelain regex fix
+// Tests for an earlier change: build output filter + porcelain regex fix
 // Covers edge cases: porcelain workdir-only, cargo misdetection, false positives, compression
 import { describe, it, expect } from "vitest";
 import { autoDetectFilter } from "../../open-sse/rtk/autodetect.js";
 import { buildOutput } from "../../open-sse/rtk/filters/buildOutput.js";
 import { gitStatus } from "../../open-sse/rtk/filters/gitStatus.js";
 
-describe("PR #1175 - buildOutput filter detection", () => {
+describe("an earlier change - buildOutput filter detection", () => {
   it("detects npm install output", () => {
     const input = [
       "npm warn deprecated har-validator@5.1.5: this library is no longer supported",
@@ -36,7 +36,7 @@ describe("PR #1175 - buildOutput filter detection", () => {
   });
 });
 
-describe("PR #1175 - buildOutput compression behavior", () => {
+describe("an earlier change - buildOutput compression behavior", () => {
   it("compresses npm install with deprecations", () => {
     const input = [
       "npm warn deprecated har-validator@5.1.5: this library is no longer supported",
@@ -107,7 +107,7 @@ describe("PR #1175 - buildOutput compression behavior", () => {
   });
 });
 
-describe("PR #1175 - porcelain regex fix edge cases", () => {
+describe("an earlier change - porcelain regex fix edge cases", () => {
   it("git status --porcelain workdir-only (space first char) STILL detects as gitStatus (minimal fix preserved old regex)", () => {
     const input = [
       " M src/a.js",
@@ -153,7 +153,7 @@ describe("PR #1175 - porcelain regex fix edge cases", () => {
   });
 });
 
-describe("PR #1175 - false positive risks", () => {
+describe("an earlier change - false positive risks", () => {
   it("generic app log with 'ERROR:' triggers buildOutput (potential false positive)", () => {
     const input = [
       "2026-05-16 10:00:00 INFO Server started on port 3000",
@@ -199,7 +199,7 @@ describe("PR #1175 - false positive risks", () => {
   });
 });
 
-describe("PR #1175 - safety: no data corruption", () => {
+describe("an earlier change - safety: no data corruption", () => {
   it("empty input returns input", () => {
     expect(buildOutput("")).toBe("");
   });

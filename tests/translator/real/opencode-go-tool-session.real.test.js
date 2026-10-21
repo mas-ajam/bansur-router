@@ -2,7 +2,7 @@
 // paths for opencode-go DeepSeek.
 //
 // Covers the blind spots of the basic endpoint matrix (which only used plain-text
-// bodies): the real 2-turn tool loop that #3332 originally reported 400 for,
+// bodies): the real 2-turn tool loop that originally produced a 400,
 // whether the `(max)` thinking suffix actually produces thinking output, the
 // non-streaming code paths, and the chat-only-model fallback route.
 //

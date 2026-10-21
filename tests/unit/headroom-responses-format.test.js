@@ -1,11 +1,11 @@
-// #1998 — Headroom compression treated a Codex (openai-responses) body.input
+// Headroom compression treated a Codex (openai-responses) body.input
 // array as OpenAI messages: it sent Responses items to /v1/compress and then
 // assigned the returned OpenAI messages back to body.input, violating the
 // Responses format contract. body.input must stay Responses-shaped.
 import { describe, it, expect, vi, afterEach } from "vitest";
 import { compressWithHeadroom } from "../../open-sse/rtk/headroom.js";
 
-describe("compressWithHeadroom openai-responses format (#1998)", () => {
+describe("compressWithHeadroom openai-responses format", () => {
   afterEach(() => {
     vi.restoreAllMocks();
   });
@@ -48,7 +48,7 @@ describe("compressWithHeadroom openai-responses format (#1998)", () => {
     expect(typeof body.input[0].content).not.toBe("string");
   });
 
-  it("skips Responses tool/reasoning history instead of collapsing it into a message (#2132)", async () => {
+  it("skips Responses tool/reasoning history instead of collapsing it into a message", async () => {
     global.fetch = vi.fn(async () => ({
       ok: true,
       json: async () => ({

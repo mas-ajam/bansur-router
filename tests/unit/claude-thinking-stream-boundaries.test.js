@@ -4,7 +4,7 @@
 // "</think>" chunks in delta.content while the thinking text itself went out in
 // reasoning_content. The pair always arrived empty and adjacent, so OpenAI-format
 // clients (opencode, DeepSeek Harness, ...) rendered a bare "<think></think>" above
-// every answer (#3399, #4199).
+// every answer.
 //
 // The Responses translators leaned on that "</think>" marker as their only signal
 // to close the reasoning item before the answer. Dropping the marker therefore

@@ -249,11 +249,11 @@ export function encodeKvClientMessage(kvId, resultField, resultPayload, metadata
 
 // The AgentService h2 path bypasses proxyAwareFetch (Node http2 duplex, no
 // dispatcher), so the strict-proxy guarantee that proxyFetch enforces for
-// regular fetch never applies here. Until h2 proxying lands (see #3276),
+// regular fetch never applies here. Until h2 proxying lands,
 // honor just the policy side: when a proxy is intended AND strict AND cannot
 // be resolved for this request, fail closed instead of silently opening a
 // direct socket that exposes the host's real IP — the exact leak strict mode
-// exists to prevent (#4333). Non-strict callers keep today's direct behavior.
+// exists to prevent. Non-strict callers keep today's direct behavior.
 const proxyIntentFailed = (proxyOptions) => {
   if (proxyOptions?.strictProxy !== true) return false;
   const proxyIntended = Boolean(
@@ -455,7 +455,7 @@ export class CursorExecutor extends BaseExecutor {
     const messages = body.messages || [];
     const tools = body.tools || [];
     const reasoningEffort = body.reasoning_effort || null;
-    // Detect Claude Code UA to force Agent mode (issue #643)
+    // Detect Claude Code UA to force Agent mode
     const ua = credentials?.rawHeaders?.["user-agent"] || "";
     const forceAgentMode = ua.includes("claude-cli") || ua.includes("claude-code") || ua.includes("Claude Code");
     return generateCursorBody(messages, model, tools, reasoningEffort, forceAgentMode);
