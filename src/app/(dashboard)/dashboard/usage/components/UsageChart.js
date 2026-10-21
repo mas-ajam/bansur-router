@@ -12,6 +12,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import Card from "@/shared/components/Card";
+import { useTheme } from "@/shared/hooks/useTheme";
 
 const fmtTokens = (n) => {
   if (n >= 1000000) return `${(n / 1000000).toFixed(1)}M`;
@@ -29,9 +30,9 @@ const VIEW_MODES = [
 ];
 
 const VIEW_CONFIG = {
-  tokens:   { dataKey: "tokens",   color: "#101418", gradId: "gradTokens",   formatter: fmtTokens,   label: "Tokens" },
-  requests: { dataKey: "requests", color: "#5d666e", gradId: "gradRequests", formatter: fmtRequests, label: "Requests" },
-  cost:     { dataKey: "cost",     color: "#8b949c", gradId: "gradCost",     formatter: fmtCost,     label: "Cost" },
+  tokens:   { dataKey: "tokens",   color: "#101418", colorDark: "#f2f3f4", gradId: "gradTokens",   formatter: fmtTokens,   label: "Tokens" },
+  requests: { dataKey: "requests", color: "#5d666e", colorDark: "#c9ced3", gradId: "gradRequests", formatter: fmtRequests, label: "Requests" },
+  cost:     { dataKey: "cost",     color: "#8b949c", colorDark: "#9aa1a9", gradId: "gradCost",     formatter: fmtCost,     label: "Cost" },
 };
 
 export default function UsageChart({ period = "7d" }) {
@@ -58,7 +59,10 @@ export default function UsageChart({ period = "7d" }) {
     fetchData();
   }, [fetchData]);
 
-  const cfg = VIEW_CONFIG[viewMode];
+  const { isDark } = useTheme();
+  const cfgBase = VIEW_CONFIG[viewMode];
+  const cfg = { ...cfgBase, color: isDark ? cfgBase.colorDark : cfgBase.color };
+  const gradColor = (key) => (isDark ? VIEW_CONFIG[key].colorDark : VIEW_CONFIG[key].color);
   const hasData = data.some((d) => (d[cfg.dataKey] || 0) > 0);
 
   return (
@@ -71,7 +75,7 @@ export default function UsageChart({ period = "7d" }) {
           <button
             key={m.value}
             onClick={() => setViewMode(m.value)}
-            className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${viewMode === m.value ? "bg-primary text-white shadow-sm" : "text-text-muted hover:text-text hover:bg-bg-hover"}`}
+            className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${viewMode === m.value ? "bg-primary text-on-brand shadow-sm" : "text-text-muted hover:text-text hover:bg-bg-hover"}`}
           >
             {m.label}
           </button>
@@ -87,16 +91,16 @@ export default function UsageChart({ period = "7d" }) {
           <AreaChart data={data} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
             <defs>
               <linearGradient id="gradTokens" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#101418" stopOpacity={0.25} />
-                <stop offset="95%" stopColor="#101418" stopOpacity={0} />
+                <stop offset="5%" stopColor={gradColor("tokens")} stopOpacity={0.25} />
+                <stop offset="95%" stopColor={gradColor("tokens")} stopOpacity={0} />
               </linearGradient>
               <linearGradient id="gradRequests" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#5d666e" stopOpacity={0.25} />
-                <stop offset="95%" stopColor="#5d666e" stopOpacity={0} />
+                <stop offset="5%" stopColor={gradColor("requests")} stopOpacity={0.25} />
+                <stop offset="95%" stopColor={gradColor("requests")} stopOpacity={0} />
               </linearGradient>
               <linearGradient id="gradCost" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#8b949c" stopOpacity={0.25} />
-                <stop offset="95%" stopColor="#8b949c" stopOpacity={0} />
+                <stop offset="5%" stopColor={gradColor("cost")} stopOpacity={0.25} />
+                <stop offset="95%" stopColor={gradColor("cost")} stopOpacity={0} />
               </linearGradient>
             </defs>
             <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.1} />

@@ -434,13 +434,13 @@ export default function CLIToolsPageClient({ machineId }) {
               </div>
 
               {isMitm ? (
-                <div className="bg-brand-500 text-[#e8ebed] rounded-brand px-4 py-3.5 font-mono text-[12.5px] leading-[1.65] overflow-x-auto whitespace-pre">
+                <div className="bg-brand-500 dark:bg-brand-900 text-[#e8ebed] rounded-brand px-4 py-3.5 font-mono text-[12.5px] leading-[1.65] overflow-x-auto whitespace-pre">
                   <span className="text-[#8b949c]"># No config file needed</span>
                   {"\n"}
                   {`${tool.name} traffic is routed by the\nMITM layer. Enable it under MITM,\nthen restart the tool.`}
                 </div>
               ) : (
-                <div className="bg-brand-500 text-[#e8ebed] rounded-brand px-4 py-3.5 font-mono text-[12.5px] leading-[1.65] overflow-x-auto whitespace-pre">
+                <div className="bg-brand-500 dark:bg-brand-900 text-[#e8ebed] rounded-brand px-4 py-3.5 font-mono text-[12.5px] leading-[1.65] overflow-x-auto whitespace-pre">
                   <span className="text-[#8b949c]">{config.comment}</span>
                   {"\n"}
                   {config.body}

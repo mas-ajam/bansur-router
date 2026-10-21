@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Card, Button, Toggle, Input, Select, Badge, ConfirmModal } from "@/shared/components";
 import { useNotificationStore } from "@/store/notificationStore";
+import { useTheme } from "@/shared/hooks/useTheme";
 import { cn } from "@/shared/utils/cn";
 import { LOCALE_COOKIE, normalizeLocale } from "@/i18n/config";
 import { reloadTranslations } from "@/i18n/runtime";
@@ -17,6 +18,7 @@ function getLocaleFromCookie() {
 }
 
 export default function ProfilePage() {
+  const { theme, setTheme } = useTheme();
   const [locale, setLocale] = useState(() => getLocaleFromCookie());
   const [settings, setSettings] = useState({ fallbackStrategy: "fill-first" });
   const [loading, setLoading] = useState(true);
@@ -654,6 +656,40 @@ export default function ProfilePage() {
 
         {/* Right column */}
         <div className="flex flex-col gap-3.5">
+          {/* Appearance — theme segment restored (Option 2 batch 1); additional
+              section, spec Profile layout otherwise unchanged. Segmented
+              control markup is the pre-removal one (token classes flip via
+              the .dark token block). */}
+          <Card>
+            <h3 className="text-[13.5px] font-semibold mb-3.5">Appearance</h3>
+            <div className="flex items-center justify-between gap-3.5 flex-wrap">
+              <div>
+                <b className="block text-[13.5px] font-semibold">Theme</b>
+                <span className="text-[12.5px] text-text-muted">Light, dark, or follow your system.</span>
+              </div>
+              <div className="inline-flex rounded-md border border-border bg-surface overflow-hidden">
+                {["light", "dark", "system"].map((option) => (
+                  <button
+                    key={option}
+                    type="button"
+                    onClick={() => setTheme(option)}
+                    className={cn(
+                      "flex items-center justify-center gap-1.5 px-[13px] py-1.5 text-[12.5px] font-medium transition-colors border-r border-border last:border-r-0",
+                      theme === option
+                        ? "bg-brand-500 text-on-brand"
+                        : "text-text-muted hover:bg-surface-2 hover:text-text-main"
+                    )}
+                  >
+                    <span className="material-symbols-outlined text-[18px]">
+                      {option === "light" ? "light_mode" : option === "dark" ? "dark_mode" : "contrast"}
+                    </span>
+                    <span className="capitalize text-xs sm:text-sm">{option}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </Card>
+
           {/* Cloud sync */}
           <Card>
             <div className="flex items-center gap-3.5">

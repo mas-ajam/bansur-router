@@ -27,11 +27,11 @@ import {
 const fmt = (n) => new Intl.NumberFormat("en-US").format(n || 0);
 
 const ghostLinkClass =
-  "inline-flex items-center justify-center gap-[7px] whitespace-nowrap border font-medium transition-colors bg-transparent border-transparent text-text-main hover:bg-[#eef0f1] px-2.5 py-1 text-[12.5px] rounded-md";
+  "inline-flex items-center justify-center gap-[7px] whitespace-nowrap border font-medium transition-colors bg-transparent border-transparent text-text-main hover:bg-[#eef0f1] dark:hover:bg-surface-2 px-2.5 py-1 text-[12.5px] rounded-md";
 
 const dotOn = "inline-block w-2 h-2 rounded-full shrink-0 bg-brand-500";
 const dotWarn =
-  "inline-block w-2 h-2 rounded-full shrink-0 bg-white border-[2.5px] border-brand-500";
+  "inline-block w-2 h-2 rounded-full shrink-0 bg-surface border-[2.5px] border-brand-500";
 
 function providerName(providerId) {
   return AI_PROVIDERS[providerId]?.name || providerId || "—";
@@ -408,7 +408,7 @@ export default function OverviewPageClient() {
                       </span>
                       <span className="font-mono text-[12px]">{row.right}</span>
                     </div>
-                    <div className="h-[6px] rounded-full bg-[#e7eaec] overflow-hidden">
+                    <div className="h-[6px] rounded-full bg-surface-3 overflow-hidden">
                       <span
                         className="block h-full rounded-full bg-brand-500"
                         style={{ width: `${row.pct}%` }}

@@ -50,7 +50,7 @@ export default function RequestLogger() {
                 }`}
             >
               <span
-                className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${autoRefresh ? "translate-x-5" : "translate-x-1"
+                className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform dark:shadow-[0_0_0_1px_rgba(0,0,0,0.35)] ${autoRefresh ? "translate-x-5" : "translate-x-1"
                   }`}
               />
             </div>

@@ -191,7 +191,7 @@ export default function TokenSaverClient() {
               <Badge variant="primary">{today ? savedPctLabel : "—"}</Badge>
             </span>
           </div>
-          <div className="h-[6px] rounded-full bg-[#e7eaec] overflow-hidden mt-3.5">
+          <div className="h-[6px] rounded-full bg-surface-3 overflow-hidden mt-3.5">
             <span
               className="block h-full rounded-full bg-brand-500"
               style={{ width: `${Math.max(0, Math.min(100, savedPct))}%` }}
@@ -241,7 +241,7 @@ export default function TokenSaverClient() {
                       <td className={tdNumClass}>{fmt(row.tokensOut)}</td>
                       <td className={tdClass}>
                         <div className="flex items-center gap-2.5">
-                          <div className="h-[4px] flex-1 rounded-full bg-[#e7eaec] overflow-hidden">
+                          <div className="h-[4px] flex-1 rounded-full bg-surface-3 overflow-hidden">
                             <span
                               className="block h-full rounded-full bg-brand-500"
                               style={{ width: `${Math.max(0, Math.min(100, pct))}%` }}

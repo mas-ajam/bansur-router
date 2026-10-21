@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
 import PropTypes from "prop-types";
 import HeaderMenu from "@/shared/components/HeaderMenu";
+import ThemeToggle from "@/shared/components/ThemeToggle";
 import SpecIcon from "@/shared/components/SpecIcon";
 import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
 import { OAUTH_PROVIDERS, APIKEY_PROVIDERS } from "@/shared/constants/config";
@@ -121,9 +122,10 @@ export default function Header({ onMenuClick, showMenuButton = true }) {
 
       <div className="flex-1" />
 
-      {/* Right cluster — artifact defines endpoint chip + avatar only */}
+      {/* Right cluster — endpoint chip + avatar (spec) + theme toggle (Option 2 restoration, additional control) */}
       <div className="flex items-center gap-3.5 shrink-0">
         <EndpointChip />
+        <ThemeToggle />
         <HeaderMenu onLogout={handleLogout} displayName={displayName} />
       </div>
     </header>

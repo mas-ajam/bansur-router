@@ -357,7 +357,7 @@ export default function ProviderLimits() {
                             <span className="text-xs text-text-muted">{q.name}</span>
                             <span className="font-mono text-[12.5px]">{windowValue(q)}</span>
                           </div>
-                          <div className="h-[6px] rounded-full bg-[#e7eaec] overflow-hidden mb-3.5">
+                          <div className="h-[6px] rounded-full bg-surface-3 overflow-hidden mb-3.5">
                             <span
                               className="block h-full rounded-full bg-brand-500"
                               style={{ width: `${q.unlimited ? 100 : pct}%` }}

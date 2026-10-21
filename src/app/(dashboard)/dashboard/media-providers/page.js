@@ -76,7 +76,7 @@ function providerState(provider, connections) {
 
 function Dot({ state }) {
   if (state === "on") return <span className="inline-block w-2 h-2 rounded-full shrink-0 bg-brand-500" />;
-  if (state === "warn") return <span className="inline-block w-2 h-2 rounded-full shrink-0 bg-white border-[2.5px] border-brand-500" />;
+  if (state === "warn") return <span className="inline-block w-2 h-2 rounded-full shrink-0 bg-surface border-[2.5px] border-brand-500" />;
   return <span className="inline-block w-2 h-2 rounded-full shrink-0 border-[1.5px] border-[#a7afb6]" />;
 }
 
@@ -99,7 +99,7 @@ function MediaCard({ provider, kind, connections }) {
       <div className="flex items-center gap-2 mt-auto">
         <Link
           href={href}
-          className="inline-flex items-center justify-center gap-[7px] font-medium whitespace-nowrap border px-2.5 py-1 text-[12.5px] rounded-md bg-surface border-border-strong text-text-main hover:bg-surface-2 hover:border-[#b9c0c6] transition-colors"
+          className="inline-flex items-center justify-center gap-[7px] font-medium whitespace-nowrap border px-2.5 py-1 text-[12.5px] rounded-md bg-surface border-border-strong text-text-main hover:bg-surface-2 hover:border-[#b9c0c6] dark:hover:border-[#4b5158] transition-colors"
         >
           {state.connected ? "Manage" : "Add key"}
         </Link>

@@ -121,7 +121,7 @@ function RouterNode({ data }) {
         Bansur Router
       </span>
       {data.activeCount > 0 && (
-        <span className="ml-2 px-1.5 py-0.5 rounded-full bg-brand-500 text-black text-xs font-bold topology-router-badge">
+        <span className="ml-2 px-1.5 py-0.5 rounded-full bg-brand-500 text-on-brand text-xs font-bold topology-router-badge">
           {data.activeCount}
         </span>
       )}
@@ -292,7 +292,7 @@ function buildLayout(providers, activeSet, lastSet, errorSet) {
   });
 
   const edgeStyle = (active, last, error) => {
-    if (error) return { stroke: "#101418", strokeWidth: 2.5, opacity: 0.9 };
+    if (error) return { stroke: "var(--color-text-main)", strokeWidth: 2.5, opacity: 0.9 };
     if (active) return { stroke: "#8b949c", strokeWidth: 3.5, opacity: 1 };
     if (last) return { stroke: "#5d666e", strokeWidth: 2, opacity: 0.7 };
     return { stroke: "var(--color-border)", strokeWidth: 1, opacity: 0.3 };

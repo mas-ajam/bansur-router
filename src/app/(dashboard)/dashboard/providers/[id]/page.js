@@ -1115,7 +1115,7 @@ export default function ProviderDetailPage() {
         : getRemainingPercentage(quota);
     return (
       <div className="flex items-center gap-2.5">
-        <div className="h-[6px] flex-1 rounded-full bg-[#e7eaec] overflow-hidden">
+        <div className="h-[6px] flex-1 rounded-full bg-surface-3 overflow-hidden">
           <span className="block h-full rounded-full bg-brand-500" style={{ width: `${pct}%` }} />
         </div>
         <span className="font-mono text-[12px]">{pct}%</span>
@@ -1688,7 +1688,7 @@ export default function ProviderDetailPage() {
       <div className="min-w-0">
         <Link
           href="/dashboard/providers"
-          className="inline-flex items-center gap-1.5 h-[30px] px-2.5 -ml-2.5 rounded-md text-[12.5px] font-medium text-text-main hover:bg-[#eef0f1] transition-colors mb-2"
+          className="inline-flex items-center gap-1.5 h-[30px] px-2.5 -ml-2.5 rounded-md text-[12.5px] font-medium text-text-main hover:bg-[#eef0f1] dark:hover:bg-surface-2 transition-colors mb-2"
         >
           ← All providers
         </Link>
@@ -1737,7 +1737,7 @@ export default function ProviderDetailPage() {
               href={providerInfo.notice.apiKeyUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex justify-center rounded bg-brand-500 px-2 py-1 text-xs font-medium text-white transition-colors hover:bg-brand-500 sm:py-0.5"
+              className="inline-flex justify-center rounded bg-brand-500 px-2 py-1 text-xs font-medium text-on-brand transition-colors hover:bg-brand-500 sm:py-0.5"
             >
               Get API Key →
             </a>

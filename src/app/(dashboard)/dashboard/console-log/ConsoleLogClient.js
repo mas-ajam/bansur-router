@@ -282,7 +282,7 @@ export default function ConsoleLogClient() {
           <Badge>Paused</Badge>
         ) : (
           <Badge variant="primary">
-            <span className="inline-block w-2 h-2 rounded-full bg-white shrink-0" />
+            <span className="inline-block w-2 h-2 rounded-full bg-on-brand shrink-0" />
             Streaming
           </Badge>
         )}

@@ -46,7 +46,7 @@ export default function Toggle({
       >
         <span
           className={cn(
-            "pointer-events-none inline-block rounded-full bg-white shadow-sm",
+            "pointer-events-none inline-block rounded-full bg-white shadow-sm dark:shadow-[0_0_0_1px_rgba(0,0,0,0.35)]",
             "transform transition duration-200 ease-in-out",
             checked ? sizes[size].translate : "translate-x-0.5",
             sizes[size].thumb,

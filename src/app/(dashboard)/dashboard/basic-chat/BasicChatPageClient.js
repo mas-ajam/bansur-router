@@ -436,9 +436,9 @@ export default function BasicChatPageClient() {
             return isUser ? (
               <div
                 key={message.id}
-                className="self-end bg-brand-500 text-white rounded-[10px] rounded-br-[3px] max-w-[78%] px-3.5 py-2.5 text-[13.5px] leading-[1.55] whitespace-pre-wrap"
+                className="self-end bg-brand-500 text-on-brand rounded-[10px] rounded-br-[3px] max-w-[78%] px-3.5 py-2.5 text-[13.5px] leading-[1.55] whitespace-pre-wrap"
               >
-                <div className="text-[11px] font-semibold uppercase tracking-[0.05em] text-[#9aa3ab] mb-1">You</div>
+                <div className="text-[11px] font-semibold uppercase tracking-[0.05em] text-text-subtle mb-1">You</div>
                 {content}
               </div>
             ) : (

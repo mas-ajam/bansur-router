@@ -117,7 +117,7 @@ const PILL_TABS = [
 const pillTabClass = (active) =>
   `border rounded-full px-[13px] py-[5px] text-[12.5px] font-medium transition-colors ${
     active
-      ? "bg-brand-500 border-brand-500 text-white"
+      ? "bg-brand-500 border-brand-500 text-on-brand"
       : "border-border-strong bg-surface text-text-main hover:bg-surface-2"
   }`;
 
@@ -597,7 +597,7 @@ function ProviderCard({
 
   const dotClass =
     error > 0
-      ? "bg-white border-[2.5px] border-brand-500"
+      ? "bg-surface border-[2.5px] border-brand-500"
       : connected > 0 || isNoAuth
         ? "bg-brand-500"
         : "border-[1.5px] border-[#a7afb6]";

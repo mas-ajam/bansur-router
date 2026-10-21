@@ -296,7 +296,7 @@ export default function UsagePage() {
               aria-label="Bar chart of requests per day"
               style={{ display: "block" }}
             >
-              <g stroke="#e3e6e9" strokeWidth="1">
+              <g stroke="var(--color-border)" strokeWidth="1">
                 <line x1="44" y1="20" x2="700" y2="20" />
                 <line x1="44" y1="70" x2="700" y2="70" />
                 <line x1="44" y1="120" x2="700" y2="120" />
@@ -305,7 +305,7 @@ export default function UsagePage() {
               <g
                 fontFamily="IBM Plex Mono, monospace"
                 fontSize="10.5"
-                fill="#8b949c"
+                fill="var(--color-text-subtle)"
                 textAnchor="end"
               >
                 <text x="36" y="24">{fmtAxis(ceiling)}</text>
@@ -313,7 +313,7 @@ export default function UsagePage() {
                 <text x="36" y="124">{fmtAxis(ceiling / 3)}</text>
                 <text x="36" y="174">0</text>
               </g>
-              <g fill="#101418">
+              <g fill="var(--color-brand-500)">
                 {series.map((value, i) => {
                   const h = ceiling > 0 ? (value / ceiling) * 150 : 0;
                   return (
@@ -331,7 +331,7 @@ export default function UsagePage() {
               <g
                 fontFamily="IBM Plex Mono, monospace"
                 fontSize="11"
-                fill="#5d666e"
+                fill="var(--color-text-muted)"
                 textAnchor="middle"
               >
                 {series.map((value, i) => {
@@ -346,7 +346,7 @@ export default function UsagePage() {
               <g
                 fontFamily="IBM Plex Mono, monospace"
                 fontSize="10.5"
-                fill="#8b949c"
+                fill="var(--color-text-subtle)"
                 textAnchor="middle"
               >
                 {chart.map((_, i) => (

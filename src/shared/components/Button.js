@@ -6,9 +6,9 @@ import { cn } from "@/shared/utils/cn";
    ghost = transparent border, ink text. No shadow, no scale transform. */
 const variants = {
   primary: "bg-brand-500 border-brand-500 hover:bg-brand-600 hover:border-brand-600 text-on-brand",
-  secondary: "bg-surface border-border-strong text-text-main hover:bg-surface-2 hover:border-[#b9c0c6]",
-  outline: "bg-transparent border-border-strong text-text-main hover:bg-surface-2 hover:border-[#b9c0c6]",
-  ghost: "bg-transparent border-transparent text-text-main hover:bg-[#eef0f1]",
+  secondary: "bg-surface border-border-strong text-text-main hover:bg-surface-2 hover:border-[#b9c0c6] dark:hover:border-[#4b5158]",
+  outline: "bg-transparent border-border-strong text-text-main hover:bg-surface-2 hover:border-[#b9c0c6] dark:hover:border-[#4b5158]",
+  ghost: "bg-transparent border-transparent text-text-main hover:bg-[#eef0f1] dark:hover:bg-surface-2",
   danger: "bg-brand-500 border-brand-500 hover:bg-brand-600 hover:border-brand-600 text-on-brand",
   success: "bg-brand-500 border-brand-500 hover:bg-brand-600 hover:border-brand-600 text-on-brand",
 };

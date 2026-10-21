@@ -13,8 +13,10 @@ import {
   Cell,
 } from "recharts";
 import Card from "@/shared/components/Card";
+import { useTheme } from "@/shared/hooks/useTheme";
 
 const COLORS = ["#101418", "#3a4048", "#5d666e", "#8b949c", "#b7babe"];
+const COLORS_DARK = ["#f2f3f4", "#c9ced3", "#9aa1a9", "#6b7280", "#e7e7e9"];
 
 const fmtTokens = (n) => {
   if (n >= 1000000) return `${(n / 1000000).toFixed(1)}M`;
@@ -25,6 +27,8 @@ const fmtTokens = (n) => {
 const truncate = (s, max = 22) => (s && s.length > max ? s.slice(0, max) + "…" : s || "");
 
 export default function TopModelsChart({ byModel }) {
+  const { isDark } = useTheme();
+  const COLORS_ACTIVE = isDark ? COLORS_DARK : COLORS;
   const [viewMode, setViewMode] = useState("tokens");
 
   const chartData = useMemo(() => {
@@ -50,13 +54,13 @@ export default function TopModelsChart({ byModel }) {
         <div className="grid grid-cols-2 items-center gap-1 rounded-lg border border-border bg-bg-subtle p-1">
           <button
             onClick={() => setViewMode("tokens")}
-            className={`px-2.5 py-0.5 rounded-md text-xs font-medium transition-colors ${viewMode === "tokens" ? "bg-primary text-white shadow-sm" : "text-text-muted hover:text-text hover:bg-bg-hover"}`}
+            className={`px-2.5 py-0.5 rounded-md text-xs font-medium transition-colors ${viewMode === "tokens" ? "bg-primary text-on-brand shadow-sm" : "text-text-muted hover:text-text hover:bg-bg-hover"}`}
           >
             Tokens
           </button>
           <button
             onClick={() => setViewMode("requests")}
-            className={`px-2.5 py-0.5 rounded-md text-xs font-medium transition-colors ${viewMode === "requests" ? "bg-primary text-white shadow-sm" : "text-text-muted hover:text-text hover:bg-bg-hover"}`}
+            className={`px-2.5 py-0.5 rounded-md text-xs font-medium transition-colors ${viewMode === "requests" ? "bg-primary text-on-brand shadow-sm" : "text-text-muted hover:text-text hover:bg-bg-hover"}`}
           >
             Requests
           </button>
@@ -99,7 +103,7 @@ export default function TopModelsChart({ byModel }) {
             />
             <Bar dataKey={viewMode} radius={[0, 4, 4, 0]}>
               {chartData.map((_, i) => (
-                <Cell key={i} fill={COLORS[i % COLORS.length]} fillOpacity={0.85} />
+                <Cell key={i} fill={COLORS_ACTIVE[i % COLORS_ACTIVE.length]} fillOpacity={0.85} />
               ))}
             </Bar>
           </BarChart>

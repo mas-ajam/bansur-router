@@ -91,7 +91,7 @@ export default function QuotaProgressBar({
           {label}
         </span>
         <div className="flex items-center gap-1.5">
-          <span className={`size-2 shrink-0 rounded-full ${remaining > 70 ? "bg-text-main" : remaining >= 30 ? "bg-white border-[2.5px] border-text-main" : "bg-transparent border-[1.5px] border-[#a7afb6]"}`} />
+          <span className={`size-2 shrink-0 rounded-full ${remaining > 70 ? "bg-text-main" : remaining >= 30 ? "bg-surface border-[2.5px] border-text-main" : "bg-transparent border-[1.5px] border-[#a7afb6]"}`} />
           <span className="font-mono text-[12.5px] text-text-main">
             {remaining}%
           </span>

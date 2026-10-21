@@ -28,7 +28,7 @@ const tdClass = "px-3.5 py-2.5 border-b border-border align-middle";
 
 const dotOn = "inline-block w-2 h-2 rounded-full shrink-0 bg-brand-500 align-middle";
 const dotWarn =
-  "inline-block w-2 h-2 rounded-full shrink-0 bg-white border-[2.5px] border-brand-500 align-middle";
+  "inline-block w-2 h-2 rounded-full shrink-0 bg-surface border-[2.5px] border-brand-500 align-middle";
 const dotOff =
   "inline-block w-2 h-2 rounded-full shrink-0 bg-transparent border-[1.5px] border-[#a7afb6] align-middle";
 

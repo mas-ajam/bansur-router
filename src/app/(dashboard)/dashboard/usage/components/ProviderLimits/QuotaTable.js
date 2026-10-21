@@ -201,7 +201,7 @@ export default function QuotaTable({
             >
               {/* Name */}
               <div className="flex w-36 min-w-0 items-center gap-1.5">
-                <span className={`size-2 shrink-0 rounded-full ${quota.remaining > 70 ? "bg-text-main" : quota.remaining >= 30 ? "bg-white border-[2.5px] border-text-main" : "bg-transparent border-[1.5px] border-[#a7afb6]"}`} />
+                <span className={`size-2 shrink-0 rounded-full ${quota.remaining > 70 ? "bg-text-main" : quota.remaining >= 30 ? "bg-surface border-[2.5px] border-text-main" : "bg-transparent border-[1.5px] border-[#a7afb6]"}`} />
                 <span className={`${nameText} font-medium text-text-primary truncate`}>
                   {quota.name}
                 </span>

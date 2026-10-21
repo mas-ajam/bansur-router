@@ -150,7 +150,7 @@ export default function WebTestPanelPage() {
 
   const pillClass = (active) =>
     `border rounded-full px-[13px] py-[5px] text-[12.5px] font-medium transition-colors ${
-      active ? "bg-brand-500 border-brand-500 text-white" : "border-border-strong bg-surface text-text-main"
+      active ? "bg-brand-500 border-brand-500 text-on-brand" : "border-border-strong bg-surface text-text-main"
     }`;
 
   return (
@@ -159,7 +159,7 @@ export default function WebTestPanelPage() {
       <div className="mb-5">
         <Link
           href="/dashboard/media-providers"
-          className="inline-flex items-center gap-1.5 h-[30px] px-2.5 -ml-2.5 rounded-md text-[12.5px] font-medium text-text-main hover:bg-[#eef0f1] transition-colors mb-3.5"
+          className="inline-flex items-center gap-1.5 h-[30px] px-2.5 -ml-2.5 rounded-md text-[12.5px] font-medium text-text-main hover:bg-[#eef0f1] dark:hover:bg-surface-2 transition-colors mb-3.5"
         >
           ← Media Providers
         </Link>

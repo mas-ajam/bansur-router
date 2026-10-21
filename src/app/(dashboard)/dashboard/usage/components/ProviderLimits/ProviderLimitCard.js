@@ -6,6 +6,7 @@ import ProviderIcon from "@/shared/components/ProviderIcon";
 import Badge from "@/shared/components/Badge";
 import QuotaProgressBar from "./QuotaProgressBar";
 import { calculatePercentage } from "./utils";
+import { useTheme } from "@/shared/hooks/useTheme";
 
 const planVariants = {
   free: "default",
@@ -38,16 +39,29 @@ export default function ProviderLimitCard({
   };
 
   // Get provider info from config
+  const { isDark } = useTheme();
   const getProviderColor = () => {
-    const colors = {
-      github: "#000000",
-      antigravity: "#3a4048",
-      codex: "#5d666e",
-      kiro: "#8b949c",
-      qoder: "#26292f",
-      "qoder-cn": "#26292f",
-      claude: "#101418",
-    };
+    // Dark variants lighten the ink-based brand colors so the icon
+    // fallback text / tint stays readable on dark surfaces.
+    const colors = isDark
+      ? {
+          github: "#f2f3f4",
+          antigravity: "#b7babe",
+          codex: "#9aa1a9",
+          kiro: "#8b949c",
+          qoder: "#c9ced3",
+          "qoder-cn": "#c9ced3",
+          claude: "#f2f3f4",
+        }
+      : {
+          github: "#000000",
+          antigravity: "#3a4048",
+          codex: "#5d666e",
+          kiro: "#8b949c",
+          qoder: "#26292f",
+          "qoder-cn": "#26292f",
+          claude: "#101418",
+        };
     return colors[provider?.toLowerCase()] || "#6B7280";
   };
 

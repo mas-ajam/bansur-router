@@ -413,7 +413,7 @@ export default function APIPageClient({ machineId }) {
           </Button>
         </div>
         <div className="px-[18px] py-4">
-          <pre className="bg-brand-500 text-[#e8ebed] rounded-brand px-4 py-3.5 font-mono text-[12.5px] leading-[1.65] overflow-x-auto whitespace-pre">{`curl ${baseUrl}/chat/completions \\
+          <pre className="bg-brand-500 dark:bg-brand-900 text-[#e8ebed] rounded-brand px-4 py-3.5 font-mono text-[12.5px] leading-[1.65] overflow-x-auto whitespace-pre">{`curl ${baseUrl}/chat/completions \\
   -H `}<span className="text-[#8b949c]">{`"Authorization: Bearer YOUR_DASHBOARD_KEY"`}</span>{` \\
   -H `}<span className="text-[#8b949c]">{`"Content-Type: application/json"`}</span>{` \\
   -d '{
