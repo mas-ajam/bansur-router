@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { Card, Button, Toggle, Input, Select, Badge } from "@/shared/components";
 import { useNotificationStore } from "@/store/notificationStore";
 
@@ -259,6 +260,16 @@ export default function SettingsPage() {
           <p className="px-[18px] py-3 text-xs text-text-muted">
             Reference figures from the project documentation. Subscription tiers are served first because their cost is already paid; API-key tiers meter per token.
           </p>
+          {/* Edit pricing — restored orphan editor (Option 2 batch 5, SE-06) */}
+          <div className="px-[18px] pb-3.5">
+            <Link
+              href="/dashboard/settings/pricing"
+              className="inline-flex items-center justify-center gap-[7px] font-medium whitespace-nowrap border px-2.5 py-1 text-[12.5px] rounded-md bg-surface border-border-strong text-text-main hover:bg-surface-2 transition-colors"
+            >
+              <span className="material-symbols-outlined text-[15px]">edit</span>
+              Edit pricing
+            </Link>
+          </div>
         </Card>
       </div>
     </div>

@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import { Card, Button, Toggle, Input } from "@/shared/components";
 import { useNotificationStore } from "@/store/notificationStore";
+import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
+import { SKILLS_REPO_URL, getSkillRawUrl } from "@/shared/constants/skills";
 
 /* Skills (audit SK-01..SK-04; SK-03/SK-04 resolved in Phase 4).
    The list comes from GET /api/skills: built-in SKILLS constants merged
@@ -23,6 +25,55 @@ function skillMeta(skill) {
   if (skill.category) parts.push(skill.category);
   if (skill.version) parts.push(`v${skill.version}`);
   return parts.length ? parts.join(" · ") : "—";
+}
+
+/* Restored (Option 2 batch 5, SK-04): pre-removal helper cards. The
+   "Paste this to your AI:" card hands the agent the raw entry-skill URL;
+   "More on GitHub" links the skills tree in the repo. */
+function PasteToAiCard() {
+  const { copied, copy } = useCopyToClipboard(2000);
+  const url = getSkillRawUrl("bansur-router");
+  const snippet = `Read this skill and use it: ${url}`;
+  return (
+    <Card padding="md">
+      <div className="text-xs text-text-muted mb-2">Paste this to your AI:</div>
+      <div className="flex items-center gap-2">
+        <div className="min-w-0 flex-1 truncate px-3 py-2 rounded-md border border-border bg-surface-2 font-mono text-[12px] text-text-main">
+          {snippet}
+        </div>
+        <button
+          onClick={() => copy(snippet)}
+          className="px-2.5 py-1 rounded-md border border-border bg-surface text-[12px] font-medium text-text-main hover:bg-surface-2 transition-colors cursor-pointer shrink-0 inline-flex items-center gap-1.5"
+          title={snippet}
+        >
+          <span className="material-symbols-outlined text-[13px]">{copied ? "check" : "content_copy"}</span>
+          {copied ? "Copied!" : "Copy"}
+        </button>
+      </div>
+    </Card>
+  );
+}
+
+function MoreOnGitHubCard() {
+  return (
+    <Card padding="md">
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div>
+          <h2 className="text-[13.5px] font-semibold text-text-main">More on GitHub</h2>
+          <p className="text-xs text-text-muted mt-0.5">Browse source, README, and examples.</p>
+        </div>
+        <a
+          href={`${SKILLS_REPO_URL}/tree/master/skills`}
+          target="_blank"
+          rel="noreferrer"
+          className="text-[13px] font-medium text-text-main hover:underline inline-flex items-center gap-1"
+        >
+          <span className="material-symbols-outlined text-[16px]">open_in_new</span>
+          View on GitHub
+        </a>
+      </div>
+    </Card>
+  );
 }
 
 export default function SkillsPage() {
@@ -144,6 +195,12 @@ export default function SkillsPage() {
             </Button>
           </div>
         </Card>
+      </div>
+
+      {/* Restored helper cards (batch 5) — pre-removal placement: below the grid */}
+      <div className="flex flex-col gap-3.5 mt-3.5">
+        <PasteToAiCard />
+        <MoreOnGitHubCard />
       </div>
     </div>
   );

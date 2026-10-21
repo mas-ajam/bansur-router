@@ -201,6 +201,15 @@ export default function MitmPageClient() {
         <p className="mt-1 text-[13.5px] text-text-muted max-w-[640px]">Some tools cannot be pointed at a custom endpoint. The MITM layer intercepts their traffic locally and reroutes it through Bansur Router.</p>
       </div>
 
+      {/* Warning banner — restored (Option 2 batch 5, MI-02): pre-removal
+          position at the top of the page, above the status card. */}
+      <div className="flex items-start gap-2 px-3.5 py-3 mb-3.5 rounded-md bg-surface-2 border border-border border-l-[3px] border-l-text-main">
+        <span className="material-symbols-outlined text-[16px] text-text-muted mt-0.5 shrink-0">warning</span>
+        <p className="text-xs text-text-main dark:text-text-muted leading-relaxed">
+          ⚠️ MITM intercepts HTTPS traffic of IDE tools (Antigravity, GitHub Copilot, Kiro) via local CA to redirect requests to your providers. May violate ToS → account ban. Use at your own risk.
+        </p>
+      </div>
+
       <div className="grid gap-3.5 grid-cols-1 min-[821px]:grid-cols-2 items-start">
         {/* Status */}
         <Card>

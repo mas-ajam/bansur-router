@@ -4,6 +4,11 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Card } from "@/shared/components";
 import { getProvidersByKind } from "@/shared/constants/providers";
+import { EmbeddingExampleCard } from "./[kind]/[id]/components/EmbeddingExampleCard";
+import { TtsExampleCard } from "./[kind]/[id]/components/TtsExampleCard";
+import { SttExampleCard } from "./[kind]/[id]/components/SttExampleCard";
+import { GenericExampleCard } from "./[kind]/[id]/components/GenericExampleCard";
+import { KIND_EXAMPLE_CONFIG } from "./[kind]/[id]/components/exampleShared";
 
 /* Media Providers — single page (audit M-01..M-04).
    Data flow reused from the [kind] pages: providers from the registry
@@ -108,6 +113,74 @@ function MediaCard({ provider, kind, connections }) {
   );
 }
 
+/* Examples — restored (Option 2 batch 5, M-01): the pre-removal per-kind
+   example/demo cards (Embedding / TTS / STT / Generic) also live on each
+   provider's detail page; this section surfaces the same live cards on
+   the single spec page, below the provider groups, with a kind +
+   provider picker. The cards are the original components, unchanged. */
+const EXAMPLE_KINDS = ["image", "video", "embedding", "tts", "stt", "imageToText", "music", "systemone"];
+
+function MediaExamplesSection({ customEmbeddingProviders }) {
+  const [kind, setKind] = useState("image");
+  const providers = kind === "embedding"
+    ? [...getProvidersByKind("embedding"), ...customEmbeddingProviders]
+    : getProvidersByKind(kind);
+  const [providerId, setProviderId] = useState("");
+  const effectiveProviderId = providers.some((p) => p.id === providerId) ? providerId : providers[0]?.id || "";
+
+  return (
+    <div className="mt-8">
+      <h3 className="text-[13px] font-semibold uppercase tracking-[0.08em] text-text-subtle mb-2.5">
+        Examples
+      </h3>
+      <div className="flex flex-wrap items-center gap-2 mb-3.5">
+        <select
+          value={kind}
+          onChange={(e) => { setKind(e.target.value); setProviderId(""); }}
+          aria-label="Example kind"
+          className="rounded-md border border-border-strong bg-surface px-2.5 py-1.5 text-[12.5px] text-text-main"
+        >
+          {EXAMPLE_KINDS.map((k) => (
+            <option key={k} value={k}>{KIND_DESCRIPTOR[k] || k}</option>
+          ))}
+        </select>
+        <select
+          value={effectiveProviderId}
+          onChange={(e) => setProviderId(e.target.value)}
+          aria-label="Example provider"
+          className="rounded-md border border-border-strong bg-surface px-2.5 py-1.5 text-[12.5px] text-text-main"
+        >
+          {providers.map((p) => (
+            <option key={p.id} value={p.id}>{p.name}</option>
+          ))}
+        </select>
+        {effectiveProviderId && (
+          <Link
+            href={`/dashboard/media-providers/${kind}/${effectiveProviderId}`}
+            className="text-[12.5px] font-medium text-text-muted hover:text-text-main hover:underline"
+          >
+            Open provider →
+          </Link>
+        )}
+      </div>
+      {effectiveProviderId ? (
+        <div key={`${kind}-${effectiveProviderId}`}>
+          {kind === "embedding" && (
+            <EmbeddingExampleCard providerId={effectiveProviderId} customAlias={customEmbeddingProviders.find((p) => p.id === effectiveProviderId) ? effectiveProviderId : undefined} />
+          )}
+          {kind === "tts" && <TtsExampleCard providerId={effectiveProviderId} />}
+          {kind === "stt" && <SttExampleCard providerId={effectiveProviderId} />}
+          {kind !== "embedding" && kind !== "tts" && kind !== "stt" && KIND_EXAMPLE_CONFIG[kind] && (
+            <GenericExampleCard providerId={effectiveProviderId} kind={kind} />
+          )}
+        </div>
+      ) : (
+        <p className="text-xs text-text-muted">No providers for this kind yet.</p>
+      )}
+    </div>
+  );
+}
+
 export default function MediaProvidersPage() {
   const [connections, setConnections] = useState([]);
   const [customNodes, setCustomNodes] = useState([]);
@@ -196,6 +269,9 @@ export default function MediaProvidersPage() {
       {renderGroup("imageToText", "Image to Text", getProvidersByKind("imageToText"))}
       {renderGroup("music", "Music", getProvidersByKind("music"))}
       {renderGroup("systemone", "System One", getProvidersByKind("systemone"))}
+
+      {/* Restored example/demo cards per kind (batch 5, M-01) */}
+      <MediaExamplesSection customEmbeddingProviders={customEmbeddingProviders} />
     </div>
   );
 }

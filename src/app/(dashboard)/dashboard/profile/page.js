@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Card, Button, Toggle, Input, Select, Badge, ConfirmModal } from "@/shared/components";
+import { Card, Button, Toggle, Input, Select, Badge, ConfirmModal, Modal } from "@/shared/components";
 import { useNotificationStore } from "@/store/notificationStore";
 import { useTheme } from "@/shared/hooks/useTheme";
 import { cn } from "@/shared/utils/cn";
@@ -61,6 +61,16 @@ export default function ProfilePage() {
   const [showSamlGuide, setShowSamlGuide] = useState(false);
   const idpMetadataFileRef = useRef(null);
   const certFileRef = useRef(null);
+
+  // DB backup/restore — restored (Option 2 batch 5, PF-03). Endpoints are
+  // the pre-removal ones: GET /api/settings/database with the dashboard
+  // password in the x-9r-password header (download), POST the parsed
+  // backup JSON back to the same route with `password` in the body.
+  const [dbLoading, setDbLoading] = useState(false);
+  const [dbStatus, setDbStatus] = useState({ type: "", message: "" });
+  const [dbAuth, setDbAuth] = useState({ open: false, mode: "", password: "" });
+  const importFileRef = useRef(null);
+  const pendingImportRef = useRef(null);
 
 
   useEffect(() => {
@@ -560,6 +570,98 @@ export default function ProfilePage() {
     } catch {
       notify.error("Failed to export configuration");
     }
+  };
+
+  // DB backup/restore handlers — ported from the pre-removal Profile
+  // (ea40b73^), including the password-confirm step before either action.
+  const reloadSettings = async () => {
+    try {
+      const res = await fetch("/api/settings");
+      if (!res.ok) return;
+      const data = await res.json();
+      setSettings(data);
+    } catch (err) {
+      console.error("Failed to reload settings:", err);
+    }
+  };
+
+  const handleExportDatabase = async (password) => {
+    setDbLoading(true);
+    setDbStatus({ type: "", message: "" });
+    try {
+      const res = await fetch("/api/settings/database", {
+        headers: { "x-9r-password": password },
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Failed to export database");
+      }
+
+      const payload = await res.json();
+      const content = JSON.stringify(payload, null, 2);
+      const blob = new Blob([content], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      const stamp = new Date().toISOString().replace(/[.:]/g, "-");
+      anchor.href = url;
+      anchor.download = `bansur-router-backup-${stamp}.json`;
+      document.body.appendChild(anchor);
+      anchor.click();
+      document.body.removeChild(anchor);
+      URL.revokeObjectURL(url);
+
+      setDbStatus({ type: "success", message: "Database backup downloaded" });
+    } catch (err) {
+      setDbStatus({ type: "error", message: err.message || "Failed to export database" });
+    } finally {
+      setDbLoading(false);
+    }
+  };
+
+  const handleImportDatabase = (event) => {
+    const file = event.target.files?.[0];
+    if (importFileRef.current) importFileRef.current.value = "";
+    if (!file) return;
+    pendingImportRef.current = file;
+    setDbStatus({ type: "", message: "" });
+    setDbAuth({ open: true, mode: "import", password: "" });
+  };
+
+  const runImportDatabase = async (password) => {
+    const file = pendingImportRef.current;
+    if (!file) return;
+    setDbLoading(true);
+    try {
+      const raw = await file.text();
+      const payload = JSON.parse(raw);
+
+      const res = await fetch("/api/settings/database", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...payload, password }),
+      });
+
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to import database");
+      }
+
+      await reloadSettings();
+      setDbStatus({ type: "success", message: "Database imported successfully" });
+    } catch (err) {
+      setDbStatus({ type: "error", message: err.message || "Invalid backup file" });
+    } finally {
+      pendingImportRef.current = null;
+      setDbLoading(false);
+    }
+  };
+
+  // Confirm password modal, then run export or import.
+  const handleDbAuthConfirm = async () => {
+    const { mode, password } = dbAuth;
+    setDbAuth({ open: false, mode: "", password: "" });
+    if (mode === "export") await handleExportDatabase(password);
+    else if (mode === "import") await runImportDatabase(password);
   };
 
   const cloudEnabled = settings.cloudEnabled === true;
@@ -1210,6 +1312,46 @@ export default function ProfilePage() {
             </Card>
           )}
 
+          {/* Database backup — restored (Option 2 batch 5, PF-03):
+              Download Backup / Import Backup against /api/settings/database,
+              gated by the same password-confirm modal as pre-removal. */}
+          <Card>
+            <h3 className="text-[13.5px] font-semibold mb-3.5">Database backup</h3>
+            <p className="text-[12.5px] text-text-muted mb-3.5">
+              Full backup of the local database (accounts, keys, combos, settings) as JSON. Restoring replaces the current database contents.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <Button
+                variant="secondary"
+                icon="download"
+                onClick={() => setDbAuth({ open: true, mode: "export", password: "" })}
+                loading={dbLoading}
+                className="w-full sm:w-auto"
+              >
+                Download Backup
+              </Button>
+              <Button
+                variant="outline"
+                icon="upload"
+                onClick={() => importFileRef.current?.click()}
+                disabled={dbLoading}
+                className="w-full sm:w-auto"
+              >
+                Import Backup
+              </Button>
+              <input
+                ref={importFileRef}
+                type="file"
+                accept="application/json,.json"
+                className="hidden"
+                onChange={handleImportDatabase}
+              />
+            </div>
+            {dbStatus.message && (
+              <p className="text-sm text-text-main mt-3">{dbStatus.message}</p>
+            )}
+          </Card>
+
           {/* Danger zone */}
           <Card className="border-brand-500">
             <h3 className="text-[13.5px] font-semibold mb-3.5">Danger zone</h3>
@@ -1234,6 +1376,36 @@ export default function ProfilePage() {
           </Card>
         </div>
       </div>
+
+      {/* DB backup/restore password confirm — pre-removal modal (PF-03) */}
+      <Modal
+        isOpen={dbAuth.open}
+        onClose={() => setDbAuth({ open: false, mode: "", password: "" })}
+        title="Confirm Password"
+        size="sm"
+        footer={
+          <>
+            <Button variant="ghost" onClick={() => setDbAuth({ open: false, mode: "", password: "" })} disabled={dbLoading}>
+              Cancel
+            </Button>
+            <Button variant="primary" onClick={handleDbAuthConfirm} loading={dbLoading} disabled={!dbAuth.password}>
+              Confirm
+            </Button>
+          </>
+        }
+      >
+        <p className="text-text-muted mb-3 text-sm">
+          Enter your current password to {dbAuth.mode === "export" ? "export" : "import"} the database.
+        </p>
+        <Input
+          type="password"
+          value={dbAuth.password}
+          onChange={(e) => setDbAuth((s) => ({ ...s, password: e.target.value }))}
+          onKeyDown={(e) => { if (e.key === "Enter" && dbAuth.password) handleDbAuthConfirm(); }}
+          placeholder="Current password"
+          autoFocus
+        />
+      </Modal>
 
       <ConfirmModal
         isOpen={showResetConfirm}
