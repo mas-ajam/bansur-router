@@ -11,7 +11,6 @@ import LogoMark from "./LogoMark";
 import SpecIcon from "./SpecIcon";
 import Button from "./Button";
 import { ConfirmModal } from "./Modal";
-import NineRemotePromoModal from "./NineRemotePromoModal";
 
 /* Nav structure, order, badges and icons follow the Bansur Router Dashboard
    artifact exactly (5 groups: Gateway / Observe / Optimize / Tools / System).
@@ -197,21 +196,6 @@ const NAV_GROUPS = [
         ),
       },
       {
-        // Option 2 restoration (§II.24): Bansur Remote sat in the pre-removal
-        // System section after the debug items, before Settings — in the
-        // current 5-group nav that is System, after MITM, before Profile.
-        // It opens the restored promo modal instead of navigating.
-        key: "remote",
-        label: "Bansur Remote",
-        action: "remote",
-        icon: (
-          <>
-            <rect x="3" y="4" width="18" height="12" rx="2" />
-            <path d="M9 20h6M12 16v4" />
-          </>
-        ),
-      },
-      {
         key: "profile",
         href: "/dashboard/profile",
         label: "Profile",
@@ -240,7 +224,6 @@ const NAV_GROUPS = [
 export default function Sidebar({ onClose }) {
   const pathname = usePathname();
   const [connectedCount, setConnectedCount] = useState(null);
-  const [remoteOpen, setRemoteOpen] = useState(false);
   // Update banner (Option 2 restoration, audit S-14) — ported from the
   // pre-removal Sidebar: lazy /api/version check, banner in the brand area,
   // confirm modal, then a manual-update panel whose Copy & Shutdown copies
@@ -405,22 +388,6 @@ export default function Sidebar({ onClose }) {
                   </Link>
                 );
               }
-              if (item.action === "remote") {
-                return (
-                  <button
-                    key={item.key}
-                    type="button"
-                    onClick={() => setRemoteOpen(true)}
-                    className="flex w-full items-center gap-2.5 px-2.5 py-[7px] rounded-md mb-px text-[13px] font-medium transition-colors text-sidebar-text hover:bg-sidebar-hover hover:text-white"
-                  >
-                    <SpecIcon className="shrink-0 opacity-75">{item.icon}</SpecIcon>
-                    <span>{item.label}</span>
-                    <span className="ml-auto font-mono text-[10.5px] font-semibold px-1.5 py-px rounded-full bg-white text-[#101418]">
-                      HOT
-                    </span>
-                  </button>
-                );
-              }
               return (
                 <Link
                   key={item.key}
@@ -462,8 +429,6 @@ export default function Sidebar({ onClose }) {
         <span className="font-mono text-[#9aa3ab]">v{APP_CONFIG.version}</span>
       </div>
     </aside>
-
-    <NineRemotePromoModal isOpen={remoteOpen} onClose={() => setRemoteOpen(false)} />
 
     {/* Update Confirmation Modal (S-14) */}
     <ConfirmModal

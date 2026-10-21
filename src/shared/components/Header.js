@@ -7,7 +7,6 @@ import HeaderMenu from "@/shared/components/HeaderMenu";
 import HeaderGridMenu from "@/shared/components/HeaderGridMenu";
 import HeaderLanguage from "@/shared/components/HeaderLanguage";
 import HeaderSearch from "@/shared/components/HeaderSearch";
-import DonateModal from "@/shared/components/DonateModal";
 import ThemeToggle from "@/shared/components/ThemeToggle";
 import SpecIcon from "@/shared/components/SpecIcon";
 import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
@@ -65,7 +64,6 @@ export default function Header({ onMenuClick, showMenuButton = true }) {
   const pathname = usePathname();
   const [displayName, setDisplayName] = useState("");
   const [loginMethod, setLoginMethod] = useState("");
-  const [donateOpen, setDonateOpen] = useState(false);
 
   const title = useMemo(() => getPageTitle(pathname), [pathname]);
 
@@ -133,7 +131,7 @@ export default function Header({ onMenuClick, showMenuButton = true }) {
       <div className="flex-1" />
 
       {/* Right cluster — endpoint chip + avatar (spec) + Option 2 restoration extras:
-          SSO identity chip (conditional), HeaderSearch (conditional), Donate,
+          SSO identity chip (conditional), HeaderSearch (conditional),
           theme toggle, language switcher, grid menu. Spec items keep their order;
           extras are additions only. */}
       <div className="flex items-center gap-2 min-[821px]:gap-3.5 shrink-0">
@@ -151,20 +149,11 @@ export default function Header({ onMenuClick, showMenuButton = true }) {
           </div>
         )}
         <HeaderSearch />
-        <button
-          onClick={() => setDonateOpen(true)}
-          className="hidden sm:flex items-center gap-1.5 px-3 h-8 rounded-lg border border-border-strong bg-surface-2 text-text-main hover:bg-surface-3 transition-colors text-sm font-medium"
-          aria-label="Donate"
-        >
-          <span className="material-symbols-outlined text-[18px]">volunteer_activism</span>
-          <span className="hidden md:inline">Donate</span>
-        </button>
         <ThemeToggle />
         <HeaderLanguage />
         <HeaderGridMenu onLogout={handleLogout} />
         <HeaderMenu onLogout={handleLogout} displayName={displayName} />
       </div>
-      <DonateModal isOpen={donateOpen} onClose={() => setDonateOpen(false)} />
     </header>
   );
 }
