@@ -136,21 +136,23 @@ export async function resolveConnectionProxyConfig(
         proxyUrl;
 
       // Phase 4 (PP-04/PP-07): endpoint pools route through one healthy
-      // endpoint chosen by the pool's rotation. A pool whose endpoints
-      // all failed their last probe is skipped like an unusable pool —
-      // except a strict pool still reports strictProxy below, so the
-      // request fails closed instead of leaking to direct (#4333).
+      // endpoint chosen by the pool's rotation. Health is advisory, as it
+      // was upstream (testStatus never gated routing there): when every
+      // endpoint is error-marked, a non-strict pool still routes through
+      // its endpoints rather than silently dropping to direct — only a
+      // strict pool fails closed in that state (#4333).
       const isRelayPool = proxyPool && ["vercel", "cloudflare", "deno", "netlify"].includes(proxyPool.type);
       if (isValidPool && !isRelayPool) {
         const endpoints = Array.isArray(proxyPool.endpoints) ? proxyPool.endpoints : [];
         if (endpoints.length > 0) {
           const healthy = endpoints.filter((e) => e.testStatus !== "error");
-          if (healthy.length === 0) {
+          if (healthy.length === 0 && proxyPool.strictProxy === true) {
             isValidPool = false;
           } else {
+            const candidates = healthy.length > 0 ? healthy : endpoints;
             const chosen = pickPoolEndpoint(
               proxyPool,
-              healthy,
+              candidates,
               JSON.stringify(providerSpecificData || {})
             );
             if (chosen) {

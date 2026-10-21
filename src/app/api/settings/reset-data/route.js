@@ -39,6 +39,21 @@ export async function POST() {
     await resetTelemetry();
     await resetQuotaSnapshots();
 
+    // The wipe emptied the API-key table. Re-provision the out-of-the-box
+    // "Default Key" in this same request — the boot-time provisioning in
+    // src/instrumentation.js only runs at server start, and without a key
+    // the instance would sit at zero keys (every model test 401s) until a
+    // restart. Same calls the /api/keys route uses; never fail the reset
+    // over it.
+    try {
+      const { getApiKeys, createApiKey } = await import("@/lib/localDb");
+      const { getConsistentMachineId } = await import("@/shared/utils/machineId");
+      const keys = await getApiKeys();
+      if (!keys || keys.length === 0) {
+        await createApiKey("Default Key", await getConsistentMachineId());
+      }
+    } catch { /* key re-provisioning is best-effort */ }
+
     return NextResponse.json({ ok: true, deleted });
   } catch (error) {
     console.log("Error resetting router data:", error);

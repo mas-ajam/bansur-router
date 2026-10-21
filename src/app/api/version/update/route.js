@@ -14,8 +14,16 @@ export async function POST() {
     await killAppProcesses();
   } catch { /* best effort */ }
 
-  // Schedule detached updater then exit current server process
-  spawnUpdaterAndExit();
+  // Schedule detached updater then exit current server process.
+  // spawnUpdaterAndExit returns false when local mode forbids the update —
+  // report that honestly instead of claiming an updater started.
+  const started = await spawnUpdaterAndExit();
+  if (started === false) {
+    return NextResponse.json(
+      { success: false, message: "Update is disabled while local mode is on (no outbound calls)." },
+      { status: 409 }
+    );
+  }
 
   return NextResponse.json({ success: true, message: "Updater started. This app will exit shortly." });
 }

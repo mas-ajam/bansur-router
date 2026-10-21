@@ -122,9 +122,10 @@ export async function handleChat(request, clientRawRequest = null) {
     const comboSpecificStrategy = comboStrategies[modelStr]?.fallbackStrategy;
     const comboStrategy = comboSpecificStrategy || settings.comboStrategy || "fallback";
     // C-08: a per-combo vision adapter overrides the global vision pool
-    // for this combo's requests.
+    // for this combo's requests — but it never resurrects the adapter
+    // when the user has explicitly disabled vision globally.
     const comboRecord = await getComboByName(modelStr).catch(() => null);
-    const effectiveSettings = comboRecord?.visionAdapter
+    const effectiveSettings = comboRecord?.visionAdapter && settings.capacityAdapter?.vision?.enabled !== false
       ? { ...settings, capacityAdapter: { ...(settings.capacityAdapter || {}), vision: { enabled: true, roundRobin: false, models: [comboRecord.visionAdapter] } } }
       : settings;
     const augmentedModels = await filterAdapterModels(keyAccess, augmentModelsWithCapacityAdapter(comboModels, requiredCapabilities, effectiveSettings), comboModels);
@@ -213,7 +214,7 @@ async function handleSingleModelChat(body, modelStr, clientRawRequest = null, re
       // was made on the outer target; only drop adapter models the key may not call.
       const keyAccess = await getKeyAccessContext(request);
       const nestedComboRecord = await getComboByName(modelStr).catch(() => null);
-      const nestedEffectiveSettings = nestedComboRecord?.visionAdapter
+      const nestedEffectiveSettings = nestedComboRecord?.visionAdapter && chatSettings.capacityAdapter?.vision?.enabled !== false
         ? { ...chatSettings, capacityAdapter: { ...(chatSettings.capacityAdapter || {}), vision: { enabled: true, roundRobin: false, models: [nestedComboRecord.visionAdapter] } } }
         : chatSettings;
       const augmentedModels = await filterAdapterModels(keyAccess, augmentModelsWithCapacityAdapter(comboModels, requiredCapabilities, nestedEffectiveSettings), comboModels);
