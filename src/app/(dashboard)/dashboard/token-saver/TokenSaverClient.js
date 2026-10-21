@@ -3,13 +3,14 @@
 import { useState, useEffect, useCallback } from "react";
 import { Card, Badge, Toggle } from "@/shared/components";
 import { useNotificationStore } from "@/store/notificationStore";
+import TokenSaverExtras from "./TokenSaverExtras";
 
 // Token Saver (audit §II.9, TS-01..TS-05) — rebuilt to the artifact in
 // Phase 4. Layout: toggles card | "Compression today" card, then the
-// "Saved by output type" table. The legacy stacked sections (Caveman,
-// Ponytail, PXPIPE crosslink, Headroom proxy management) were
-// artifact-undefined surfaces and are removed per §II.24; the
-// headroomEnabled setting still drives the chat pipeline itself.
+// "Saved by output type" table. Option-2 restoration (batch 4): the
+// Headroom proxy management + Caveman/Ponytail sections return as
+// additions below (see TokenSaverExtras.js); the headroomEnabled
+// setting still drives the chat pipeline itself.
 // Stats come from the Phase 4 telemetry endpoint
 // (GET /api/token-saver/stats), recorded in-process at the RTK stage.
 
@@ -262,6 +263,11 @@ export default function TokenSaverClient() {
           error.
         </div>
       </Card>
+
+      {/* Restored extras (Option 2 batch 4): Headroom proxy management +
+          Caveman / Ponytail level controls, as additions below the spec
+          cards above. */}
+      <TokenSaverExtras />
     </div>
   );
 }

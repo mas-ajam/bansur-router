@@ -4,17 +4,17 @@ import { useCallback, useEffect, useState } from "react";
 import { Button, Card, Input, Modal, Toggle, ConfirmModal, Select } from "@/shared/components";
 import { AI_PROVIDERS } from "@/shared/constants/providers";
 import { useNotificationStore } from "@/store/notificationStore";
+import PoolExtras from "./PoolExtras";
 
 // Proxy Pools (audit §II.12, PP-01..PP-08) — rebuilt to the artifact in
 // Phase 4: one table card (Pool | Endpoints | Rotation | Health |
 // Used by | Enabled) over the Phase 4 pool model — endpoints[] with
 // per-endpoint probe results, a rotation strategy the router actually
-// consumes, and used-by provider names from the API. The legacy
-// surfaces (divided row list, view-mode toolbar, bulk bar, Batch
-// Import, relay deploy modals) were artifact-undefined and are
-// removed per §II.24. Relay pools created earlier still list and
-// resolve; only the deploy UI is gone. Pool editing lives in the
-// editor modal opened from "+ New pool" or by selecting a row.
+// consumes, and used-by provider names from the API. Option-2
+// restoration (batch 4): Batch Import + the relay deploy modals return
+// as additions in PoolExtras.js (UI only; router semantics untouched).
+// Pool editing lives in the editor modal opened from "+ New pool" or
+// by selecting a row.
 
 const ROTATION_LABELS = {
   "round-robin": "Round robin",
@@ -240,9 +240,12 @@ export default function ProxyPoolsPage() {
       </div>
 
       <Card padding="none">
-        <div className="flex items-center gap-2.5 px-[18px] py-[14px] border-b border-border">
+        <div className="flex items-center gap-2.5 px-[18px] py-[14px] border-b border-border flex-wrap">
           <h3 className="text-[13.5px] font-semibold">Pools</h3>
           <div className="flex-1" />
+          {/* Restored extras (Option 2 batch 4): Batch Import + relay
+              deploy, as additions beside the spec "+ New pool". */}
+          <PoolExtras pools={pools || []} onChanged={loadPools} />
           <Button size="sm" variant="primary" onClick={() => openEditor("new")}>
             + New pool
           </Button>

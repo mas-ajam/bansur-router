@@ -4,11 +4,13 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { Card, Badge, Toggle, Button, Input } from "@/shared/components";
 import useSettingsStore from "@/store/settingsStore";
 import { useNotificationStore } from "@/store/notificationStore";
+import PxpipeExtras from "./PxpipeExtras";
 
 // Phase-2 parity (audit PX-01..PX-03): artifact head, one status card
-// (setting-row + KV) and the four spec stat cards. The token-savings
-// chart, History table and PXPIPE Logs card are removed per PX-08 /
-// §II.24; the underlying /api/pxpipe/* endpoints are untouched.
+// (setting-row + KV) and the four spec stat cards. Option-2 restoration
+// (batch 4): the token-savings chart, History table and PXPIPE Logs
+// return as additions in PxpipeExtras.js, over the same untouched
+// /api/pxpipe/* endpoints.
 // Phase 4c (PX-02/04/05/07): "Applied to" + cache stats come from the
 // server payloads, and the Stage configuration form below writes the
 // pxpipeCacheTtlSec / pxpipeMaxPayloadMb settings the loader cache reads.
@@ -255,6 +257,10 @@ export default function PxpipeClient() {
           </Button>
         </div>
       </Card>
+
+      {/* Restored extras (Option 2 batch 4): savings chart, History and
+          Logs as additions below the spec cards. */}
+      <PxpipeExtras />
     </div>
   );
 }

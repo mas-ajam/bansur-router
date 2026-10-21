@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Card, Button, Select } from "@/shared/components";
 import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
+import TranslatorDebugger from "./TranslatorDebugger";
 
 // Sample payloads — copied from the artifact's translator JS (one per format).
 const SAMPLES = {
@@ -27,6 +28,10 @@ async function postTranslate(payload) {
 }
 
 export default function TranslatorPage() {
+  // Mode switch (Option-2 restoration batch 4): the spec two-pane
+  // converter is the default view; the pre-removal 7-step pipeline
+  // debugger returns as the advanced mode beside it.
+  const [mode, setMode] = useState("converter");
   const [from, setFrom] = useState("openai");
   const [to, setTo] = useState("claude");
   const [source, setSource] = useState(() => JSON.stringify(SAMPLES.openai, null, 2));
@@ -125,6 +130,34 @@ export default function TranslatorPage() {
         <p className="mt-1 text-[13.5px] text-text-muted max-w-[640px]">The router converts between provider formats on the fly. Paste a request on the left and see exactly what another provider receives.</p>
       </div>
 
+      {/* Mode switch: spec converter (default) / pipeline debugger */}
+      <div className="flex items-center gap-1 rounded-lg border border-border bg-surface-2 p-1 self-start mb-3.5">
+        <button
+          onClick={() => setMode("converter")}
+          className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
+            mode === "converter"
+              ? "bg-brand-500 text-on-brand"
+              : "text-text-muted hover:text-text-main"
+          }`}
+        >
+          Converter
+        </button>
+        <button
+          onClick={() => setMode("debugger")}
+          className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
+            mode === "debugger"
+              ? "bg-brand-500 text-on-brand"
+              : "text-text-muted hover:text-text-main"
+          }`}
+        >
+          Pipeline debugger
+        </button>
+      </div>
+
+      {mode === "debugger" ? (
+        <TranslatorDebugger />
+      ) : (
+      <>
       {/* Toolbar */}
       <div className="flex items-center gap-2.5 flex-wrap mb-3.5">
         <div className="w-full max-w-[210px]">
@@ -175,6 +208,8 @@ export default function TranslatorPage() {
           </div>
         </Card>
       </div>
+      </>
+      )}
     </div>
   );
 }

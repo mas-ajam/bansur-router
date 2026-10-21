@@ -449,13 +449,22 @@ export default function CLIToolsPageClient({ machineId }) {
 
               <div className="flex items-center gap-2.5 mt-3.5">
                 {isMitm ? (
+                  // MITM tools have no detail route — pre-removal they
+                  // routed into the MITM flows (MitmLinkCard → /dashboard/mitm).
                   <Link href="/dashboard/mitm">
                     <Button variant="secondary" size="sm">Open MITM</Button>
                   </Link>
                 ) : (
-                  <Button variant="secondary" size="sm" onClick={() => copy(config.copyText, `cli-${tool.id}`)}>
-                    {config.copyLabel}
-                  </Button>
+                  <>
+                    <Button variant="secondary" size="sm" onClick={() => copy(config.copyText, `cli-${tool.id}`)}>
+                      {config.copyLabel}
+                    </Button>
+                    {/* Restored (Option 2 batch 4): the per-tool detail
+                        pages return; the spec copy buttons stay. */}
+                    <Link href={`/dashboard/cli-tools/${tool.id}`}>
+                      <Button variant="secondary" size="sm">Details</Button>
+                    </Link>
+                  </>
                 )}
                 {config.hint && <span className="text-xs text-text-muted">{config.hint}</span>}
               </div>
