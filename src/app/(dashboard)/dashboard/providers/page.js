@@ -17,6 +17,7 @@ import {
 import Link from "next/link";
 import { getErrorCode } from "@/shared/utils";
 import { useNotificationStore } from "@/store/notificationStore";
+import { useHeaderSearchStore } from "@/store/headerSearchStore";
 import AddCompatibleModal from "./components/AddCompatibleModal";
 
 function getConnectionErrorTag(connection) {
@@ -138,11 +139,27 @@ export default function ProvidersPage() {
   const [activeTab, setActiveTab] = useState("all");
   const [searchText, setSearchText] = useState("");
   const notify = useNotificationStore();
+  // Option 2 restoration: the topbar HeaderSearch (batch 2) registers on
+  // this page again — its original surface. The header query filters
+  // alongside the P-01 page-local field below; either one narrows the list.
+  const headerQuery = useHeaderSearchStore((s) => s.query);
+  const registerSearch = useHeaderSearchStore((s) => s.register);
+  const unregisterSearch = useHeaderSearchStore((s) => s.unregister);
+
+  useEffect(() => {
+    registerSearch("Search providers...");
+    return () => unregisterSearch();
+  }, [registerSearch, unregisterSearch]);
+
+  const effectiveSearch = [searchText, headerQuery]
+    .map((q) => (q || "").trim().toLowerCase())
+    .filter(Boolean);
 
   const matchSearch = (name) => {
-    if (!searchText.trim()) return true;
+    if (effectiveSearch.length === 0) return true;
     if (!name) return false;
-    return name.toLowerCase().includes(searchText.trim().toLowerCase());
+    const lower = name.toLowerCase();
+    return effectiveSearch.every((q) => lower.includes(q));
   };
 
   const sortByPriority = (entries, authType) =>
@@ -443,7 +460,7 @@ export default function ProvidersPage() {
     if (group.cards.length > 0) return true;
     // Keep the Self-hosted group reachable with no search active so the
     // custom-endpoint create flow (AddCompatibleModal) always has a home.
-    return group.cat === "self" && !searchText.trim();
+    return group.cat === "self" && effectiveSearch.length === 0;
   });
 
   return (

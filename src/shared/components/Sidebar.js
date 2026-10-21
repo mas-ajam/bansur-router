@@ -5,9 +5,13 @@ import PropTypes from "prop-types";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/shared/utils/cn";
-import { APP_CONFIG } from "@/shared/constants/config";
+import { APP_CONFIG, UPDATER_CONFIG } from "@/shared/constants/config";
+import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
 import LogoMark from "./LogoMark";
 import SpecIcon from "./SpecIcon";
+import Button from "./Button";
+import { ConfirmModal } from "./Modal";
+import NineRemotePromoModal from "./NineRemotePromoModal";
 
 /* Nav structure, order, badges and icons follow the Bansur Router Dashboard
    artifact exactly (5 groups: Gateway / Observe / Optimize / Tools / System).
@@ -193,6 +197,21 @@ const NAV_GROUPS = [
         ),
       },
       {
+        // Option 2 restoration (§II.24): Bansur Remote sat in the pre-removal
+        // System section after the debug items, before Settings — in the
+        // current 5-group nav that is System, after MITM, before Profile.
+        // It opens the restored promo modal instead of navigating.
+        key: "remote",
+        label: "Bansur Remote",
+        action: "remote",
+        icon: (
+          <>
+            <rect x="3" y="4" width="18" height="12" rx="2" />
+            <path d="M9 20h6M12 16v4" />
+          </>
+        ),
+      },
+      {
         key: "profile",
         href: "/dashboard/profile",
         label: "Profile",
@@ -221,6 +240,59 @@ const NAV_GROUPS = [
 export default function Sidebar({ onClose }) {
   const pathname = usePathname();
   const [connectedCount, setConnectedCount] = useState(null);
+  const [remoteOpen, setRemoteOpen] = useState(false);
+  // Update banner (Option 2 restoration, audit S-14) — ported from the
+  // pre-removal Sidebar: lazy /api/version check, banner in the brand area,
+  // confirm modal, then a manual-update panel whose Copy & Shutdown copies
+  // the install command and stops the server via /api/version/shutdown.
+  const [updateInfo, setUpdateInfo] = useState(null);
+  const [showUpdateModal, setShowUpdateModal] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [isDisconnected, setIsDisconnected] = useState(false);
+  const [shutdownCountdown, setShutdownCountdown] = useState(0);
+  const { copied, copy } = useCopyToClipboard(2000);
+
+  const INSTALL_CMD = UPDATER_CONFIG.installCmdLatest;
+
+  // Lazy check for a new version in the background after initial render.
+  // /api/version is localMode-aware: in Local Mode it reports no update,
+  // so the banner stays hidden exactly as pre-removal.
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fetch("/api/version")
+        .then((res) => res.json())
+        .then((data) => { if (data.hasUpdate) setUpdateInfo(data); })
+        .catch(() => {});
+    }, 2500);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Open the manual update panel (no countdown yet — Copy triggers shutdown)
+  const handleUpdate = () => {
+    setShowUpdateModal(false);
+    setIsUpdating(true);
+  };
+
+  // Copy button inside ManualUpdatePanel: copy + countdown + shutdown
+  const handleCopyAndShutdown = async () => {
+    copy(INSTALL_CMD);
+    let remaining = UPDATER_CONFIG.shutdownCountdownSec;
+    setShutdownCountdown(remaining);
+    const timer = setInterval(() => {
+      remaining -= 1;
+      setShutdownCountdown(remaining);
+      if (remaining <= 0) {
+        clearInterval(timer);
+        fetch("/api/version/shutdown", { method: "POST" }).catch(() => {});
+        setIsDisconnected(true);
+      }
+    }, 1000);
+  };
+
+  const handleCancelUpdate = () => {
+    setIsUpdating(false);
+    setShutdownCountdown(0);
+  };
 
   // Providers badge ("{n} connected") — real count from /api/providers
   useEffect(() => {
@@ -269,9 +341,10 @@ export default function Sidebar({ onClose }) {
   };
 
   return (
+    <>
     <aside className="flex w-[236px] shrink-0 flex-col bg-sidebar-bg text-sidebar-text h-full">
-      {/* Brand */}
-      <div className="px-[18px] pt-[18px] pb-3.5 border-b border-sidebar-border">
+      {/* Brand (+ update banner when /api/version reports one, S-14) */}
+      <div className="px-[18px] pt-[18px] pb-3.5 border-b border-sidebar-border flex flex-col gap-3">
         <Link href="/dashboard" className="flex items-center gap-[11px]">
           <LogoMark size={38} className="text-white shrink-0" />
           <div className="flex flex-col leading-[1.15]">
@@ -279,6 +352,30 @@ export default function Sidebar({ onClose }) {
             <span className="text-[11px] tracking-[0.06em] text-sidebar-muted">ROUTER</span>
           </div>
         </Link>
+        {updateInfo && (
+          <div className="flex flex-col gap-1.5 rounded p-1 -m-1">
+            <span className="text-xs font-semibold text-white">
+              ↑ New version available: v{updateInfo.latestVersion}
+            </span>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setShowUpdateModal(true)}
+                className="px-2 py-1 rounded bg-white hover:bg-[#e7e7e9] text-[#101418] text-[11px] font-semibold transition-colors cursor-pointer"
+              >
+                Update now
+              </button>
+              <button
+                onClick={() => copy(INSTALL_CMD)}
+                title="Copy install command"
+                className="flex-1 text-left hover:opacity-80 transition-opacity cursor-pointer min-w-0"
+              >
+                <code className="block text-[10px] text-sidebar-muted font-mono truncate">
+                  {copied ? "✓ copied!" : INSTALL_CMD}
+                </code>
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Navigation */}
@@ -306,6 +403,22 @@ export default function Sidebar({ onClose }) {
                   >
                     <span>{item.label}</span>
                   </Link>
+                );
+              }
+              if (item.action === "remote") {
+                return (
+                  <button
+                    key={item.key}
+                    type="button"
+                    onClick={() => setRemoteOpen(true)}
+                    className="flex w-full items-center gap-2.5 px-2.5 py-[7px] rounded-md mb-px text-[13px] font-medium transition-colors text-sidebar-text hover:bg-sidebar-hover hover:text-white"
+                  >
+                    <SpecIcon className="shrink-0 opacity-75">{item.icon}</SpecIcon>
+                    <span>{item.label}</span>
+                    <span className="ml-auto font-mono text-[10.5px] font-semibold px-1.5 py-px rounded-full bg-white text-[#101418]">
+                      HOT
+                    </span>
+                  </button>
                 );
               }
               return (
@@ -349,9 +462,111 @@ export default function Sidebar({ onClose }) {
         <span className="font-mono text-[#9aa3ab]">v{APP_CONFIG.version}</span>
       </div>
     </aside>
+
+    <NineRemotePromoModal isOpen={remoteOpen} onClose={() => setRemoteOpen(false)} />
+
+    {/* Update Confirmation Modal (S-14) */}
+    <ConfirmModal
+      isOpen={showUpdateModal}
+      onClose={() => setShowUpdateModal(false)}
+      onConfirm={handleUpdate}
+      title="Update Bansur Router"
+      message={`Show install command for v${updateInfo?.latestVersion || ""}? You can copy it and shutdown to install manually.`}
+      confirmText="Show Command"
+      cancelText="Cancel"
+      variant="primary"
+    />
+
+    {/* Disconnected / Updating Overlay (S-14) */}
+    {(isDisconnected || isUpdating) && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-6">
+        {isUpdating ? (
+          <ManualUpdatePanel
+            latestVersion={updateInfo?.latestVersion}
+            installCmd={INSTALL_CMD}
+            copied={!!copied}
+            onCopyAndShutdown={handleCopyAndShutdown}
+            onCancel={handleCancelUpdate}
+            countdown={shutdownCountdown}
+            isDisconnected={isDisconnected}
+          />
+        ) : (
+          <div className="text-center p-8">
+            <div className="flex items-center justify-center size-16 rounded-full bg-white/10 text-white mx-auto mb-4">
+              <span className="material-symbols-outlined text-[32px]">power_off</span>
+            </div>
+            <h2 className="text-xl font-semibold text-white mb-2">Server Disconnected</h2>
+            <p className="text-white/60 mb-6">The proxy server has been stopped.</p>
+            <Button variant="secondary" onClick={() => globalThis.location.reload()}>
+              Reload Page
+            </Button>
+          </div>
+        )}
+      </div>
+    )}
+    </>
   );
 }
 
 Sidebar.propTypes = {
   onClose: PropTypes.func,
+};
+
+function ManualUpdatePanel({ latestVersion, installCmd, copied, onCopyAndShutdown, onCancel, countdown, isDisconnected }) {
+  const isCountingDown = countdown > 0;
+  return (
+    <div className="w-full max-w-lg rounded-xl bg-neutral-900/95 border border-white/10 p-6 text-white">
+      <div className="flex items-center gap-3 mb-4">
+        <div className="flex items-center justify-center size-11 rounded-full bg-white/10 text-white">
+          <span className="material-symbols-outlined text-[24px]">content_copy</span>
+        </div>
+        <div>
+          <h2 className="text-lg font-semibold">Update Bansur Router{latestVersion ? ` to v${latestVersion}` : ""}</h2>
+          <p className="text-xs text-white/60">
+            {isDisconnected
+              ? "Server stopped. Paste the command into a terminal to install."
+              : isCountingDown
+                ? `Command copied. Server will stop in ${countdown}s...`
+                : "Click the button below to copy the install command and shutdown."}
+          </p>
+        </div>
+      </div>
+
+      <p className="text-sm text-white/80 mb-2">Install command:</p>
+      <div className="w-full px-3 py-2 rounded bg-white/5 mb-4">
+        <code className="text-xs font-mono text-white break-all">{installCmd}</code>
+      </div>
+
+      <ol className="text-xs text-white/70 space-y-1 list-decimal list-inside mb-4">
+        <li>Click <strong>Copy & Shutdown</strong> below.</li>
+        <li>Paste the command into your terminal and press Enter.</li>
+        <li>Run <code className="px-1 rounded bg-white/10 text-white">bansur-router</code> again after install.</li>
+      </ol>
+
+      {isDisconnected ? (
+        <Button variant="secondary" fullWidth onClick={() => globalThis.location.reload()}>
+          Reload Page
+        </Button>
+      ) : (
+        <div className="flex gap-2">
+          <Button variant="secondary" onClick={onCancel} disabled={isCountingDown}>
+            Cancel
+          </Button>
+          <Button variant="primary" fullWidth onClick={onCopyAndShutdown} disabled={isCountingDown}>
+            {copied ? "✓ Copied — shutting down..." : isCountingDown ? `Shutting down in ${countdown}s` : "Copy & Shutdown"}
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+ManualUpdatePanel.propTypes = {
+  latestVersion: PropTypes.string,
+  installCmd: PropTypes.string.isRequired,
+  copied: PropTypes.bool,
+  onCopyAndShutdown: PropTypes.func.isRequired,
+  onCancel: PropTypes.func.isRequired,
+  countdown: PropTypes.number,
+  isDisconnected: PropTypes.bool,
 };
