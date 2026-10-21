@@ -19,6 +19,7 @@ import { getErrorCode } from "@/shared/utils";
 import { useNotificationStore } from "@/store/notificationStore";
 import { useHeaderSearchStore } from "@/store/headerSearchStore";
 import AddCompatibleModal from "./components/AddCompatibleModal";
+import ModelAvailabilityBadge from "./components/ModelAvailabilityBadge";
 
 function getConnectionErrorTag(connection) {
   if (!connection) return null;
@@ -134,6 +135,9 @@ export default function ProvidersPage() {
   const [showAddAnthropicCompatibleModal, setShowAddAnthropicCompatibleModal] =
     useState(false);
   const [testingMode, setTestingMode] = useState(null);
+  // Option 2 restoration (batch 3, P-13): batch-test results state for
+  // the restored Test Results modal.
+  const [testResults, setTestResults] = useState(null);
   // P-01: page-local toolbar state (pill-tabs + search), replacing the
   // status Select and the topbar-search coupling.
   const [activeTab, setActiveTab] = useState("all");
@@ -253,12 +257,15 @@ export default function ProvidersPage() {
     return { connected, error, total, errorCode, errorTime, allDisabled, plan, remainingPct, keySuffix };
   };
 
-  // Per-provider test (P-08 `Test` button): the existing test-batch
-  // endpoint with a single provider. P-13: results surface as a toast —
-  // the Test Results modal is removed.
+  // Batch test (P-08 per-card `Test` button + restored page-head
+  // "Test All"): the existing test-batch endpoint (which also persists
+  // per-provider last-test). Option 2 restoration (batch 3, P-13):
+  // results surface in the restored Test Results modal, with the
+  // summary toast kept alongside.
   const handleBatchTest = async (mode, providerId = null) => {
     if (testingMode) return;
     setTestingMode(mode === "provider" ? providerId : mode);
+    setTestResults(null);
     try {
       const res = await fetch("/api/providers/test-batch", {
         method: "POST",
@@ -266,6 +273,7 @@ export default function ProvidersPage() {
         body: JSON.stringify({ mode, providerId }),
       });
       const data = await res.json();
+      setTestResults(data);
       if (data.summary) {
         const { passed, failed, total } = data.summary;
         if (total === 0) notify.info("No active connections to test");
@@ -275,6 +283,7 @@ export default function ProvidersPage() {
         notify.error("Provider test failed");
       }
     } catch (error) {
+      setTestResults({ error: "Test request failed" });
       notify.error("Provider test failed");
     } finally {
       setTestingMode(null);
@@ -469,6 +478,23 @@ export default function ProvidersPage() {
       <div className="mb-5">
         <h2 className="text-xl font-semibold tracking-[-0.01em] text-text-main">Providers</h2>
         <p className="mt-1 text-[13.5px] text-text-muted max-w-[640px]">Connect subscription accounts, free tiers, and API keys. Bansur Router rotates across accounts and falls back down the tiers automatically.</p>
+        {/* Restored page-head actions (batch 3): ModelAvailabilityBadge
+            (a global singleton — it polls /api/models/availability for
+            every provider, so it renders once here rather than per
+            card; pre-removal it sat in the OAuth group header) and the
+            "Test All" batch test (P-13). */}
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <ModelAvailabilityBadge />
+          <Button
+            size="sm"
+            variant="secondary"
+            icon="play_arrow"
+            onClick={() => handleBatchTest("all")}
+            disabled={!!testingMode}
+          >
+            {testingMode === "all" ? "Testing..." : "Test All"}
+          </Button>
+        </div>
       </div>
 
       {/* P-01: spec toolbar — pill-tabs + page-local search */}
@@ -575,6 +601,34 @@ export default function ProvidersPage() {
           )}
         </div>
       ))}
+
+      {/* Test Results Modal (restored, P-13) */}
+      {testResults && (
+        <div
+          className="fixed inset-0 z-50 flex items-start justify-center px-3 pt-[6vh] sm:pt-[10vh]"
+          onClick={() => setTestResults(null)}
+        >
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+          <div
+            className="relative bg-surface border border-border rounded-xl w-full max-w-[600px] max-h-[86vh] sm:max-h-[80vh] overflow-y-auto shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="sticky top-0 z-10 flex items-center justify-between px-5 py-3 border-b border-border bg-surface/95 backdrop-blur-sm rounded-t-xl">
+              <h3 className="font-semibold">Test Results</h3>
+              <button
+                onClick={() => setTestResults(null)}
+                className="p-1 rounded-lg hover:bg-bg text-text-muted hover:text-text-main transition-colors"
+                aria-label="Close test results"
+              >
+                <span className="material-symbols-outlined text-lg">close</span>
+              </button>
+            </div>
+            <div className="p-5">
+              <ProviderTestResultsView results={testResults} />
+            </div>
+          </div>
+        </div>
+      )}
 
       <AddCompatibleModal
         variant="openai"
@@ -702,4 +756,95 @@ ProviderCard.propTypes = {
   descriptor: PropTypes.string,
   onTest: PropTypes.func.isRequired,
   testing: PropTypes.bool,
+};
+
+// Restored (batch 3, P-13): the test-results list rendered inside the
+// Test Results modal, ported from the pre-removal implementation.
+function ProviderTestResultsView({ results }) {
+  if (results.error && !results.results) {
+    return (
+      <div className="text-center py-6">
+        <span className="material-symbols-outlined text-text-main text-[32px] mb-2 block">
+          error
+        </span>
+        <p className="text-sm text-text-main">{results.error}</p>
+      </div>
+    );
+  }
+
+  const { summary, mode } = results;
+  const items = results.results || [];
+  const modeLabel =
+    {
+      oauth: "OAuth",
+      free: "Free",
+      apikey: "API Key",
+      provider: "Provider",
+      all: "All",
+    }[mode] || mode;
+
+  return (
+    <div className="flex min-w-0 flex-col gap-3">
+      {summary && (
+        <div className="flex flex-wrap items-center gap-2 text-xs mb-1 sm:gap-3">
+          <span className="text-text-muted">{modeLabel} Test</span>
+          <span className="px-2 py-0.5 rounded bg-surface-2 text-text-main font-medium">
+            {summary.passed} passed
+          </span>
+          {summary.failed > 0 && (
+            <span className="px-2 py-0.5 rounded bg-surface-2 text-text-main font-medium">
+              {summary.failed} failed
+            </span>
+          )}
+          <span className="text-text-muted sm:ml-auto">
+            {summary.total} tested
+          </span>
+        </div>
+      )}
+      {items.map((r, i) => (
+        <div
+          key={r.connectionId || i}
+          className="flex min-w-0 flex-wrap items-center gap-2 rounded-lg bg-black/[0.03] px-3 py-2 text-xs dark:bg-white/[0.03] sm:flex-nowrap"
+        >
+          <span className="material-symbols-outlined text-[16px] text-text-main">
+            {r.valid ? "check_circle" : "error"}
+          </span>
+          <div className="min-w-0 flex-[1_1_160px]">
+            <span className="block truncate font-medium sm:inline">
+              {r.connectionName}
+            </span>
+            <span className="block truncate text-text-muted sm:ml-1.5 sm:inline">
+              ({r.provider})
+            </span>
+          </div>
+          {r.latencyMs !== undefined && (
+            <span className="shrink-0 text-text-muted font-mono tabular-nums">
+              {r.latencyMs}ms
+            </span>
+          )}
+          <span className="shrink-0 text-[10px] uppercase font-bold px-1.5 py-0.5 rounded bg-surface-2 text-text-main">
+            {r.valid ? "OK" : r.diagnosis?.type || "ERROR"}
+          </span>
+        </div>
+      ))}
+      {items.length === 0 && (
+        <div className="text-center py-4 text-text-muted text-sm">
+          No active connections found for this group.
+        </div>
+      )}
+    </div>
+  );
+}
+
+ProviderTestResultsView.propTypes = {
+  results: PropTypes.shape({
+    mode: PropTypes.string,
+    results: PropTypes.array,
+    summary: PropTypes.shape({
+      total: PropTypes.number,
+      passed: PropTypes.number,
+      failed: PropTypes.number,
+    }),
+    error: PropTypes.string,
+  }).isRequired,
 };

@@ -1,14 +1,19 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { Card, SegmentedControl } from "@/shared/components";
+import { Card, SegmentedControl, RequestLogger } from "@/shared/components";
 import { AI_PROVIDERS } from "@/shared/constants/providers";
+import TopologySection from "./components/TopologySection";
+import RequestDetailsTab from "./components/RequestDetailsTab";
 
 // Phase 3 — Usage restructure (audit §II.10, U-01..U-06).
 // Single fixed "last 7 days" scroll page: stats -> chart -> two tables.
-// Removed per §II.24 / U-02 / U-05: tabs, period SegmentedControl,
-// RequestLogger, RequestDetailsTab, ProviderTopology (imports dropped;
-// the shared UsageStats component is no longer imported here).
+// Option 2 restoration (batch 3): the U-05/U-07 extras return as
+// ADDITIONS — a small tab switch ("Overview" = the spec content below,
+// unchanged and still the default; "Request Logger" = RequestLogger +
+// RequestDetailsTab, whose rows open the Request Details modal) and
+// the ProviderTopology graph as an extra section at the end of the
+// Overview scroll. The period SegmentedControl stays removed.
 // Phase 4 closed the class-C flags: U-03 "Time saved by fallback" and
 // the success-rate delta's "recovered by fallback" count read the
 // fallback aggregates on /api/usage/stats?period=7d (telemetry store,
@@ -83,6 +88,9 @@ const tdClass = "px-3.5 py-2.5 border-b border-border align-middle";
 const tdNumClass = `${tdClass} text-right font-mono text-[12.5px]`;
 
 export default function UsagePage() {
+  // Restored tab switch: "overview" renders the spec content exactly as
+  // before; "logger" swaps in the Request Logger view.
+  const [view, setView] = useState("overview");
   const [stats, setStats] = useState(null);
   const [chart, setChart] = useState([]);
   const [chartMode, setChartMode] = useState("requests");
@@ -213,6 +221,27 @@ export default function UsagePage() {
         </p>
       </div>
 
+      {/* Restored tab switch (batch 3): Overview keeps the spec
+          single-scroll content; Request Logger is the added view. */}
+      <div className="mb-3.5">
+        <SegmentedControl
+          options={[
+            { value: "overview", label: "Overview" },
+            { value: "logger", label: "Request Logger" },
+          ]}
+          value={view}
+          onChange={setView}
+        />
+      </div>
+
+      {view === "logger" ? (
+        <div className="flex flex-col gap-6">
+          <RequestLogger />
+          {/* Request Details (U-07): filterable request-details table;
+              each row's Detail action opens the Request Details modal. */}
+          <RequestDetailsTab />
+        </div>
+      ) : (
       <div className="flex flex-col gap-3.5">
         {/* Stat cards */}
         <div className="grid gap-3.5 grid-cols-1 min-[561px]:grid-cols-2 min-[1081px]:grid-cols-4">
@@ -446,7 +475,12 @@ export default function UsagePage() {
             </div>
           </Card>
         </div>
+
+        {/* Restored extra (U-05): ProviderTopology graph as an
+            additional section under the spec content. */}
+        <TopologySection />
       </div>
+      )}
     </div>
   );
 }

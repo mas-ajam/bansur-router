@@ -6,12 +6,16 @@ import { Card, Button, CardSkeleton, Toggle } from "@/shared/components";
 import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
 import { useNotificationStore } from "@/store/notificationStore";
 import useSettingsStore from "@/store/settingsStore";
+import TunnelControls from "./components/TunnelControls";
+import AllKeysSection from "./components/AllKeysSection";
 
 // Phase-2 parity (audit E-01..E-07): one Endpoint card (URL box + KV +
 // the two tunnel-related setting-rows) and one Dashboard API key card
-// (primary key only). The tunnel/Tailscale state machines, security
-// banners, multi-key list and modals are removed per §II.24 / E-08; the
-// underlying settings and keys keep working through the same endpoints.
+// (primary key only).
+// Option 2 restoration (batch 3): the E-08 extras return as ADDITIONS
+// below the spec cards — TunnelControls (tunnel/Tailscale state
+// machines + SecurityWarning banners) and AllKeysSection (all-keys
+// list with create/toggle/delete + KeyAccessControls).
 
 function maskDashboardKey(fullKey) {
   if (!fullKey) return "";
@@ -315,7 +319,7 @@ export default function APIPageClient({ machineId }) {
 
       <div className="grid gap-3.5 grid-cols-1 min-[821px]:grid-cols-2 items-start">
         {/* Endpoint Card */}
-        <Card>
+        <Card id="require-api-key">
           <h3 className="text-[13.5px] font-semibold mb-3.5">Endpoint</h3>
 
           <div className="flex items-center gap-2.5 border border-border-strong rounded-md px-3 py-2.5 bg-surface-2">
@@ -403,6 +407,16 @@ export default function APIPageClient({ machineId }) {
           </div>
         </Card>
       </div>
+
+      {/* Restored extras (E-08): tunnel/Tailscale state machines +
+          SecurityWarning banners, as additional cards below the spec
+          endpoint card. The tunnel-dashboard-access toggle stays in the
+          spec card above (single owner for that setting). */}
+      <TunnelControls requireApiKey={requireApiKey} />
+
+      {/* Restored extras (E-08): full secondary-key management under the
+          spec Dashboard API key card. */}
+      <AllKeysSection keys={keys} onRefresh={fetchData} requireApiKey={requireApiKey} />
 
       {/* Try it */}
       <Card padding="none">
