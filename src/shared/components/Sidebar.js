@@ -269,7 +269,7 @@ export default function Sidebar({ onClose }) {
   };
 
   return (
-    <aside className="flex w-[236px] shrink-0 flex-col bg-sidebar-bg text-sidebar-text min-h-full">
+    <aside className="flex w-[236px] shrink-0 flex-col bg-sidebar-bg text-sidebar-text h-full">
       {/* Brand */}
       <div className="px-[18px] pt-[18px] pb-3.5 border-b border-sidebar-border">
         <Link href="/dashboard" className="flex items-center gap-[11px]">
@@ -282,7 +282,7 @@ export default function Sidebar({ onClose }) {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 px-2.5 py-3 overflow-y-auto scrollbar-none">
+      <nav className="flex-1 min-h-0 px-2.5 py-3 overflow-y-auto scrollbar-none">
         {NAV_GROUPS.map((group) => (
           <div key={group.label}>
             <p className="px-2.5 pt-3.5 pb-1.5 text-[10.5px] font-semibold uppercase tracking-[0.14em] text-[#5d666e]">

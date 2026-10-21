@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import PropTypes from "prop-types";
 import HeaderMenu from "@/shared/components/HeaderMenu";
 import SpecIcon from "@/shared/components/SpecIcon";
+import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
 import { OAUTH_PROVIDERS, APIKEY_PROVIDERS } from "@/shared/constants/config";
 import { AI_PROVIDERS } from "@/shared/constants/providers";
 import { translate } from "@/i18n/runtime";
@@ -131,7 +132,7 @@ export default function Header({ onMenuClick, showMenuButton = true }) {
 
 function EndpointChip() {
   const [origin, setOrigin] = useState("");
-  const [copied, setCopied] = useState(false);
+  const { copied, copy } = useCopyToClipboard(1600);
 
   useEffect(() => {
     if (typeof window !== "undefined") setOrigin(window.location.origin);
@@ -140,21 +141,13 @@ function EndpointChip() {
   if (!origin) return null;
   const url = `${origin}/v1`;
 
-  const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(url);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1600);
-    } catch { /* clipboard blocked */ }
-  };
-
   return (
     <div className="flex items-center gap-2 rounded-full border border-border-strong bg-surface py-[5px] pr-1.5 pl-3 max-[560px]:pl-[9px]">
       <span className="size-2 rounded-full bg-text-main shrink-0" aria-hidden="true" />
       <span className="max-[820px]:hidden font-mono text-xs text-text-muted whitespace-nowrap">{url}</span>
       <button
         type="button"
-        onClick={handleCopy}
+        onClick={() => copy(url)}
         className="rounded-full bg-brand-500 text-on-brand text-[11px] font-semibold px-[9px] py-[3px] hover:bg-brand-600 transition-colors"
       >
         {copied ? "Copied" : "Copy"}
